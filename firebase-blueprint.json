@@ -1,0 +1,68 @@
+{
+  "collections": {
+    "stores": {
+      "fields": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "handle": { "type": "string" },
+        "city": { "type": "string" },
+        "phone": { "type": "string" },
+        "iban": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "rules": {
+        "allowRead": "true",
+        "allowWrite": "true"
+      }
+    },
+    "items": {
+      "fields": {
+        "id": { "type": "string" },
+        "storeId": { "type": "string" },
+        "name": { "type": "string" },
+        "desc": { "type": "string" },
+        "price": { "type": "number" },
+        "unit": { "type": "string" },
+        "type": { "type": "string" },
+        "img": { "type": "string" },
+        "slot": { "type": "string" },
+        "left": { "type": "number" },
+        "badge": { "type": "string" }
+      },
+      "rules": {
+        "allowRead": "true",
+        "allowWrite": "true"
+      }
+    },
+    "orders": {
+      "fields": {
+        "id": { "type": "string" },
+        "storeId": { "type": "string" },
+        "variabilnySymbol": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "customerName": { "type": "string" },
+        "customerCity": { "type": "string" },
+        "customerTime": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "timestamp" }
+      },
+      "rules": {
+        "allowRead": "true",
+        "allowWrite": "true"
+      }
+    },
+    "config": {
+      "fields": {
+        "name": { "type": "string" },
+        "handle": { "type": "string" },
+        "city": { "type": "string" },
+        "phone": { "type": "string" }
+      },
+      "rules": {
+        "allowRead": "true",
+        "allowWrite": "true"
+      }
+    }
+  }
+}

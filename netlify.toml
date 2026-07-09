@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Serve index.html for all routes so client-side React routing works
+# (e.g. /nazovobchodu, /app, etc. all get handled by the React app)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

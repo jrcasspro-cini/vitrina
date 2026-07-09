@@ -1,0 +1,6 @@
+{
+  "name": "Vitrína",
+  "description": "Mila Sviečky - Vitrína internetového obchodu, rezervácie a objednávky cez WhatsApp",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
