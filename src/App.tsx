@@ -218,6 +218,7 @@ export default function Vitrina() {
 
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -1057,15 +1058,26 @@ export default function Vitrina() {
                     </button>
                   )}
                 </div>
-                <input
-                  type="password"
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="px-4 py-3 rounded-xl border text-sm w-full transition-all bg-slate-50/50 focus:bg-white"
-                  style={{ borderColor: C.line }}
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showAuthPassword ? "text" : "password"}
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="px-4 py-3 pr-11 rounded-xl border text-sm w-full transition-all bg-slate-50/50 focus:bg-white"
+                    style={{ borderColor: C.line }}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold px-1"
+                    style={{ color: C.soft }}
+                    tabIndex={-1}
+                  >
+                    {showAuthPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
               </div>
 
               <button
