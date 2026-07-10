@@ -333,6 +333,7 @@ export default function Vitrina() {
   });
   const [checkout, setCheckout] = useState(false);
   const [cust, setCust] = useState({ name: "", city: "", time: "", pay: "Prevod na účet" });
+  const [checkoutError, setCheckoutError] = useState("");
   const [dbError, setDbError] = useState<string>("");
 
   // Onboarding Wizard State
@@ -808,8 +809,16 @@ export default function Vitrina() {
   const waLink = `https://wa.me/${store.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(waText)}`;
 
   // Save order to Firestore orders
-  const handleCheckout = async () => {
+  const handleCheckout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!selectedStoreHandle) return;
+
+    if (!cust.name.trim() || !cust.city.trim()) {
+      e.preventDefault();
+      setCheckoutError("Prosím, vyplňte meno a mesto / adresu doručenia — predajca potrebuje vedieť, komu a kam má objednávku doručiť.");
+      return;
+    }
+    setCheckoutError("");
+
     const orderId = Date.now().toString();
 
     const orderItemsData = cartRows.map((r) => ({
@@ -1686,10 +1695,13 @@ export default function Vitrina() {
 
                 <h2 className="disp font-bold mb-3">Tvoje údaje</h2>
                 <div className="flex flex-col gap-2">
-                  <input value={cust.name} onChange={(e) => setCust({ ...cust, name: e.target.value })} placeholder="Meno a priezvisko"
-                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}`, background: C.bg }} />
-                  <input value={cust.city} onChange={(e) => setCust({ ...cust, city: e.target.value })} placeholder="Mesto / adresa doručenia"
-                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}`, background: C.bg }} />
+                  <input value={cust.name} onChange={(e) => { setCust({ ...cust, name: e.target.value }); if (checkoutError) setCheckoutError(""); }} placeholder="Meno a priezvisko *"
+                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${checkoutError && !cust.name.trim() ? "#DC2626" : C.line}`, background: C.bg }} />
+                  <input value={cust.city} onChange={(e) => { setCust({ ...cust, city: e.target.value }); if (checkoutError) setCheckoutError(""); }} placeholder="Mesto / adresa doručenia *"
+                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${checkoutError && !cust.city.trim() ? "#DC2626" : C.line}`, background: C.bg }} />
+                  {checkoutError && (
+                    <p className="text-xs font-semibold text-red-600 -mt-0.5">⚠️ {checkoutError}</p>
+                  )}
                 </div>
 
                 {/* ── QR Platba ak má obchod IBAN ── */}
