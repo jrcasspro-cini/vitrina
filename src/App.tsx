@@ -1768,12 +1768,12 @@ export default function Vitrina() {
                 </div>
 
                 <a
-                  href={cartRows.length ? waLink : undefined}
+                  href={cartRows.length && cust.name.trim() && cust.city.trim() ? waLink : undefined}
                   target="_blank"
                   rel="noreferrer"
                   onClick={handleCheckout}
                   className="mt-3 block text-center py-3 rounded-full font-bold text-white transition-transform hover:scale-[1.01]"
-                  style={{ background: C.wa }}
+                  style={{ background: C.wa, cursor: (cust.name.trim() && cust.city.trim()) ? "pointer" : "not-allowed", opacity: (cust.name.trim() && cust.city.trim()) ? 1 : 0.6 }}
                 >
                   Pokračovať na WhatsApp →
                 </a>
