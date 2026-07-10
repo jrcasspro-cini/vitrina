@@ -351,9 +351,9 @@ export default function Vitrina() {
     iban: "",
     category: "Sviečky a darčeky"
   });
-  const [handleManuallyEdited, setHandleManuallyEdited] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
+  const [handleManuallyEdited, setHandleManuallyEdited] = useState(false);
 
   // VS State for payment tracking
   const [orderVs, setOrderVs] = useState("");
@@ -1070,10 +1070,9 @@ export default function Vitrina() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowAuthPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold px-1"
-                    style={{ color: C.soft }}
-                    tabIndex={-1}
+                    onClick={() => setShowAuthPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
+                    aria-label={showAuthPassword ? "Skryť heslo" : "Zobraziť heslo"}
                   >
                     {showAuthPassword ? "🙈" : "👁️"}
                   </button>
@@ -2393,37 +2392,35 @@ export default function Vitrina() {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transition-all">
             
-            {/* Header */}
-            <div className="p-6 border-b flex flex-col relative" style={{ borderColor: C.line }}>
-              {wizardStep <= 4 && (
+            {/* Header (skryté v kroku 5 — úspešná obrazovka má vlastný nadpis nižšie, aby sa text neduplikoval) */}
+            {wizardStep <= 4 && (
+              <div className="p-6 border-b flex flex-col relative" style={{ borderColor: C.line }}>
                 <button
                   onClick={() => setWizardOpen(false)}
                   className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-50 text-slate-500 hover:bg-slate-100 flex items-center justify-center text-sm transition-all border border-slate-100"
                 >
                   ✕
                 </button>
-              )}
-              
-              <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>
-                  {wizardStep <= 4 ? `Krok ${wizardStep} z 4 · Zostáva ~2 minúty` : "Založené!"}
-                </span>
-                <h2 className="disp text-xl font-extrabold mt-1 text-slate-900 leading-tight">
-                  {wizardStep === 1 && "Pomenujte svoj obchod"}
-                  {wizardStep === 2 && "Zadajte kontaktné údaje"}
-                  {wizardStep === 3 && "Kam vám pošleme peniaze?"}
-                  {wizardStep === 4 && "Skontrolujte a spustite"}
-                  {wizardStep === 5 && "Vitrína je pripravená!"}
-                </h2>
-                <p className="text-xs mt-1.5 leading-relaxed text-slate-500">
-                  {wizardStep === 1 && "Názov a unikátny odkaz, pod ktorým vás zákazníci nájdu na internete."}
-                  {wizardStep === 2 && "Telefónne číslo na WhatsApp, kam vám budú chodiť objednávky, a vaše mesto doručenia."}
-                  {wizardStep === 3 && "Bankový účet (IBAN), na ktorý vám od zákazníkov prídu platby cez rýchly QR kód."}
-                  {wizardStep === 4 && "Už len skontrolujte, či je všetko správne a môžeme vytvoriť váš obchod."}
-                  {wizardStep === 5 && "Váš nový internetový obchod bol úspešne založený a je okamžite online."}
-                </p>
+
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>
+                    {`Krok ${wizardStep} z 4 · Zostáva ~2 minúty`}
+                  </span>
+                  <h2 className="disp text-xl font-extrabold mt-1 text-slate-900 leading-tight">
+                    {wizardStep === 1 && "Pomenujte svoj obchod"}
+                    {wizardStep === 2 && "Zadajte kontaktné údaje"}
+                    {wizardStep === 3 && "Kam vám pošleme peniaze?"}
+                    {wizardStep === 4 && "Skontrolujte a spustite"}
+                  </h2>
+                  <p className="text-xs mt-1.5 leading-relaxed text-slate-500">
+                    {wizardStep === 1 && "Názov a unikátny odkaz, pod ktorým vás zákazníci nájdu na internete."}
+                    {wizardStep === 2 && "Telefónne číslo na WhatsApp, kam vám budú chodiť objednávky, a vaše mesto doručenia."}
+                    {wizardStep === 3 && "Bankový účet (IBAN), na ktorý vám od zákazníkov prídu platby cez rýchly QR kód."}
+                    {wizardStep === 4 && "Už len skontrolujte, či je všetko správne a môžeme vytvoriť váš obchod."}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Progress bar */}
             {wizardStep <= 4 && (
@@ -2484,18 +2481,19 @@ export default function Vitrina() {
                       placeholder="Mila Sviečky"
                       value={newStore.name}
                       onChange={(e) => {
-                        const nameValue = e.target.value;
+                        const name = e.target.value;
                         if (handleManuallyEdited) {
-                          setNewStore({ ...newStore, name: nameValue });
+                          setNewStore({ ...newStore, name });
                         } else {
-                          const autoHandle = nameValue.toLowerCase()
+                          const autoHandle = name
+                            .toLowerCase()
                             .normalize("NFD")
                             .replace(/[\u0300-\u036f]/g, "") // odstráni diakritiku (á -> a, č -> c, ...)
-                            .replace(/\s+/g, "-") // medzery nahradí pomlčkou
-                            .replace(/[^a-z0-9-]/g, "") // odstráni ostatné nepovolené znaky
-                            .replace(/-+/g, "-") // zlúči viacnásobné pomlčky
-                            .replace(/^-+|-+$/g, ""); // odstráni pomlčky na začiatku/konci
-                          setNewStore({ ...newStore, name: nameValue, handle: autoHandle });
+                            .replace(/\s+/g, "-") // medzery -> pomlčka
+                            .replace(/[^a-z0-9-]/g, "") // zvyšné nepovolené znaky preč
+                            .replace(/-+/g, "-") // viac pomlčiek za sebou -> jedna
+                            .replace(/^-+|-+$/g, ""); // orezanie pomlčiek na okrajoch
+                          setNewStore({ ...newStore, name, handle: autoHandle });
                         }
                       }}
                       className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
@@ -2714,26 +2712,8 @@ export default function Vitrina() {
                   </div>
                   <h3 className="disp text-xl font-extrabold mb-2">Vitrína je pripravená!</h3>
                   <p className="text-xs leading-relaxed mb-6 px-4" style={{ color: C.soft }}>
-                    Tvoj nový internetový obchod bol úspešne založený. Odkaz nižšie môžeš zdieľať na sociálnych sieťach, v BIO alebo poslať zákazníkom.
+                    Obchod je založený, zatiaľ je však prázdny. Vstúpte dnu a nahrajte svoj prvý produkt, ktorý chcete predávať — odkaz na zdieľanie sa vám zobrazí, hneď ako bude obchod pripravený pre zákazníkov.
                   </p>
-
-                  <div className="w-full bg-slate-50 border p-3 rounded-2xl flex items-center justify-between font-mono text-xs mb-6 overflow-hidden" style={{ borderColor: C.line }}>
-                    <a
-                      href={`${currentOrigin}/${sanitizedHandle}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate pr-2 text-indigo-600 font-semibold hover:underline"
-                    >
-                      {currentHost}/{sanitizedHandle}
-                    </a>
-                    <button
-                      onClick={() => copyStoreLink(sanitizedHandle)}
-                      className="px-3 py-1.5 rounded-xl font-sans text-[10px] font-bold uppercase text-white shrink-0"
-                      style={{ background: copiedLink ? C.wa : C.accent }}
-                    >
-                      {copiedLink ? "Skopírované! ✅" : "Kopírovať"}
-                    </button>
-                  </div>
 
                   <button
                     onClick={() => {

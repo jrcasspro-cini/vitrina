@@ -711,7 +711,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             </div>
             <div className="ind-card">
               <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,85,122,.22), rgba(108,99,255,.1))" }}>🧵</div>
-              <div className="body"><h3>Ručná výroba</h3><p>Sviečky, keramika, kozmetika na mieru — prijímajte objednávky bez chaosu vo WhatsAppe.</p></div>
+              <div className="body"><h3>Ručná výroba</h3><p>Prijímajte hromadné aj drobné objednávky bez chaosu vo WhatsAppe.</p></div>
             </div>
             <div className="ind-card">
               <div className="art" style={{ background: "linear-gradient(135deg, rgba(255,179,71,.18), rgba(0,158,134,.1))" }}>👜</div>
