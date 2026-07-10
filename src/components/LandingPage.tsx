@@ -75,8 +75,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           --surface2: #eef0f4;
           --border: rgba(20,20,40,.10);
           --text: #15151f;
-          --muted: rgba(20,20,40,.55);
-          --muted2: rgba(20,20,40,.38);
+          --muted: rgba(20,20,40,.70);
+          --muted2: rgba(20,20,40,.55);
           --accent1: #6c63ff;
           --accent2: #009e86;
           --phone-frame: #15151f;
@@ -747,7 +747,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <div className="test-foot">
                 <div className="test-person">
                   <div className="test-avatar" style={{ background: "var(--accent2)" }}>M</div>
-                  <div><div className="test-name">Martin Sabo</div><div className="test-role">Tréner matematiky · Peak Prep</div></div>
+                  <div><div className="test-name">Martin Sabo</div><div className="test-role">Učiteľ matematiky · Doučovanie</div></div>
                 </div>
                 <div className="test-stat"><div className="num">2 hod.</div><div className="lbl">Ušetrené denne</div></div>
               </div>
