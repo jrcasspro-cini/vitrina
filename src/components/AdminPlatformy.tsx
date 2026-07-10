@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc } from "firebase/firestore";
-import { db } from "../firebase";
+import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { db, auth } from "../firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
 import defaultLogo from "../assets/images/default_store_logo.jpg";
 
 interface AdminPlatformyProps {
@@ -19,6 +20,7 @@ interface StoreData {
   createdAt: any;
   trialEndsAt: string;
   logo: string;
+  ownerId?: string;
 }
 
 const PASSWORD_KEY = "vitrina_platform_admin_auth";
@@ -96,7 +98,8 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
             plan: d.plan || "",
             createdAt: d.createdAt,
             trialEndsAt: d.trialEndsAt || "",
-            logo: d.logo || ""
+            logo: d.logo || "",
+            ownerId: d.ownerId || ""
           };
         });
         setStores(loaded);
@@ -111,12 +114,49 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
     return () => unsub();
   }, [isAuthenticated]);
 
+  // Auto-sign in to Firebase auth if already authenticated via session storage
+  useEffect(() => {
+    if (isAuthenticated) {
+      const email = "admin@vitrina.app";
+      const pw = "vitrina2026";
+      signInWithEmailAndPassword(auth, email, pw)
+        .catch((err) => {
+          if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
+            createUserWithEmailAndPassword(auth, email, pw).catch(console.error);
+          } else {
+            console.error("Auto login error:", err);
+          }
+        });
+    }
+  }, [isAuthenticated]);
+
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem(PASSWORD_KEY, "true");
       setError("");
+      const email = "admin@vitrina.app";
+      const pw = "vitrina2026";
+      
+      const proceed = () => {
+        setIsAuthenticated(true);
+        sessionStorage.setItem(PASSWORD_KEY, "true");
+      };
+
+      signInWithEmailAndPassword(auth, email, pw)
+        .then(proceed)
+        .catch((err) => {
+          if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
+            createUserWithEmailAndPassword(auth, email, pw)
+              .then(proceed)
+              .catch((createErr) => {
+                console.error("Error creating admin:", createErr);
+                setError("Chyba autentifikácie platformy.");
+              });
+          } else {
+            console.error("Error signing in admin:", err);
+            setError("Chyba autentifikácie platformy.");
+          }
+        });
     } else {
       setError("Nesprávne prístupové heslo!");
     }
@@ -126,6 +166,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
     setIsAuthenticated(false);
     setPassword("");
     sessionStorage.removeItem(PASSWORD_KEY);
+    firebaseSignOut(auth).catch(console.error);
   };
 
   // Helper to calculate trial days remaining
@@ -419,14 +460,67 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                           />
                           <div className="min-w-0">
                             <span className="font-bold text-slate-800 block truncate text-sm leading-snug">{store.name}</span>
-                            <a
-                              href={`/${store.handle}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="font-mono text-[10px] text-indigo-600 hover:underline inline-flex items-center gap-0.5 mt-0.5"
-                            >
-                              /{store.handle} ↗
-                            </a>
+                            <div className="flex flex-col gap-0.5 mt-0.5">
+                              <a
+                                href={`/${store.handle}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="font-mono text-[10px] text-indigo-600 hover:underline inline-flex items-center gap-0.5"
+                              >
+                                /{store.handle} ↗
+                              </a>
+                              
+                              {store.ownerId ? (
+                                <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                  <span className="truncate max-w-[120px]" title={store.ownerId}>👤 {store.ownerId}</span>
+                                  <button
+                                    onClick={async () => {
+                                      const val = prompt("Zadajte nové UID vlastníka (nechajte prázdne pre odstránenie):", store.ownerId);
+                                      if (val === null) return;
+                                      try {
+                                        await updateDoc(doc(db, "stores", store.handle), { ownerId: val.trim() });
+                                        alert("Vlastník bol úspešne priradený!");
+                                      } catch (err: any) {
+                                        alert("Chyba: " + err.message);
+                                      }
+                                    }}
+                                    className="text-[9px] font-bold text-indigo-600 hover:underline cursor-pointer inline-block shrink-0 ml-0.5"
+                                  >
+                                    Upraviť
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="mt-1 flex flex-col gap-1">
+                                  <span className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-100 rounded px-1 py-0.5 inline-block w-fit">
+                                    ⚠️ Bez vlastníka
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="text"
+                                      placeholder="UID vlastníka"
+                                      className="px-1.5 py-0.5 rounded text-[9px] border border-slate-200 bg-white font-mono w-[100px]"
+                                      id={`owner-input-${store.handle}`}
+                                    />
+                                    <button
+                                      onClick={async () => {
+                                        const inputEl = document.getElementById(`owner-input-${store.handle}`) as HTMLInputElement;
+                                        const val = inputEl?.value?.trim();
+                                        if (!val) return;
+                                        try {
+                                          await updateDoc(doc(db, "stores", store.handle), { ownerId: val });
+                                          alert("Vlastník bol úspešne priradený!");
+                                        } catch (err: any) {
+                                          alert("Chyba: " + err.message);
+                                        }
+                                      }}
+                                      className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                                    >
+                                      Uložiť
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>

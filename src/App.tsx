@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, FormEvent } from "react";
-import { db } from "./firebase";
+import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
 import AdminPlatformy from "./components/AdminPlatformy";
 import defaultLogo from "./assets/images/default_store_logo.jpg";
@@ -15,6 +15,16 @@ import {
   getDoc,
   updateDoc
 } from "firebase/firestore";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  sendPasswordResetEmail,
+  signInWithPopup,
+  GoogleAuthProvider,
+  User
+} from "firebase/auth";
 
 // ─── Clipboard & Host helpers ─────────────────────────────────────────
 function copyToClipboardFallback(text: string) {
@@ -177,14 +187,6 @@ export default function Vitrina() {
     return null;
   });
 
-  const [isOwner, setIsOwner] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const path = window.location.pathname;
-      return path === "/" || path === "/app" || path === "/vytvorit" || path === "/admin-platformy";
-    }
-    return false;
-  });
-
   // ── Odstúpenie od zmluvy & Objednávky ──
   const [withdrawalOpen, setWithdrawalOpen] = useState(false);
   const [withdrawalForm, setWithdrawalForm] = useState({ name: "", orderIdent: "", email: "" });
@@ -204,10 +206,119 @@ export default function Vitrina() {
     plan: "",
     createdAt: null as any,
     logo: "",
-    description: ""
+    description: "",
+    ownerId: ""
   });
 
   const [storeExists, setStoreExists] = useState<boolean | null>(null);
+
+  // ─── Firebase Auth State & Forms ──────────────────────────────────────
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authSuccess, setAuthSuccess] = useState("");
+  const [authSubmitting, setAuthSubmitting] = useState(false);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+      setAuthLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const userStores = useMemo(() => {
+    return stores.filter(st => st.ownerId === currentUser?.uid);
+  }, [stores, currentUser]);
+
+  const isOwner = useMemo(() => {
+    if (!selectedStoreHandle) {
+      return currentPath === "/" || currentPath === "/app" || currentPath === "/vytvorit" || currentPath === "/admin-platformy";
+    }
+    return currentUser !== null && store.ownerId === currentUser.uid;
+  }, [selectedStoreHandle, currentPath, currentUser, store.ownerId]);
+
+  const handleAuthSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccess("");
+    
+    if (!authEmail.trim() || !authPassword.trim()) {
+      setAuthError("Prosím vyplňte e-mail a heslo.");
+      return;
+    }
+    
+    setAuthSubmitting(true);
+    try {
+      if (isRegisterMode) {
+        await createUserWithEmailAndPassword(auth, authEmail.trim(), authPassword);
+        setAuthSuccess("Účet bol úspešne vytvorený!");
+      } else {
+        await signInWithEmailAndPassword(auth, authEmail.trim(), authPassword);
+      }
+    } catch (err: any) {
+      console.error("Auth error:", err);
+      let msg = "Nastala chyba pri prihlasovaní.";
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        msg = "Nesprávny e-mail alebo heslo.";
+      } else if (err.code === "auth/email-already-in-use") {
+        msg = "Tento e-mail už používa iný účet.";
+      } else if (err.code === "auth/weak-password") {
+        msg = "Heslo musí mať aspoň 6 znakov.";
+      } else if (err.code === "auth/invalid-email") {
+        msg = "Neplatný formát e-mailovej adresy.";
+      }
+      setAuthError(msg);
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setAuthError("");
+    setAuthSuccess("");
+    setAuthSubmitting(true);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (err: any) {
+      console.error("Google Auth error:", err);
+      setAuthError("Nepodarilo sa prihlásiť cez Google.");
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+    setAuthSuccess("");
+    if (!authEmail.trim()) {
+      setAuthError("Zadajte prosím váš e-mail pre obnovu hesla.");
+      return;
+    }
+    setAuthSubmitting(true);
+    try {
+      await sendPasswordResetEmail(auth, authEmail.trim());
+      setAuthSuccess("Odkaz na obnovu hesla bol odoslaný na váš e-mail!");
+    } catch (err: any) {
+      console.error("Reset password error:", err);
+      let msg = "Nepodarilo sa odoslať resetovací e-mail.";
+      if (err.code === "auth/user-not-found") {
+        msg = "Užívateľ s týmto e-mailom neexistuje.";
+      } else if (err.code === "auth/invalid-email") {
+        msg = "Neplatný formát e-mailovej adresy.";
+      }
+      setAuthError(msg);
+    } finally {
+      setAuthSubmitting(false);
+    }
+  };
 
   const [cart, setCart] = useState<Record<string, number>>({}); // id -> qty
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
@@ -239,6 +350,7 @@ export default function Vitrina() {
     iban: "",
     category: "Sviečky a darčeky"
   });
+  const [handleManuallyEdited, setHandleManuallyEdited] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
 
@@ -306,7 +418,8 @@ export default function Vitrina() {
             iban: d.iban || "",
             category: d.category || d.industry || "Lokálny predajca",
             createdAt: d.createdAt,
-            logo: d.logo || ""
+            logo: d.logo || "",
+            ownerId: d.ownerId || ""
           };
         });
         setStores(loaded);
@@ -362,7 +475,8 @@ export default function Vitrina() {
           plan: d.plan || "",
           createdAt: d.createdAt || null,
           logo: d.logo || "",
-          description: d.description || ""
+          description: d.description || "",
+          ownerId: d.ownerId || ""
         });
       } else {
         setStoreExists(false);
@@ -377,7 +491,8 @@ export default function Vitrina() {
           plan: "",
           createdAt: null,
           logo: "",
-          description: ""
+          description: "",
+          ownerId: ""
         });
       }
     }, (error) => {
@@ -617,7 +732,6 @@ export default function Vitrina() {
   // Update browser history and clean cart
   const selectStore = (handle: string | null) => {
     setSelectedStoreHandle(handle);
-    setIsOwner(true);
     setCart({});
     setSelectedProductId(null);
     setCheckout(false);
@@ -774,7 +888,8 @@ export default function Vitrina() {
         createdAt: new Date(),
         trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
         plan: "",
-        logo: ""
+        logo: "",
+        ownerId: currentUser?.uid || ""
       };
 
       // 1. Create store doc
@@ -831,6 +946,185 @@ export default function Vitrina() {
     return <LandingPage onNavigate={navigateTo} />;
   }
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center animate-in fade-in duration-300" style={{ background: C.bg }}>
+        <div className="flex flex-col items-center gap-4">
+          <Logo size={48} />
+          <div className="text-sm font-semibold animate-pulse" style={{ color: C.soft }}>Načítavam Vitrínu...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser === null && (currentPath === "/app" || currentPath === "/vytvorit")) {
+    return (
+      <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300" style={{ background: C.bg, color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
+          .disp { font-family: 'Sora', sans-serif; }
+          input { outline: none; }
+          input:focus { border-color: ${C.accent} !important; }
+        `}</style>
+        
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border shadow-xl flex flex-col gap-6" style={{ borderColor: C.line }}>
+          <div className="text-center flex flex-col items-center gap-2">
+            <Logo size={42} />
+            <h1 className="disp text-2xl font-extrabold tracking-tight mt-2">
+              {resetMode ? "Obnova hesla" : isRegisterMode ? "Vytvoriť predajný účet" : "Prihlásenie predajcu"}
+            </h1>
+            <p className="text-xs" style={{ color: C.soft }}>
+              {resetMode 
+                ? "Zadajte svoj e-mail a my vám pošleme odkaz na obnovenie hesla." 
+                : isRegisterMode 
+                  ? "Zaregistrujte sa a otvorte si vlastnú online Vitrínu za pár sekúnd." 
+                  : "Prihláste sa do svojej administrácie pre správu vitrín."
+              }
+            </p>
+          </div>
+
+          {authError && (
+            <div className="p-3.5 rounded-2xl bg-red-50 text-red-800 border border-red-100 text-xs font-semibold leading-relaxed">
+              ⚠️ {authError}
+            </div>
+          )}
+
+          {authSuccess && (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-100 text-xs font-semibold leading-relaxed">
+              ✅ {authSuccess}
+            </div>
+          )}
+
+          {resetMode ? (
+            <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>E-mailová adresa</label>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="napriklad@mail.sk"
+                  className="px-4 py-3 rounded-xl border text-sm w-full transition-all bg-slate-50/50 focus:bg-white"
+                  style={{ borderColor: C.line }}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authSubmitting}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
+                style={{ background: C.accent }}
+              >
+                {authSubmitting ? "Odosielam..." : "Odoslať odkaz na obnovu"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setResetMode(false); setAuthError(""); setAuthSuccess(""); }}
+                className="text-xs font-bold transition-colors text-center mt-2 hover:opacity-100"
+                style={{ color: C.soft }}
+              >
+                Späť na prihlásenie
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAuthSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>E-mailová adresa</label>
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(e) => setAuthEmail(e.target.value)}
+                  placeholder="napriklad@mail.sk"
+                  className="px-4 py-3 rounded-xl border text-sm w-full transition-all bg-slate-50/50 focus:bg-white"
+                  style={{ borderColor: C.line }}
+                  required
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>Heslo</label>
+                  {!isRegisterMode && (
+                    <button
+                      type="button"
+                      onClick={() => { setResetMode(true); setAuthError(""); setAuthSuccess(""); }}
+                      className="text-[10px] font-bold"
+                      style={{ color: C.accent }}
+                    >
+                      Zabudli ste heslo?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="px-4 py-3 rounded-xl border text-sm w-full transition-all bg-slate-50/50 focus:bg-white"
+                  style={{ borderColor: C.line }}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={authSubmitting}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
+                style={{ background: C.accent }}
+              >
+                {authSubmitting 
+                  ? (isRegisterMode ? "Vytváram účet..." : "Prihlasujem...") 
+                  : (isRegisterMode ? "Zaregistrovať sa" : "Prihlásiť sa")
+                }
+              </button>
+
+              <div className="relative flex py-2 items-center">
+                <div className="flex-grow border-t" style={{ borderColor: C.line }}></div>
+                <span className="flex-shrink mx-4 text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>alebo</span>
+                <div className="flex-grow border-t" style={{ borderColor: C.line }}></div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={authSubmitting}
+                className="w-full py-3 px-4 rounded-xl border text-slate-700 font-bold text-xs bg-white hover:bg-slate-50 transition-colors flex items-center justify-center gap-2.5"
+                style={{ borderColor: C.line }}
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22c-.87-2.6-2.86-4.53-5.29-4.53z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                </svg>
+                Prihlásiť sa cez Google
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(""); setAuthSuccess(""); }}
+                className="text-xs font-bold transition-colors text-center mt-2 hover:opacity-100"
+                style={{ color: C.accent }}
+              >
+                {isRegisterMode ? "Už máte účet? Prihláste sa" : "Nemáte účet? Zaregistrujte sa"}
+              </button>
+            </form>
+          )}
+        </div>
+        
+        <button
+          onClick={() => navigateTo("/")}
+          className="mt-6 text-xs font-bold opacity-75 hover:opacity-100 transition-opacity flex items-center gap-1.5"
+          style={{ color: C.soft }}
+        >
+          ← Späť na hlavnú stránku
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen w-full flex flex-col" style={{ background: C.bg, color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
       <style>{`
@@ -846,7 +1140,7 @@ export default function Vitrina() {
           <Logo />
           <span className="disp text-lg font-bold tracking-tight">Vitrína</span>
         </div>
-        {selectedStoreHandle && isOwner && (
+        {selectedStoreHandle && isOwner ? (
           <nav className="flex gap-1 p-1 rounded-full" style={{ background: C.card, border: `1px solid ${C.line}` }}>
             {[
               ["shop", "Obchod"],
@@ -862,6 +1156,24 @@ export default function Vitrina() {
               </button>
             ))}
           </nav>
+        ) : (
+          currentUser && (currentPath === "/app" || currentPath === "/vytvorit") && (
+            <div className="flex items-center gap-2.5 animate-in fade-in duration-200">
+              <span className="text-xs font-semibold max-w-[150px] truncate hidden sm:inline animate-pulse" style={{ color: C.soft }}>
+                {currentUser.email}
+              </span>
+              <button
+                onClick={() => {
+                  signOut(auth).catch(console.error);
+                }}
+                className="px-3 py-1.5 rounded-full text-xs font-bold border transition-colors hover:bg-slate-50 cursor-pointer flex items-center gap-1 shadow-sm"
+                style={{ borderColor: C.line, color: C.soft, background: C.card }}
+              >
+                <span>Odhlásiť sa</span>
+                <span className="text-[10px]">🚪</span>
+              </button>
+            </div>
+          )
         )}
       </header>
 
@@ -913,6 +1225,7 @@ export default function Vitrina() {
             <button
               onClick={() => {
                 setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
+                setHandleManuallyEdited(false);
                 navigateTo("/vytvorit");
               }}
               className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
@@ -925,10 +1238,15 @@ export default function Vitrina() {
           {/* Zoznam existujúcich obchodov */}
           <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
             <h2 className="disp text-sm font-extrabold uppercase tracking-wider mb-3" style={{ color: C.soft }}>
-              ⚡ Existujúce Vitríny ({stores.length})
+              ⚡ Moje Vitríny ({userStores.length})
             </h2>
             <div className="flex flex-col gap-2.5">
-              {stores.map((st) => (
+              {userStores.length === 0 ? (
+                <div className="p-6 text-center rounded-2xl border border-dashed text-xs font-semibold" style={{ borderColor: C.line, color: C.soft }}>
+                  Zatiaľ nemáte vytvorenú žiadnu vitrínu. Kliknite na tlačidlo vyššie a vytvorte si ju!
+                </div>
+              ) : (
+                userStores.map((st) => (
                 <div
                   key={st.id}
                   onClick={() => selectStore(st.handle)}
@@ -957,7 +1275,7 @@ export default function Vitrina() {
                     </span>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </div>
 
@@ -2153,7 +2471,21 @@ export default function Vitrina() {
                       type="text"
                       placeholder="Mila Sviečky"
                       value={newStore.name}
-                      onChange={(e) => setNewStore({ ...newStore, name: e.target.value })}
+                      onChange={(e) => {
+                        const nameValue = e.target.value;
+                        if (handleManuallyEdited) {
+                          setNewStore({ ...newStore, name: nameValue });
+                        } else {
+                          const autoHandle = nameValue.toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "") // odstráni diakritiku (á -> a, č -> c, ...)
+                            .replace(/\s+/g, "-") // medzery nahradí pomlčkou
+                            .replace(/[^a-z0-9-]/g, "") // odstráni ostatné nepovolené znaky
+                            .replace(/-+/g, "-") // zlúči viacnásobné pomlčky
+                            .replace(/^-+|-+$/g, ""); // odstráni pomlčky na začiatku/konci
+                          setNewStore({ ...newStore, name: nameValue, handle: autoHandle });
+                        }
+                      }}
                       className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
@@ -2185,6 +2517,7 @@ export default function Vitrina() {
                             .replace(/[\u0300-\u036f]/g, "") // removes accents (á -> a, č -> c, etc.)
                             .replace(/\s+/g, "") // removes all spaces entirely
                             .replace(/[^a-z0-9-]/g, ""); // removes non-alphanumeric except dash
+                          setHandleManuallyEdited(true);
                           setNewStore({ ...newStore, handle: cleaned });
                         }}
                         className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm font-mono focus:border-indigo-600 bg-slate-50 transition-colors"

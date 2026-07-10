@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBzjawHP1PF5EZdNblGEBeviwEm5uLzS_E",
@@ -12,3 +13,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, "ai-studio-vitrna-c2588a60-4f0b-45c8-a986-0ee627206f01");
+export const auth = getAuth(app);
