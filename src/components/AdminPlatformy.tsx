@@ -124,6 +124,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setPassword("");
     sessionStorage.removeItem(PASSWORD_KEY);
   };
 
