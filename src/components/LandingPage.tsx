@@ -710,8 +710,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <div className="body"><h3>Tréneri a lektori</h3><p>Nechajte účastníkov, aby si sami vybrali termín. Vy dostanete potvrdenú rezerváciu.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,85,122,.22), rgba(108,99,255,.1))" }}>🍞</div>
-              <div className="body"><h3>Domáca výroba a pečivo</h3><p>Prijímajte hromadné aj drobné objednávky bez chaosu vo WhatsAppe.</p></div>
+              <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,85,122,.22), rgba(108,99,255,.1))" }}>🧵</div>
+              <div className="body"><h3>Ručná výroba</h3><p>Sviečky, keramika, kozmetika na mieru — prijímajte objednávky bez chaosu vo WhatsAppe.</p></div>
             </div>
             <div className="ind-card">
               <div className="art" style={{ background: "linear-gradient(135deg, rgba(255,179,71,.18), rgba(0,158,134,.1))" }}>👜</div>
@@ -846,7 +846,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <h4>Prípady použitia</h4>
               <a href="#">Šperky a doplnky</a>
               <a href="#">Tréneri a lektori</a>
-              <a href="#">Domáca výroba</a>
+              <a href="#">Ručná výroba</a>
               <a href="#">Módne butiky</a>
             </div>
             <div className="footer-col">
