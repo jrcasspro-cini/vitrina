@@ -2333,12 +2333,14 @@ export default function Vitrina() {
               ))}
             </section>
 
-            {/* Zóna nebezpečenstva: vymazanie celej Vitríny */}
+            {/* Vymazanie Vitríny — možnosť začať odznova */}
             <section className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
-              <div className="rounded-2xl p-4 bg-red-50 border border-red-100 flex flex-col gap-2.5">
+              <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
                 <div>
-                  <h3 className="font-extrabold text-sm text-red-900">Zóna nebezpečenstva</h3>
-                  <p className="text-xs text-red-600 mt-0.5">Nenávratne vymaže túto Vitrínu a všetky jej vystavené produkty z databázy.</p>
+                  <h3 className="font-extrabold text-sm text-slate-800">Chcete začať odznova?</h3>
+                  <p className="text-xs mt-0.5" style={{ color: C.soft }}>
+                    Ak ste sa pri zakladaní pomýlili, chcete úplne zmeniť ponuku produktov, alebo si jednoducho chcete túto Vitrínu založiť odznova, môžete ju spolu so všetkými produktmi vymazať z databázy. V ďalšom kroku vás ešte raz necháme potvrdiť, keďže ide o nenávratný krok.
+                  </p>
                 </div>
                 {confirmDeleteStore ? (
                   <div className="flex gap-2 mt-1">
@@ -2374,9 +2376,9 @@ export default function Vitrina() {
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteStore(true)}
-                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors animate-pulse shadow-[0_0_14px_rgba(220,38,38,0.65)]"
+                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
                   >
-                    🗑️ Vymazať túto Vitrínu z databázy
+                    🗑️ Vymazať túto Vitrínu a začať odznova
                   </button>
                 )}
               </div>
