@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User } from "firebase/auth";
 import defaultLogo from "../assets/images/default_store_logo.jpg";
 
 interface AdminPlatformyProps {
@@ -23,20 +23,22 @@ interface StoreData {
   ownerId?: string;
 }
 
-const PASSWORD_KEY = "vitrina_platform_admin_auth";
-const ADMIN_PASSWORD = "vitrina2026"; // Pevné heslo pre prístup
+// Zoznam admin emailov. Musí sedieť s Firestore rules isAdmin() funkciou.
+// Admin sa dostane cez normálny Firebase Auth login (email + heslo),
+// nie cez hardcoded heslo v kóde.
+const ADMIN_EMAILS = ["jrcasspro@gmail.com"];
 
 const eur = (n: number) => n.toLocaleString("sk-SK", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
 export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem(PASSWORD_KEY) === "true";
-    }
-    return false;
-  });
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [error, setError] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+
+  const isAuthenticated = adminUser !== null;
 
   const [stores, setStores] = useState<StoreData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,58 +116,50 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
     return () => unsub();
   }, [isAuthenticated]);
 
-  // Auto-sign in to Firebase auth if already authenticated via session storage
+  // Sledovanie Firebase Auth state — admin je iba ak jeho email je v ADMIN_EMAILS
   useEffect(() => {
-    if (isAuthenticated) {
-      const email = "admin@vitrina.app";
-      const pw = "vitrina2026";
-      signInWithEmailAndPassword(auth, email, pw)
-        .catch((err) => {
-          if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
-            createUserWithEmailAndPassword(auth, email, pw).catch(console.error);
-          } else {
-            console.error("Auto login error:", err);
-          }
-        });
-    }
-  }, [isAuthenticated]);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user && user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())) {
+        setAdminUser(user);
+      } else {
+        setAdminUser(null);
+      }
+      setAuthChecked(true);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setError("");
-      const email = "admin@vitrina.app";
-      const pw = "vitrina2026";
-      
-      const proceed = () => {
-        setIsAuthenticated(true);
-        sessionStorage.setItem(PASSWORD_KEY, "true");
-      };
-
-      signInWithEmailAndPassword(auth, email, pw)
-        .then(proceed)
-        .catch((err) => {
-          if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-email") {
-            createUserWithEmailAndPassword(auth, email, pw)
-              .then(proceed)
-              .catch((createErr) => {
-                console.error("Error creating admin:", createErr);
-                setError("Chyba autentifikácie platformy.");
-              });
-          } else {
-            console.error("Error signing in admin:", err);
-            setError("Chyba autentifikácie platformy.");
-          }
-        });
-    } else {
-      setError("Nesprávne prístupové heslo!");
+    setError("");
+    setSigningIn(true);
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+      if (!cred.user.email || !ADMIN_EMAILS.includes(cred.user.email.toLowerCase())) {
+        // Prihlásený, ale nie je to admin — odhlás a ukáž chybu.
+        await firebaseSignOut(auth);
+        setError("Tento účet nemá admin oprávnenia.");
+      }
+      // Ak je to admin, onAuthStateChanged nastaví adminUser automaticky.
+    } catch (err: any) {
+      console.error("Admin login error:", err);
+      if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+        setError("Nesprávny email alebo heslo.");
+      } else if (err.code === "auth/invalid-email") {
+        setError("Neplatný email.");
+      } else if (err.code === "auth/too-many-requests") {
+        setError("Príliš veľa neúspešných pokusov. Skús neskôr.");
+      } else {
+        setError("Chyba prihlásenia. Skús to znova.");
+      }
+    } finally {
+      setSigningIn(false);
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    setEmail("");
     setPassword("");
-    sessionStorage.removeItem(PASSWORD_KEY);
     firebaseSignOut(auth).catch(console.error);
   };
 
@@ -252,7 +246,16 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
     }
   };
 
-  // PASSWORD PROMPT VIEW
+  // Kým Firebase Auth zistí či je user prihlásený, ukazujeme jednoduché wait state
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4 bg-slate-50 font-sans">
+        <div className="text-sm text-slate-400 font-bold">Načítavam…</div>
+      </div>
+    );
+  }
+
+  // LOGIN VIEW — Firebase Auth email + heslo. Prístup má iba účet z ADMIN_EMAILS.
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-slate-50 font-sans">
@@ -263,13 +266,28 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-800">Admin platformy</h1>
             <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
-              Tento panel slúži výhradne pre správcu a majiteľa platformy Vitrína. Vstup je chránený heslom.
+              Tento panel slúži výhradne pre správcu platformy Vitrína.
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-500 block mb-1">Prístupové heslo</label>
+              <label className="text-xs font-bold text-slate-500 block mb-1">Admin email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@…"
+                className="w-full px-4 py-3 rounded-xl border text-sm font-medium focus:border-indigo-600 bg-slate-50 focus:bg-white transition-all outline-none"
+                style={{ borderColor: "#CBD5E1" }}
+                required
+                autoFocus
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-500 block mb-1">Heslo</label>
               <input
                 type="password"
                 value={password}
@@ -278,7 +296,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                 className="w-full px-4 py-3 rounded-xl border text-sm font-medium focus:border-indigo-600 bg-slate-50 focus:bg-white transition-all outline-none"
                 style={{ borderColor: "#CBD5E1" }}
                 required
-                autoFocus
+                autoComplete="current-password"
               />
               {error && (
                 <span className="text-[11px] font-bold text-red-500 block mt-1.5">
@@ -289,10 +307,11 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-transform active:scale-[0.99] hover:opacity-95"
+              disabled={signingIn}
+              className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-transform active:scale-[0.99] hover:opacity-95 disabled:opacity-60"
               style={{ background: "#4F46E5" }}
             >
-              Vstúpiť do adminu
+              {signingIn ? "Prihlasujem…" : "Vstúpiť do adminu"}
             </button>
 
             <button
@@ -304,10 +323,6 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
               ← Späť na hlavný web
             </button>
           </form>
-
-          <p className="text-[10px] text-slate-400 text-center mt-6">
-            Upozornenie: Pevné heslo v kóde je nastavené na: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9px]">vitrina2026</code>. Neskôr bude nahradené skutočným prihlasovaním (Auth).
-          </p>
         </div>
       </div>
     );

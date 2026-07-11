@@ -2,12 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper to check if user is the platform administrator
+    // Helper to check if user is the platform administrator.
+    // Admin sa prihlasuje cez normálny Firebase Auth (email + heslo).
+    // Predtým existoval aj alias 'admin@vitrina.app' s hardcoded heslom
+    // 'vitrina2026' v kóde — odstránené kvôli tomu, že heslo bolo verejné
+    // na GitHube (ktokoľvek si mohol nahodiť admin@vitrina.app účet).
     function isAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == 'admin@vitrina.app' || 
-        request.auth.token.email == 'jrcasspro@gmail.com'
-      );
+      return request.auth != null &&
+        request.auth.token.email == 'jrcasspro@gmail.com';
     }
 
     // Helper to check if user is the owner of the given store
