@@ -359,6 +359,7 @@ export default function Vitrina() {
   // VS State for payment tracking
   const [orderVs, setOrderVs] = useState("");
   const [confirmDeleteStore, setConfirmDeleteStore] = useState(false);
+  const [trialModalDismissed, setTrialModalDismissed] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
 
   // 1. Sync list of stores and seed if empty
@@ -551,6 +552,12 @@ export default function Vitrina() {
   const hasPlan = store.plan === "standard" || store.plan === "extended";
   const isStoreVisibleToCustomers = isTrialActive || hasPlan;
 
+  const shouldShowTrialModal =
+    isOwner &&
+    !!selectedStoreHandle &&
+    !trialModalDismissed &&
+    ((isTrialActive && trialDaysLeft <= 3) || (!isTrialActive && !hasPlan));
+
   const maxItemsAllowed = useMemo(() => {
     if (isTrialActive) return 6;
     if (store.plan === "standard") return 2;
@@ -738,6 +745,7 @@ export default function Vitrina() {
     setSelectedProductId(null);
     setCheckout(false);
     setDbError("");
+    setTrialModalDismissed(false);
     if (typeof window !== "undefined") {
       const path = handle ? `/${handle}` : "/";
       window.history.pushState({}, "", path);
@@ -1196,6 +1204,50 @@ export default function Vitrina() {
           )
         )}
       </header>
+
+      {/* ── Modálne okno: koniec skúšobnej doby / vypršaná bez plánu ── */}
+      {shouldShowTrialModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="w-full max-w-sm rounded-3xl p-6 bg-white shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-3" style={{ background: isTrialActive ? "#FEF3C7" : "#FEE2E2" }}>
+              {isTrialActive ? "⏳" : "📴"}
+            </div>
+            {isTrialActive ? (
+              <>
+                <h3 className="disp text-lg font-extrabold text-slate-900">Skúšobná doba čoskoro skončí</h3>
+                <p className="text-xs mt-2 leading-relaxed text-slate-500">
+                  Zostáva vám už len <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "deň" : trialDaysLeft < 5 ? "dni" : "dní"}</strong>. Ak si dovtedy nezvolíte plán, váš obchod prestane byť viditeľný pre zákazníkov.
+                </p>
+              </>
+            ) : (
+              <>
+                <h3 className="disp text-lg font-extrabold text-slate-900">Skúšobná doba vypršala</h3>
+                <p className="text-xs mt-2 leading-relaxed text-slate-500">
+                  Váš obchod momentálne <strong>nie je viditeľný pre zákazníkov</strong>. Zvoľte si plán a obnovte viditeľnosť vášho obchodu.
+                </p>
+              </>
+            )}
+            <div className="flex flex-col gap-2 w-full mt-5">
+              <button
+                onClick={() => {
+                  setTrialModalDismissed(true);
+                  setView("admin");
+                }}
+                className="w-full py-2.5 rounded-xl text-white font-bold text-sm transition-colors"
+                style={{ background: C.ink }}
+              >
+                Vybrať plán
+              </button>
+              <button
+                onClick={() => setTrialModalDismissed(true)}
+                className="w-full py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                Pripomenúť neskôr
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Chybové oznámenie ── */}
       {dbError && (
