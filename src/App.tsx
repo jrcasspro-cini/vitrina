@@ -2374,7 +2374,7 @@ export default function Vitrina() {
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteStore(true)}
-                    className="w-full py-2.5 rounded-xl border border-red-200 text-red-700 hover:bg-red-50 text-xs font-bold transition-colors animate-pulse"
+                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors animate-pulse shadow-[0_0_14px_rgba(220,38,38,0.65)]"
                   >
                     🗑️ Vymazať túto Vitrínu z databázy
                   </button>
