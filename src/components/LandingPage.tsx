@@ -11,6 +11,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
   const [showHint, setShowHint] = useState(false);
   const [sendScale, setSendScale] = useState(1);
 
+  // Mobile hamburger menu
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     const fullText = "Ahoj! Chcela by som si objednať 🛍️\n\n2× Strieborné náušnice — 24,90 €\n1× Retiazka s príveskom — 32,00 €\n\nMeno: Zuzana Kráľová\nAdresa: Bratislava\n\nSpolu: 56,90 €";
     let isMounted = true;
@@ -215,8 +218,37 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           color: var(--accent2); 
         }
 
-        @media (max-width: 900px) { 
-          .landing-page-root .nav-links { display: none; } 
+        /* Nav hamburger — skryté na desktope */
+        .landing-page-root .nav-burger { display: none; background: none; border: 1px solid var(--border); color: var(--text); font-size: 1.3rem; width: 42px; height: 42px; border-radius: 10px; cursor: pointer; align-items: center; justify-content: center; }
+        .landing-page-root .nav-mobile { display: none; }
+
+        @media (max-width: 900px) {
+          .landing-page-root .nav-links { display: none; }
+          .landing-page-root .nav-cta { display: none; }
+          .landing-page-root .nav-burger { display: inline-flex; }
+          .landing-page-root .nav-mobile { display: flex; flex-direction: column; padding: 8px 20px 20px; border-top: 1px solid var(--border); background: var(--bg); }
+          .landing-page-root .nav-mobile a { padding: 14px 4px; border-bottom: 1px solid var(--border); font-family: 'DM Sans', sans-serif; font-weight: 500; color: var(--text); text-decoration: none; font-size: 1rem; }
+          .landing-page-root .nav-mobile a:last-child { border-bottom: none; }
+          .landing-page-root .nav-mobile a.nav-mobile-cta { margin-top: 10px; background: linear-gradient(90deg, var(--accent2), var(--accent1)); color: #04040a; padding: 14px 20px; border-radius: 10px; text-align: center; font-weight: 700; }
+        }
+
+        /* Mobile — fine-tuning typografie a spacing */
+        @media (max-width: 560px) {
+          .landing-page-root .hero { padding: 40px 0 40px; }
+          .landing-page-root .hero h1 { font-size: 2rem; line-height: 1.12; }
+          .landing-page-root .hero p.lead { font-size: 1rem; }
+          .landing-page-root .badge { font-size: .72rem; padding: 6px 12px; margin-bottom: 18px; }
+          .landing-page-root .sec-head h2 { font-size: 1.6rem; }
+          .landing-page-root .sec-head p { font-size: .9rem; }
+          .landing-page-root .btn-primary { padding: 14px 24px; font-size: .9rem; }
+          .landing-page-root .btn-ghost-outline { padding: 14px 20px; font-size: .88rem; }
+          .landing-page-root .cta-row { flex-direction: column; align-items: stretch; }
+          .landing-page-root .cta-row a { text-align: center; }
+          .landing-page-root .trust-row { flex-wrap: wrap; gap: 8px 12px; font-size: .72rem; }
+          .landing-page-root .rating-row { gap: 12px; }
+          .landing-page-root .faq-item { padding: 14px 16px; }
+          .landing-page-root .faq-item summary { font-size: .9rem; }
+          .landing-page-root .faq-item p { font-size: .82rem; }
         }
 
         /* HERO */
@@ -529,7 +561,24 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <a href="#faq">FAQ</a>
           </div>
           <a href="/app" onClick={(e) => handleNav(e, "/app")} className="nav-cta">Ovládací panel →</a>
+          <button
+            className="nav-burger"
+            aria-label="Menu"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? "✕" : "☰"}
+          </button>
         </div>
+        {mobileMenuOpen && (
+          <div className="nav-mobile">
+            <a href="#funkcie" onClick={() => setMobileMenuOpen(false)}>Funkcie</a>
+            <a href="#ako-to-funguje" onClick={() => setMobileMenuOpen(false)}>Ako to funguje</a>
+            <a href="#cena" onClick={() => setMobileMenuOpen(false)}>Cenník</a>
+            <a href="#pre-koho" onClick={() => setMobileMenuOpen(false)}>Pre koho</a>
+            <a href="#faq" onClick={() => setMobileMenuOpen(false)}>FAQ</a>
+            <a href="/app" onClick={(e) => { setMobileMenuOpen(false); handleNav(e, "/app"); }} className="nav-mobile-cta">Ovládací panel →</a>
+          </div>
+        )}
       </nav>
 
       {/* HERO */}
