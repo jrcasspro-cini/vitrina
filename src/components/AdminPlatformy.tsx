@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import defaultLogo from "../assets/images/default_store_logo.jpg";
@@ -18,6 +18,10 @@ interface StoreData {
   phone: string;
   iban: string;
   plan: string;
+  planEndsAt: string;
+  paymentReported: boolean;
+  paymentReportedAt: string;
+  paymentReportedPlan: string;
   createdAt: any;
   trialEndsAt: string;
   logo: string;
@@ -30,6 +34,19 @@ interface StoreData {
 const ADMIN_EMAILS = ["jrcasspro@gmail.com"];
 
 const eur = (n: number) => n.toLocaleString("sk-SK", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+// Deterministický stály variabilný symbol z ownerId (8-miestne číslo).
+// Musí zodpovedať logike v App.tsx (paymentVs).
+function getPaymentVs(ownerId?: string): string {
+  if (!ownerId) return "—";
+  let h = 0;
+  for (let i = 0; i < ownerId.length; i++) {
+    h = ((h << 5) - h) + ownerId.charCodeAt(i);
+    h |= 0;
+  }
+  const abs = Math.abs(h) % 90000000 + 10000000;
+  return String(abs);
+}
 
 export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
   const [email, setEmail] = useState("");
@@ -99,6 +116,10 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
             phone: d.phone || "",
             iban: d.iban || "",
             plan: d.plan || "",
+            planEndsAt: d.planEndsAt || "",
+            paymentReported: !!d.paymentReported,
+            paymentReportedAt: d.paymentReportedAt || "",
+            paymentReportedPlan: d.paymentReportedPlan || "",
             createdAt: d.createdAt,
             trialEndsAt: d.trialEndsAt || "",
             logo: d.logo || "",
@@ -202,16 +223,19 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
   const analyzedStores = useMemo(() => {
     return stores.map((s) => {
       const daysLeft = getTrialDaysLeft(s.trialEndsAt);
-      const isTrial = s.plan !== "standard" && s.plan !== "extended";
-      
+      const planDaysLeft = getTrialDaysLeft(s.planEndsAt);
+      const planActive = (s.plan === "standard" || s.plan === "extended") && planDaysLeft > 0;
+
       let status: "standard" | "extended" | "trial" | "expired" = "expired";
-      if (s.plan === "standard") status = "standard";
-      else if (s.plan === "extended") status = "extended";
-      else if (isTrial && daysLeft > 0) status = "trial";
+      if (planActive && s.plan === "standard") status = "standard";
+      else if (planActive && s.plan === "extended") status = "extended";
+      else if (daysLeft > 0) status = "trial";
 
       return {
         ...s,
         daysLeft,
+        planDaysLeft,
+        planActive,
         status
       };
     });
@@ -224,9 +248,10 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
     const extendedCount = analyzedStores.filter(s => s.status === "extended").length;
     const trialCount = analyzedStores.filter(s => s.status === "trial").length;
     const expiredCount = analyzedStores.filter(s => s.status === "expired").length;
+    const paymentReportedCount = analyzedStores.filter(s => s.paymentReported).length;
 
-    // Monthly revenue estimates: Standard (8 EUR), Extended (12 EUR)
-    const estimatedMRR = (standardCount * 8) + (extendedCount * 12);
+    // Monthly revenue estimates: Standard (8 EUR), Rozšírený (10 EUR)
+    const estimatedMRR = (standardCount * 8) + (extendedCount * 10);
 
     return {
       total,
@@ -234,9 +259,52 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
       extendedCount,
       trialCount,
       expiredCount,
-      estimatedMRR
+      estimatedMRR,
+      paymentReportedCount
     };
   }, [analyzedStores]);
+
+  // ─── Aktivovanie plánu (Superadmin) ─────────────────────────────────────
+  const [activating, setActivating] = useState<string | null>(null);
+  const activatePlan = async (handle: string, plan: "standard" | "extended", days: number = 30) => {
+    setActivating(handle);
+    try {
+      // Vypočítať nový planEndsAt — buď od dnes, alebo predĺžiť existujúci
+      const store = stores.find(s => s.handle === handle);
+      const nowMs = Date.now();
+      const existingEnd = store?.planEndsAt ? new Date(store.planEndsAt).getTime() : 0;
+      const startFrom = Math.max(existingEnd, nowMs);
+      const newEnd = new Date(startFrom + days * 24 * 60 * 60 * 1000).toISOString();
+
+      await setDoc(doc(db, "stores", handle), {
+        plan,
+        planEndsAt: newEnd,
+        paymentReported: false,     // reset — pripravené na ďalšiu platbu o mesiac
+        paymentReportedAt: "",
+        paymentReportedPlan: "",
+      }, { merge: true });
+    } catch (err: any) {
+      console.error("activatePlan error:", err);
+      setDbError("Aktivácia plánu zlyhala: " + err.message);
+    } finally {
+      setActivating(null);
+    }
+  };
+  const dismissPaymentReport = async (handle: string) => {
+    setActivating(handle);
+    try {
+      await setDoc(doc(db, "stores", handle), {
+        paymentReported: false,
+        paymentReportedAt: "",
+        paymentReportedPlan: "",
+      }, { merge: true });
+    } catch (err: any) {
+      console.error("dismissPaymentReport error:", err);
+      setDbError("Zamietnutie zlyhalo: " + err.message);
+    } finally {
+      setActivating(null);
+    }
+  };
 
   // Filtered store list
   const filteredStores = useMemo(() => {
@@ -428,7 +496,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
 
           {/* STAT 3: Expanded Plan */}
           <div className="bg-white p-5 rounded-3xl border shadow-xs border-l-4" style={{ borderColor: "#E2E8F0", borderLeftColor: "#10B981" }}>
-            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Plán Rozšírený (12 €/mes)</span>
+            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Plán Rozšírený (10 €/mes)</span>
             <span className="text-3xl font-black block mt-2 text-emerald-600">{loading ? "..." : stats.extendedCount}</span>
             <span className="text-[10px] text-slate-500 block mt-1">S limitom 6 produktov</span>
           </div>
@@ -447,6 +515,21 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
             <span className="text-[10px] text-indigo-200 block mt-1">Odhad z aktívnych predplatných</span>
           </div>
         </section>
+
+        {/* Nahlásené platby — highlight banner ak čakajú na schválenie */}
+        {stats.paymentReportedCount > 0 && (
+          <section className="mb-6 p-4 rounded-3xl border shadow-xs flex items-start gap-3" style={{ background: "#FEFCE8", borderColor: "#FDE68A" }}>
+            <span className="text-2xl leading-none">💰</span>
+            <div className="flex-1">
+              <h3 className="font-black text-sm text-yellow-900">
+                {stats.paymentReportedCount} {stats.paymentReportedCount === 1 ? "obchod nahlásil platbu" : stats.paymentReportedCount < 5 ? "obchody nahlásili platbu" : "obchodov nahlásilo platbu"}
+              </h3>
+              <p className="text-xs text-yellow-800 mt-0.5 leading-relaxed">
+                Skontroluj banku (variabilný symbol pri každom obchode je viditeľný v jeho detailoch) a klikni „Aktivovať 30d" v riadku obchodu. Ak platba nedorazila, klikni „Zamietnuť".
+              </p>
+            </div>
+          </section>
+        )}
 
         {/* CONTROLS (Search & Filter) */}
         <section className="bg-white p-4 rounded-3xl border shadow-xs mb-6 flex flex-col md:flex-row gap-4 items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
@@ -608,28 +691,44 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                         )}
                       </td>
 
-                      {/* Plan status badge */}
+                      {/* Plan status badge + payment reported flag */}
                       <td className="py-4 px-4">
-                        {store.status === "standard" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 inline-block">
-                            Štandard (8 €)
-                          </span>
-                        )}
-                        {store.status === "extended" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 inline-block">
-                            Rozšírený (12 €)
-                          </span>
-                        )}
-                        {store.status === "trial" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-block">
-                            Trial (10 dní)
-                          </span>
-                        )}
-                        {store.status === "expired" && (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100 inline-block">
-                            Exspirovaný
-                          </span>
-                        )}
+                        <div className="flex flex-col gap-1">
+                          {store.status === "standard" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 inline-block w-fit">
+                              Štandard (8 €)
+                            </span>
+                          )}
+                          {store.status === "extended" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 inline-block w-fit">
+                              Rozšírený (10 €)
+                            </span>
+                          )}
+                          {store.status === "trial" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-100 inline-block w-fit">
+                              Trial ({store.daysLeft} dní)
+                            </span>
+                          )}
+                          {store.status === "expired" && (
+                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-100 inline-block w-fit">
+                              Exspirovaný
+                            </span>
+                          )}
+                          {store.paymentReported && (
+                            <div className="flex flex-col gap-0.5 w-fit">
+                              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-yellow-100 text-yellow-800 border border-yellow-200 inline-block w-fit animate-pulse" title={store.paymentReportedAt ? "Nahlásené " + new Date(store.paymentReportedAt).toLocaleString("sk-SK") : ""}>
+                                💰 Nahlásená platba{store.paymentReportedPlan ? ` (${store.paymentReportedPlan === "standard" ? "Štandard 8€" : "Rozšírený 10€"})` : ""}
+                              </span>
+                              <button
+                                onClick={() => { navigator.clipboard?.writeText(getPaymentVs(store.ownerId)); }}
+                                className="text-[10px] font-mono text-slate-500 hover:text-slate-800 text-left px-2"
+                                title="Kliknúť pre kopírovanie VS — vyhľadajte v banke"
+                              >
+                                VS <b>{getPaymentVs(store.ownerId)}</b> 📋
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
 
                       {/* Date of creation */}
@@ -637,10 +736,15 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                         {formatDate(store.createdAt)}
                       </td>
 
-                      {/* Days remaining */}
+                      {/* Plan expiry / trial days remaining */}
                       <td className="py-4 px-4 text-right font-bold text-xs">
-                        {store.status === "trial" ? (
-                          <span className="text-amber-600">{store.daysLeft} dní</span>
+                        {store.planActive ? (
+                          <div className="flex flex-col items-end gap-0.5">
+                            <span className="text-emerald-600">{store.planDaysLeft} dní</span>
+                            <span className="text-[9px] font-mono text-slate-400 font-normal">do {new Date(store.planEndsAt).toLocaleDateString("sk-SK")}</span>
+                          </div>
+                        ) : store.status === "trial" ? (
+                          <span className="text-amber-600">{store.daysLeft} dní trial</span>
                         ) : store.status === "expired" ? (
                           <span className="text-red-500">Vypršal</span>
                         ) : (
@@ -650,13 +754,63 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
 
                       {/* Actions */}
                       <td className="py-4 px-6 text-right">
-                        <button
-                          onClick={() => setStoreToDelete(store)}
-                          className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-red-50 hover:bg-red-100 text-red-600 transition-all inline-flex items-center gap-1 cursor-pointer"
-                          title="Vymazať obchod z platformy"
-                        >
-                          🗑️ Vymazať
-                        </button>
+                        <div className="flex flex-col gap-1.5 items-end">
+                          {store.paymentReported ? (
+                            <div className="flex flex-col gap-1 items-end">
+                              <button
+                                onClick={() => activatePlan(store.handle, (store.paymentReportedPlan || store.plan || "standard") as any, 30)}
+                                disabled={activating === store.handle}
+                                className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all inline-flex items-center gap-1 cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                                title="Aktivovať alebo predĺžiť plán o 30 dní"
+                              >
+                                ✅ Aktivovať {store.paymentReportedPlan === "standard" ? "Štd" : store.paymentReportedPlan === "extended" ? "Rozš" : ""} 30d
+                              </button>
+                              <button
+                                onClick={() => dismissPaymentReport(store.handle)}
+                                disabled={activating === store.handle}
+                                className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-50 hover:bg-slate-100 text-slate-500 transition-all whitespace-nowrap"
+                                title="Zamietnuť nahlásenú platbu (napr. neprišla)"
+                              >
+                                ✕ Zamietnuť
+                              </button>
+                            </div>
+                          ) : store.planActive ? (
+                            <button
+                              onClick={() => activatePlan(store.handle, store.plan as any, 30)}
+                              disabled={activating === store.handle}
+                              className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition-all whitespace-nowrap disabled:opacity-50"
+                              title="Predĺžiť aktívny plán o 30 dní od dnešného konca"
+                            >
+                              ⟳ Predĺžiť 30d
+                            </button>
+                          ) : (
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => activatePlan(store.handle, "standard", 30)}
+                                disabled={activating === store.handle}
+                                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all disabled:opacity-50 whitespace-nowrap"
+                                title="Aktivovať Štandard 30 dní"
+                              >
+                                Štd
+                              </button>
+                              <button
+                                onClick={() => activatePlan(store.handle, "extended", 30)}
+                                disabled={activating === store.handle}
+                                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all disabled:opacity-50 whitespace-nowrap"
+                                title="Aktivovať Rozšírený 30 dní"
+                              >
+                                Rozš
+                              </button>
+                            </div>
+                          )}
+                          <button
+                            onClick={() => setStoreToDelete(store)}
+                            className="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-red-50 hover:bg-red-100 text-red-600 transition-all inline-flex items-center gap-1 cursor-pointer"
+                            title="Vymazať obchod z platformy"
+                          >
+                            🗑️ Vymazať
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect, FormEvent } from "react";
+import { useState, useMemo, useEffect, FormEvent, MouseEvent as ReactMouseEvent } from "react";
 import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
 import AdminPlatformy from "./components/AdminPlatformy";
-import LegalPage, { LegalPageType } from "./components/LegalPage";
+import LegalPage, { LegalPageType, useCompany } from "./components/LegalPage";
 import defaultLogo from "./assets/images/default_store_logo.jpg";
 
 const LEGAL_PATHS: Record<string, LegalPageType> = {
@@ -166,6 +166,10 @@ export default function Vitrina() {
   const currentHost = typeof window !== "undefined" ? window.location.host : "vitrina.app";
   const currentOrigin = typeof window !== "undefined" ? window.location.origin : "https://vitrina.app";
 
+  // Údaje spoločnosti (majiteľa Vitríny) — z Firestore config/company
+  // Používame IBAN pri platbe predplatného od predajcov.
+  const company = useCompany();
+
   const [view, setView] = useState<"shop" | "admin">("shop"); // shop | admin
   const [stores, setStores] = useState<any[]>([]);
   const [allItems, setAllItems] = useState<StoreItem[]>([]);
@@ -213,6 +217,10 @@ export default function Vitrina() {
     category: "Sviečky a darčeky",
     trialEndsAt: "",
     plan: "",
+    planEndsAt: "",
+    paymentReported: false,
+    paymentReportedAt: "",
+    paymentReportedNote: "",
     createdAt: null as any,
     logo: "",
     description: "",
@@ -571,24 +579,61 @@ export default function Vitrina() {
   }, [store.trialEndsAt]);
 
   const isTrialActive = trialDaysLeft > 0;
-  const hasPlan = store.plan === "standard" || store.plan === "extended";
-  const isStoreVisibleToCustomers = isTrialActive || hasPlan;
+
+  // Plán je aktívny len ak (a) je nastavený a (b) planEndsAt je v budúcnosti
+  const planActive = useMemo(() => {
+    const hasPlanChosen = store.plan === "standard" || store.plan === "extended";
+    if (!hasPlanChosen) return false;
+    if (!store.planEndsAt) return false;
+    return new Date(store.planEndsAt).getTime() > Date.now();
+  }, [store.plan, store.planEndsAt]);
+
+  // Používa sa vo viacerých UI miestach — zachovávame názov ale semantika je "aktívny + neexpirovaný"
+  const hasPlan = planActive;
+  const isStoreVisibleToCustomers = isTrialActive || planActive;
+
+  // Počet dní do konca plánu (0 ak už expiroval alebo nie je)
+  const planDaysLeft = useMemo(() => {
+    if (!store.planEndsAt) return 0;
+    const diff = new Date(store.planEndsAt).getTime() - Date.now();
+    return Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000)));
+  }, [store.planEndsAt]);
+
+  // Stály variabilný symbol pre platby predplatného (z ownerId)
+  const paymentVs = useMemo(() => {
+    if (!store.ownerId) return "";
+    // Deterministický hash → 8-miestne číslo
+    let h = 0;
+    for (let i = 0; i < store.ownerId.length; i++) {
+      h = ((h << 5) - h) + store.ownerId.charCodeAt(i);
+      h |= 0;
+    }
+    // 8-miestne číslo (10000000 - 99999999)
+    const abs = Math.abs(h) % 90000000 + 10000000;
+    return String(abs);
+  }, [store.ownerId]);
 
   const shouldShowTrialModal =
     isOwner &&
     !!selectedStoreHandle &&
     !trialModalDismissed &&
-    ((isTrialActive && trialDaysLeft <= 3) || (!isTrialActive && !hasPlan));
+    ((isTrialActive && trialDaysLeft <= 3) || (!isTrialActive && !planActive));
 
   const maxItemsAllowed = useMemo(() => {
+    // Aktívny plán rozhoduje o limitu (2 alebo 6)
+    if (planActive) {
+      if (store.plan === "standard") return 2;
+      if (store.plan === "extended") return 6;
+    }
+    // Ak trial ešte beží, dovoľuje 6 (plná funkčnosť)
     if (isTrialActive) return 6;
-    if (store.plan === "standard") return 2;
-    if (store.plan === "extended") return 6;
-    return 0; // If expired and no plan selected
-  }, [isTrialActive, store.plan]);
+    return 0;
+  }, [isTrialActive, planActive, store.plan]);
 
   const hasReachedItemLimit = items.length >= maxItemsAllowed;
-  const limitMessage = `Dosiahli ste limit vášho plánu (${maxItemsAllowed} ${maxItemsAllowed === 2 ? "produkty" : "produktov"}). Pre pridanie ďalších produktov si zvoľte Rozšírený plán nižšie.`;
+  const limitMessage = store.plan === "extended"
+    ? `Dosiahli ste maximálny limit vášho plánu (6 produktov). Ak chcete pridať ďalší, najprv zmažte niektorý existujúci.`
+    : `Dosiahli ste limit vášho plánu (${maxItemsAllowed} ${maxItemsAllowed === 2 ? "produkty" : "produktov"}). Pre pridanie ďalších produktov si zvoľte Rozšírený plán nižšie.`;
 
   // Filter items that are visible to customers (sliced based on plan limit)
   const visibleItems = useMemo(() => {
@@ -797,11 +842,11 @@ export default function Vitrina() {
   // Update active store field in Firestore
   const updateStoreField = async (field: string, val: string) => {
     if (!selectedStoreHandle) return;
-    
+
     // Update local state first so inputs are responsive as user types
     const newStore = { ...store, [field]: val };
     setStore(newStore);
-    
+
     // Safety check: do not save empty strings to Firestore for required fields
     if (["name", "phone", "city", "iban"].includes(field) && !val.trim()) {
       return;
@@ -812,6 +857,27 @@ export default function Vitrina() {
     } catch (err: any) {
       console.error("Error updating store field:", err);
       setDbError("Zápis nastavení zlyhal: " + err.message);
+    }
+  };
+
+  // Predajca "nahlási platbu" — zapíšeme flag + timestamp, ty (admin) to schváliš v AdminPlatformy
+  const [reportingPayment, setReportingPayment] = useState(false);
+  const reportPayment = async () => {
+    if (!selectedStoreHandle || !store.plan) return;
+    setReportingPayment(true);
+    try {
+      const now = new Date().toISOString();
+      await setDoc(doc(db, "stores", selectedStoreHandle), {
+        paymentReported: true,
+        paymentReportedAt: now,
+        paymentReportedPlan: store.plan,
+      }, { merge: true });
+      setStore({ ...store, paymentReported: true, paymentReportedAt: now });
+    } catch (err: any) {
+      console.error("Error reporting payment:", err);
+      setDbError("Nahlásenie platby zlyhalo: " + err.message);
+    } finally {
+      setReportingPayment(false);
     }
   };
 
@@ -839,7 +905,7 @@ export default function Vitrina() {
   const waLink = `https://wa.me/${store.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(waText)}`;
 
   // Save order to Firestore orders
-  const handleCheckout = async (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleCheckout = async (e: ReactMouseEvent<HTMLAnchorElement>) => {
     if (!selectedStoreHandle) return;
 
     if (!cust.name.trim() || !cust.city.trim()) {
@@ -2031,7 +2097,17 @@ export default function Vitrina() {
               </div>
 
               {/* Status banner */}
-              {isTrialActive ? (
+              {planActive ? (
+                <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}>
+                  <span className="text-lg leading-none">✅</span>
+                  <div>
+                    <span className="font-extrabold block">Aktívny plán: {store.plan === "standard" ? "Štandard (8 €/mes)" : "Rozšírený (10 €/mes)"}</span>
+                    <span className="block mt-0.5 font-medium opacity-90">
+                      Váš obchod je aktívny s limitom <strong>{store.plan === "standard" ? 2 : 6} produktov</strong>. Plán platí do <strong>{new Date(store.planEndsAt).toLocaleDateString("sk-SK")}</strong> ({planDaysLeft} {planDaysLeft === 1 ? "deň" : "dní"}).
+                    </span>
+                  </div>
+                </div>
+              ) : isTrialActive ? (
                 <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", color: "#5B21B6" }}>
                   <span className="text-lg leading-none">⏱️</span>
                   <div>
@@ -2041,23 +2117,13 @@ export default function Vitrina() {
                     </span>
                   </div>
                 </div>
-              ) : !hasPlan ? (
+              ) : (
                 <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", color: "#991B1B" }}>
                   <span className="text-lg leading-none">⚠️</span>
                   <div>
                     <span className="font-extrabold block">Skúšobná doba vypršala!</span>
                     <span className="block mt-0.5 font-medium opacity-90">
-                      Vyberte si prosím jeden z plánov nižšie, aby váš obchod zostal viditeľný pre zákazníkov.
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", color: "#166534" }}>
-                  <span className="text-lg leading-none">✅</span>
-                  <div>
-                    <span className="font-extrabold block">Aktívny plán: {store.plan === "standard" ? "Štandard" : "Rozšírený"}</span>
-                    <span className="block mt-0.5 font-medium opacity-90">
-                      Váš obchod je riadne aktívny a viditeľný s limitom <strong>{store.plan === "standard" ? 2 : 6} aktívnych produktov</strong>.
+                      Váš obchod je momentálne skrytý pre zákazníkov. Vyberte plán a nahláste platbu podľa pokynov nižšie.
                     </span>
                   </div>
                 </div>
@@ -2107,7 +2173,7 @@ export default function Vitrina() {
                     )}
                   </div>
                   <div>
-                    <span className="disp text-lg font-black block text-slate-900 leading-none">12 €</span>
+                    <span className="disp text-lg font-black block text-slate-900 leading-none">10 €</span>
                     <span className="text-[10px] text-slate-400 font-medium">/ mesiac</span>
                   </div>
                   <div className="border-t pt-2 w-full text-[10px] text-slate-500 font-semibold leading-normal" style={{ borderColor: C.line }}>
@@ -2115,9 +2181,93 @@ export default function Vitrina() {
                   </div>
                 </button>
               </div>
+
+              {/* Pokyny na platbu — zobrazia sa, ak si predajca vybral plán a plán zatiaľ nie je aktívny */}
+              {store.plan && !planActive && (() => {
+                const suma = store.plan === "standard" ? "8.00" : "10.00";
+                const nazovPlanu = store.plan === "standard" ? "Štandard" : "Rozšírený";
+                const cistyIban = (company.iban || "").replace(/\s+/g, "").toUpperCase();
+                const paymentPaymeUrl = cistyIban
+                  ? `https://payme.sk?v=1&iban=${cistyIban}&amount=${suma}&currency=EUR&vs=${paymentVs}&desc=${encodeURIComponent(`Vitrina ${nazovPlanu}`)}`
+                  : "";
+                const paymentReported = !!(store as any).paymentReported;
+                return (
+                  <div className="mt-3 p-4 rounded-2xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
+                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accent }}>
+                      💳 Aktivujte plán {nazovPlanu} ({suma} €/mes)
+                    </span>
+                    <p className="text-[11px] mb-3 max-w-sm" style={{ color: C.soft }}>
+                      Zaplaťte prevodom na náš účet. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite „Nahlásiť platbu" — plán aktivujeme do 24 hodín.
+                    </p>
+
+                    {cistyIban ? (
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(paymentPaymeUrl)}`}
+                        alt="QR kód pre platbu predplatného"
+                        className="w-40 h-40 bg-white p-2 rounded-xl border"
+                        style={{ borderColor: C.line }}
+                      />
+                    ) : (
+                      <div className="w-40 h-40 flex items-center justify-center rounded-xl border bg-white text-[10px] text-slate-400 text-center p-3" style={{ borderColor: C.line }}>
+                        (Administrátor Vitríny ešte nedoplnil IBAN v Admin → Údaje firmy.)
+                      </div>
+                    )}
+
+                    <div className="w-full mt-3 grid grid-cols-1 gap-1.5 text-left text-xs">
+                      <div>
+                        <span className="font-semibold block" style={{ color: C.soft }}>IBAN príjemcu (Vitrína):</span>
+                        <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border text-xs font-mono">
+                          <span className="truncate">{company.iban || "(nedoplnené)"}</span>
+                          {company.iban && (
+                            <button
+                              onClick={() => { navigator.clipboard?.writeText(cistyIban); }}
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-indigo-600 hover:underline"
+                            >
+                              Kopírovať
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                          <span className="font-semibold block" style={{ color: C.soft }}>Suma:</span>
+                          <div className="bg-white px-2.5 py-1.5 rounded-lg border font-mono text-xs">{suma} €</div>
+                        </div>
+                        <div>
+                          <span className="font-semibold block" style={{ color: C.soft }}>Variabilný symbol:</span>
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border font-mono text-xs">
+                            <span>{paymentVs}</span>
+                            <button
+                              onClick={() => { navigator.clipboard?.writeText(paymentVs); }}
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-indigo-600 hover:underline"
+                            >
+                              Kop
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {paymentReported ? (
+                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px] font-bold" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
+                        ⏳ Nahlásili ste platbu {(store as any).paymentReportedAt ? "dňa " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}. Aktivujeme do 24 hodín.
+                      </div>
+                    ) : (
+                      <button
+                        onClick={reportPayment}
+                        disabled={reportingPayment || !cistyIban}
+                        className="mt-4 w-full px-4 py-2.5 rounded-xl text-white font-bold text-xs disabled:opacity-60"
+                        style={{ background: C.accent }}
+                      >
+                        {reportingPayment ? "Odosielam…" : "✅ Nahlásiť platbu"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </section>
 
-            <AddItem 
+            <AddItem
               disabled={hasReachedItemLimit} 
               limitMessage={limitMessage}
               onAdd={async (it) => {

@@ -787,7 +787,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <div className="pc highlight">
                 <div className="plan-badge">OBĽÚBENÉ</div>
                 <div className="plan-name">Rozšírený</div>
-                <div className="plan-price">12 €<span className="plan-per">/mes.</span></div>
+                <div className="plan-price">10 €<span className="plan-per">/mes.</span></div>
                 <a href="/app" onClick={(e) => handleNav(e, "/app")} className="plan-cta solid">Vyskúšať 10 dní zdarma</a>
               </div>
             </div>

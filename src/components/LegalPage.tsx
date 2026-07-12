@@ -41,7 +41,7 @@ const EMPTY: CompanyInfo = {
   kontakt: "info@zavio.sk",
 };
 
-function useCompany(): CompanyInfo {
+export function useCompany(): CompanyInfo {
   const [company, setCompany] = useState<CompanyInfo>(EMPTY);
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "config", "company"), (snap) => {
@@ -169,7 +169,7 @@ function Podmienky({ f }: { f: CompanyInfo }) {
         <ul>
           <li>Skúšobná doba: 10 dní zadarmo od registrácie obchodu, s limitom 6 aktívnych produktov.</li>
           <li>Plán <b>Standard</b>: 8 €/mes, limit 2 aktívne produkty.</li>
-          <li>Plán <b>Rozšírený</b>: 12 €/mes, limit 6 aktívnych produktov.</li>
+          <li>Plán <b>Rozšírený</b>: 10 €/mes, limit 6 aktívnych produktov.</li>
           <li>Ceny sú uvedené bez DPH*. * Ak je poskytovateľ platcom DPH, k cene sa pripočíta príslušná sadzba DPH.</li>
           <li>Po vypršaní skúšobnej doby bez zvoleného plánu sa obchod automaticky skryje pre zákazníkov (dáta zostávajú zachované).</li>
           <li>Predplatné je možné zrušiť kedykoľvek v Nastaveniach obchodu; po zrušení plán platí do konca zaplateného obdobia.</li>
