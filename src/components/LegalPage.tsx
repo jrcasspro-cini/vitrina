@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
 
 export type LegalPageType =
   | "podmienky"
@@ -12,20 +14,56 @@ interface LegalPageProps {
   onNavigate: (path: string) => void;
 }
 
-// Placeholders — Jozef doplní pri finálnom registrovaní firmy.
-// Cez Cmd+F v tomto súbore nahradí:
-//   {{FIRMA_NAZOV}}, {{FIRMA_ADRESA}}, {{FIRMA_ICO}}, {{FIRMA_DIC}},
-//   {{FIRMA_IC_DPH}}, {{FIRMA_REGISTER}}, {{DATUM_UCINNOSTI}}
-const F = {
-  NAZOV: "{{FIRMA_NAZOV}}",
-  ADRESA: "{{FIRMA_ADRESA}}",
-  ICO: "{{FIRMA_ICO}}",
-  DIC: "{{FIRMA_DIC}}",
-  IC_DPH: "{{FIRMA_IC_DPH}}",
-  REGISTER: "{{FIRMA_REGISTER}}",
-  DATUM: "{{DATUM_UCINNOSTI}}",
-  KONTAKT: "info@zavio.sk",
+// Údaje firmy — načítajú sa z Firestore `config/company`.
+// Ak dokument ešte neexistuje (napr. pred vyplnením v Admin sekcii),
+// stránka ukazuje "(nedoplnené)" — aby bolo v prehliadači jasne vidno,
+// čo treba doplniť pred spustením naostro.
+export interface CompanyInfo {
+  nazov: string;
+  adresa: string;
+  ico: string;
+  dic: string;
+  ic_dph: string;
+  register: string;
+  datum_ucinnosti: string;
+  kontakt: string;
+  iban?: string;
+}
+
+const EMPTY: CompanyInfo = {
+  nazov: "(nedoplnené — Admin → Údaje firmy)",
+  adresa: "(nedoplnené)",
+  ico: "(nedoplnené)",
+  dic: "(nedoplnené)",
+  ic_dph: "(nedoplnené)",
+  register: "(nedoplnené)",
+  datum_ucinnosti: "(nedoplnené)",
+  kontakt: "info@zavio.sk",
 };
+
+function useCompany(): CompanyInfo {
+  const [company, setCompany] = useState<CompanyInfo>(EMPTY);
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "config", "company"), (snap) => {
+      if (snap.exists()) {
+        const d = snap.data() as Partial<CompanyInfo>;
+        setCompany({
+          nazov: d.nazov || EMPTY.nazov,
+          adresa: d.adresa || EMPTY.adresa,
+          ico: d.ico || EMPTY.ico,
+          dic: d.dic || EMPTY.dic,
+          ic_dph: d.ic_dph || EMPTY.ic_dph,
+          register: d.register || EMPTY.register,
+          datum_ucinnosti: d.datum_ucinnosti || EMPTY.datum_ucinnosti,
+          kontakt: d.kontakt || EMPTY.kontakt,
+          iban: d.iban,
+        });
+      }
+    });
+    return () => unsub();
+  }, []);
+  return company;
+}
 
 const TITLES: Record<LegalPageType, string> = {
   "podmienky": "Všeobecné obchodné podmienky služby Vitrína",
@@ -36,6 +74,7 @@ const TITLES: Record<LegalPageType, string> = {
 };
 
 export default function LegalPage({ type, onNavigate }: LegalPageProps) {
+  const company = useCompany();
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       {/* Header */}
@@ -64,7 +103,7 @@ export default function LegalPage({ type, onNavigate }: LegalPageProps) {
         </h1>
 
         <div className="bg-white rounded-3xl p-8 md:p-12 border shadow-sm" style={{ borderColor: "#E2E8F0" }}>
-          <PageBody type={type} />
+          <PageBody type={type} f={company} />
         </div>
 
         {/* Footer navigation */}
@@ -81,36 +120,36 @@ export default function LegalPage({ type, onNavigate }: LegalPageProps) {
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-8">
-          Vitrína · Predajná platforma pre malých tvorcov · <a href={`mailto:${F.KONTAKT}`} className="text-indigo-600 hover:underline">{F.KONTAKT}</a>
+          Vitrína · Predajná platforma pre malých tvorcov · <a href={`mailto:${company.kontakt}`} className="text-indigo-600 hover:underline">{company.kontakt}</a>
         </p>
       </main>
     </div>
   );
 }
 
-function PageBody({ type }: { type: LegalPageType }) {
+function PageBody({ type, f }: { type: LegalPageType; f: CompanyInfo }) {
   switch (type) {
     case "podmienky":
-      return <Podmienky />;
+      return <Podmienky f={f} />;
     case "ochrana-udajov":
-      return <OchranaUdajov />;
+      return <OchranaUdajov f={f} />;
     case "cookies":
-      return <Cookies />;
+      return <Cookies f={f} />;
     case "reklamacie":
-      return <Reklamacie />;
+      return <Reklamacie f={f} />;
     case "odstupenie":
-      return <Odstupenie />;
+      return <Odstupenie f={f} />;
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Podmienky() {
+function Podmienky({ f }: { f: CompanyInfo }) {
   return (
     <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
       <Section title="1. Úvodné ustanovenia">
-        <p>Poskytovateľom služby Vitrína je <b>{F.NAZOV}</b>, so sídlom {F.ADRESA}, IČO: {F.ICO}, DIČ: {F.DIC}, IČ DPH: {F.IC_DPH}, zapísaná v {F.REGISTER}.</p>
-        <p>Kontakt: <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a></p>
+        <p>Poskytovateľom služby Vitrína je <b>{f.nazov}</b>, so sídlom {f.adresa}, IČO: {f.ico}, DIČ: {f.dic}, IČ DPH: {f.ic_dph}, zapísaná v {f.register}.</p>
+        <p>Kontakt: <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a></p>
       </Section>
 
       <Section title="2. Predmet služby">
@@ -150,7 +189,7 @@ function Podmienky() {
         <ul>
           <li>Poskytovať službu s maximálnou snahou o kontinuálnu dostupnosť (s výnimkou plánovanej údržby a udalostí mimo kontroly poskytovateľa).</li>
           <li>Ochrana osobných údajov podľa GDPR a platnej legislatívy (viď <a href="/ochrana-udajov">Zásady ochrany osobných údajov</a>).</li>
-          <li>Podpora prostredníctvom <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a>.</li>
+          <li>Podpora prostredníctvom <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a>.</li>
         </ul>
       </Section>
 
@@ -180,7 +219,7 @@ function Podmienky() {
 
       <Section title="10. Záverečné ustanovenia">
         <ul>
-          <li>Podmienky platia od {F.DATUM}.</li>
+          <li>Podmienky platia od {f.datum_ucinnosti}.</li>
           <li>Zmeny podmienok oznámime používateľom emailom minimálne 30 dní pred nadobudnutím účinnosti.</li>
           <li>Ak niektoré ustanovenie stratí platnosť, ostatné zostávajú platné.</li>
         </ul>
@@ -189,11 +228,11 @@ function Podmienky() {
   );
 }
 
-function OchranaUdajov() {
+function OchranaUdajov({ f }: { f: CompanyInfo }) {
   return (
     <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
       <Section title="1. Prevádzkovateľ">
-        <p>{F.NAZOV}, {F.ADRESA}, IČO: {F.ICO}. Kontakt: <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a></p>
+        <p>{f.nazov}, {f.adresa}, IČO: {f.ico}. Kontakt: <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a></p>
       </Section>
 
       <Section title="2. Aké údaje spracúvame">
@@ -253,7 +292,7 @@ function OchranaUdajov() {
       </Section>
 
       <Section title="8. Ako uplatniť práva">
-        <p>Email: <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a>. Reakcia do 30 dní.</p>
+        <p>Email: <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a>. Reakcia do 30 dní.</p>
       </Section>
 
       <Section title="9. Cookies">
@@ -261,17 +300,17 @@ function OchranaUdajov() {
       </Section>
 
       <Section title="10. Účinnosť">
-        <p>Zásady platia od {F.DATUM}. Zmeny oznamujeme cez aplikáciu alebo emailom.</p>
+        <p>Zásady platia od {f.datum_ucinnosti}. Zmeny oznamujeme cez aplikáciu alebo emailom.</p>
       </Section>
     </div>
   );
 }
 
-function Cookies() {
+function Cookies({ f }: { f: CompanyInfo }) {
   return (
     <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
       <Section title="1. Prevádzkovateľ">
-        <p>{F.NAZOV}, kontakt <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a></p>
+        <p>{f.nazov}, kontakt <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a></p>
       </Section>
 
       <Section title="2. Čo sú cookies">
@@ -297,7 +336,7 @@ function Cookies() {
   );
 }
 
-function Reklamacie() {
+function Reklamacie({ f }: { f: CompanyInfo }) {
   return (
     <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
       <Section title="Predmet reklamačného poriadku">
@@ -310,7 +349,7 @@ function Reklamacie() {
 
       <Section title="2. Ako podať reklamáciu">
         <ul>
-          <li>Email: <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a></li>
+          <li>Email: <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a></li>
           <li>Predmet: „Reklamácia — [krátky popis]"</li>
           <li>Uveďte: meno / názov obchodu, email z účtu Vitrína, popis vady (screenshoty vítané), kedy sa vada objavila.</li>
         </ul>
@@ -338,7 +377,7 @@ function Reklamacie() {
   );
 }
 
-function Odstupenie() {
+function Odstupenie({ f }: { f: CompanyInfo }) {
   return (
     <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed">
       <Section title="Odstúpenie od zmluvy">
@@ -352,7 +391,7 @@ function Odstupenie() {
 
       <Section title="Ako uplatniť odstúpenie">
         <ol>
-          <li>Napíš na <a href={`mailto:${F.KONTAKT}`}>{F.KONTAKT}</a> do 14 dní od registrácie.</li>
+          <li>Napíš na <a href={`mailto:${f.kontakt}`}>{f.kontakt}</a> do 14 dní od registrácie.</li>
           <li>Uveď meno, email z účtu, dátum registrácie.</li>
           <li>Vrátenie zaplatenej sumy do 14 dní od doručenia odstúpenia.</li>
         </ol>

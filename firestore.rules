@@ -40,10 +40,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin() || isStoreOwner(resource.data.storeId);
     }
 
-    // Config: iba admin. Predtym bolo `allow read, write: if true` — kritická
-    // bezpečnostná diera (ktokoľvek na internete mohol prepísať konfiguráciu).
+    // Config: čítanie verejné (aby ToS/Privacy stránky videli aj neprihlásení),
+    // zápis iba admin. Predtym bolo `allow read, write: if true` — kritická
+    // bezpečnostná diera (ktokoľvek mohol prepísať konfiguráciu).
     match /config/{configId} {
-      allow read, write: if isAdmin();
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

@@ -3,6 +3,7 @@ import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDo
 import { db, auth } from "../firebase";
 import { signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import defaultLogo from "../assets/images/default_store_logo.jpg";
+import CompanySettings from "./CompanySettings";
 
 interface AdminPlatformyProps {
   onNavigate: (path: string) => void;
@@ -406,6 +407,9 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
       </header>
 
       <main className="max-w-7xl mx-auto px-6 mt-8">
+        {/* ÚDAJE FIRMY — pre právne stránky (ToS, Privacy, Cookies...) */}
+        <CompanySettings />
+
         {/* STATS BENTO GRID */}
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {/* STAT 1: Total stores */}
