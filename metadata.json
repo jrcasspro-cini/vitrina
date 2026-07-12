@@ -1,6 +1,6 @@
 {
   "name": "Vitrína",
-  "description": "Mila Sviečky - Vitrína internetového obchodu, rezervácie a objednávky cez WhatsApp",
+  "description": "Link-in-bio obchod pre malých predajcov — zákazník si vyberie, zaplatí QR kódom a objednávka príde na WhatsApp predajcu.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": []
 }
