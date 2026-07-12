@@ -73,15 +73,28 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         @import url('https://fonts.googleapis.com/css2?family=Righteous&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
 
         .landing-page-root {
-          --bg: #f6f6fa;
+          --bg: #FAFAFF;
           --surface: #ffffff;
-          --surface2: #eef0f4;
+          --surface2: #F1F0FA;
           --border: rgba(20,20,40,.10);
           --text: #15151f;
           --muted: rgba(20,20,40,.70);
           --muted2: rgba(20,20,40,.55);
-          --accent1: #6c63ff;
-          --accent2: #009e86;
+
+          /* Rozšírená paleta — bold ale friendly */
+          --accent1: #7C3AED;       /* fialová */
+          --accent2: #10B981;       /* mätová */
+          --accent3: #F97316;       /* koralová */
+          --accent4: #EC4899;       /* ružová */
+          --accent5: #FBBF24;       /* zlatá */
+
+          /* Subtle washy pastelové pozadia sekcií */
+          --wash-purple: rgba(124, 58, 237, .05);
+          --wash-coral: rgba(249, 115, 22, .05);
+          --wash-mint: rgba(16, 185, 129, .05);
+          --wash-pink: rgba(236, 72, 153, .05);
+          --wash-gold: rgba(251, 191, 36, .06);
+
           --phone-frame: #15151f;
           --wa: #25D366;
 
@@ -93,6 +106,27 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           overflow-x: hidden;
           width: 100%;
           min-height: 100vh;
+        }
+
+        /* Gradient text helper — použitý na kľúčové slová */
+        .landing-page-root .grad-text {
+          background: linear-gradient(90deg, var(--accent1) 0%, var(--accent4) 45%, var(--accent3) 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+        }
+
+        /* Aurora animácia — jemné pohyby gradient blobov */
+        @keyframes aurora-float {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(20px, -20px) scale(1.06); }
+        }
+        .landing-page-root .aurora-blob { animation: aurora-float 14s ease-in-out infinite; will-change: transform; }
+        .landing-page-root .aurora-blob.delay-2 { animation-delay: -4s; }
+        .landing-page-root .aurora-blob.delay-3 { animation-delay: -8s; }
+        @media (prefers-reduced-motion: reduce) {
+          .landing-page-root .aurora-blob { animation: none; }
         }
 
         .landing-page-root *, 
@@ -255,7 +289,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .hero { padding: 90px 0 60px; }
         .landing-page-root .hero-inner { display: grid; grid-template-columns: 1.1fr .9fr; gap: 60px; align-items: center; }
         .landing-page-root .badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); padding: 7px 16px; border-radius: 30px; font-size: .78rem; color: var(--muted); margin-bottom: 26px; }
-        .landing-page-root .hero h1 { font-size: 3rem; line-height: 1.08; margin-bottom: 22px; }
+        .landing-page-root .hero h1 { font-size: 3.4rem; line-height: 1.05; margin-bottom: 22px; letter-spacing: -.02em; }
         .landing-page-root .hero p.lead { font-family: 'DM Sans', sans-serif; font-weight: 300; font-size: 1.1rem; color: var(--muted); max-width: 520px; margin-bottom: 34px; }
         .landing-page-root .cta-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 30px; }
         
@@ -403,8 +437,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .sec-head h2 { font-size: 2.1rem; margin-top: 14px; }
         .landing-page-root .sec-head p { color: var(--muted); margin-top: 16px; font-size: 1rem; }
 
-        /* SHOWCASE */
-        .landing-page-root .showcase { padding: 90px 0; }
+        /* SHOWCASE — wash purple */
+        .landing-page-root .showcase { padding: 90px 0; background: var(--wash-purple); }
         .landing-page-root .showcase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
         .landing-page-root .sc-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 22px; text-align: left; }
         .landing-page-root .sc-label { display: flex; justify-content: space-between; align-items: center; font-size: .75rem; color: var(--muted); margin-bottom: 16px; }
@@ -421,11 +455,14 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .sc-wa-note { text-align: right; font-size: .68rem; color: var(--muted2); margin-top: 10px; }
         @media (max-width: 900px) { .landing-page-root .showcase-grid { grid-template-columns: 1fr; } }
 
-        /* STEPS */
-        .landing-page-root .steps { padding: 90px 0; border-top: 1px solid var(--border); }
+        /* STEPS — wash coral */
+        .landing-page-root .steps { padding: 90px 0; background: var(--wash-coral); }
         .landing-page-root .steps-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 10px; }
         .landing-page-root .step3 { background: var(--bg); padding: 38px 30px; position: relative; text-align: left; }
-        .landing-page-root .step3-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1rem; }
+        .landing-page-root .step3-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.1rem; }
+        .landing-page-root .step3:nth-child(1) .step3-icon { background: linear-gradient(135deg, rgba(124,58,237,.14), rgba(124,58,237,.06)); border-color: rgba(124,58,237,.25); }
+        .landing-page-root .step3:nth-child(2) .step3-icon { background: linear-gradient(135deg, rgba(249,115,22,.14), rgba(249,115,22,.06)); border-color: rgba(249,115,22,.25); }
+        .landing-page-root .step3:nth-child(3) .step3-icon { background: linear-gradient(135deg, rgba(236,72,153,.14), rgba(236,72,153,.06)); border-color: rgba(236,72,153,.25); }
         .landing-page-root .step3-label { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--accent2); margin-bottom: 6px; }
         .landing-page-root .step3 h3 { font-size: 1.2rem; margin-bottom: 12px; }
         .landing-page-root .step3 p { color: var(--muted); font-size: .88rem; }
@@ -434,15 +471,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         /* FEATURES GRID */
         .landing-page-root .featgrid { padding: 90px 0; border-top: 1px solid var(--border); }
         .landing-page-root .fg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 50px; }
-        .landing-page-root .fg-card { background: var(--bg); padding: 36px 30px; text-align: left; }
+        .landing-page-root .fg-card { background: var(--bg); padding: 36px 30px; text-align: left; transition: background .25s ease, transform .25s ease; }
+        .landing-page-root .fg-card:hover { background: var(--surface); transform: translateY(-3px); }
+        .landing-page-root .fg-card:nth-child(3n+1) h3 { color: var(--accent1); }
+        .landing-page-root .fg-card:nth-child(3n+2) h3 { color: var(--accent3); }
+        .landing-page-root .fg-card:nth-child(3n+3) h3 { color: var(--accent4); }
         .landing-page-root .fg-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1rem; }
         .landing-page-root .fg-card h3 { font-size: 1.05rem; margin-bottom: 10px; }
         .landing-page-root .fg-card p { color: var(--muted); font-size: .85rem; }
         @media (max-width: 900px) { .landing-page-root .fg-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) { .landing-page-root .fg-grid { grid-template-columns: 1fr; } }
 
-        /* INDUSTRIES */
-        .landing-page-root .industries { padding: 90px 0; border-top: 1px solid var(--border); }
+        /* INDUSTRIES — wash mint */
+        .landing-page-root .industries { padding: 90px 0; background: var(--wash-mint); }
         .landing-page-root .ind-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 50px; }
         .landing-page-root .ind-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); text-align: left; }
         .landing-page-root .ind-card .art { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; position: relative; }
@@ -453,11 +494,12 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         @media (max-width: 900px) { .landing-page-root .ind-grid-4 { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 560px) { .landing-page-root .ind-grid-4 { grid-template-columns: 1fr; } }
 
-        /* FAQ */
-        .landing-page-root .faq { padding: 90px 0; border-top: 1px solid var(--border); }
+        /* FAQ — wash gold */
+        .landing-page-root .faq { padding: 90px 0; background: var(--wash-gold); }
         .landing-page-root .faq-list { max-width: 780px; margin: 44px auto 0; display: flex; flex-direction: column; gap: 12px; }
-        .landing-page-root .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; transition: background .2s; }
-        .landing-page-root .faq-item[open] { background: rgba(0,158,134,.04); border-color: rgba(0,158,134,.25); }
+        .landing-page-root .faq-item { background: rgba(255,255,255,.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: 16px; padding: 18px 22px; transition: all .25s ease; }
+        .landing-page-root .faq-item:hover { border-color: rgba(124,58,237,.25); background: rgba(255,255,255,.9); }
+        .landing-page-root .faq-item[open] { background: rgba(255,255,255,.95); border-color: var(--accent1); box-shadow: 0 6px 30px rgba(124,58,237,.10); }
         .landing-page-root .faq-item summary { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .98rem; color: var(--text); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
         .landing-page-root .faq-item summary::-webkit-details-marker { display: none; }
         .landing-page-root .faq-item summary::after { content: "+"; font-size: 1.3rem; color: var(--accent2); font-weight: 400; flex-shrink: 0; transition: transform .2s; }
@@ -465,10 +507,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .faq-item p { color: var(--muted); font-size: .88rem; line-height: 1.65; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
         .landing-page-root .faq-item p b { color: var(--text); font-weight: 700; }
 
-        /* TESTIMONIALS */
-        .landing-page-root .testimonials { padding: 90px 0; border-top: 1px solid var(--border); }
+        /* PRE KOHO — wash pink */
+        .landing-page-root .testimonials { padding: 90px 0; background: var(--wash-pink); }
         .landing-page-root .test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 50px; }
-        .landing-page-root .test-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 26px; display: flex; flex-direction: column; text-align: left; }
+        .landing-page-root .test-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px; display: flex; flex-direction: column; text-align: left; position: relative; overflow: hidden; transition: transform .25s ease, box-shadow .25s ease; }
+        .landing-page-root .test-card:hover { transform: translateY(-4px); box-shadow: 0 14px 44px rgba(20,20,40,.10); }
+        /* farebné top-bordery pre 3 karty */
+        .landing-page-root .test-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent1); }
+        .landing-page-root .test-card:nth-child(2)::before { background: var(--accent3); }
+        .landing-page-root .test-card:nth-child(3)::before { background: var(--accent4); }
+        .landing-page-root .test-card:nth-child(1) .test-stars { background: rgba(124,58,237,.10); }
+        .landing-page-root .test-card:nth-child(2) .test-stars { background: rgba(249,115,22,.10); }
+        .landing-page-root .test-card:nth-child(3) .test-stars { background: rgba(236,72,153,.10); }
+        .landing-page-root .test-card .test-stars { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
         .landing-page-root .test-stars { color: #ffb347; font-size: .85rem; margin-bottom: 16px; letter-spacing: 2px; }
         .landing-page-root .test-quote { font-size: .92rem; color: var(--text); line-height: 1.7; margin-bottom: 20px; flex: 1; }
         .landing-page-root .test-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -488,8 +539,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .price-cols { display: grid; grid-template-columns: 1.6fr repeat(2, 1fr); max-width: 720px; margin: 0 auto; }
         .landing-page-root .price-cols.header .pc { padding: 34px 20px; text-align: center; border-right: 1px solid var(--border); }
         .landing-page-root .price-cols.header .pc:last-child { border-right: none; }
-        .landing-page-root .price-cols.header .pc.highlight { background: rgba(0,158,134,.05); }
-        .landing-page-root .plan-badge { display: inline-block; font-size: .62rem; background: var(--accent2); color: #04040a; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: .05em; }
+        .landing-page-root .price-cols.header .pc.highlight { background: linear-gradient(135deg, rgba(124,58,237,.06), rgba(236,72,153,.06)); position: relative; }
+        .landing-page-root .price-cols.header .pc.highlight::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent1), var(--accent4)); }
+        .landing-page-root .plan-badge { display: inline-block; font-size: .62rem; background: linear-gradient(90deg, var(--accent1), var(--accent4)); color: #fff; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: .05em; }
         .landing-page-root .plan-name { font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
         .landing-page-root .plan-price { font-family: 'Righteous', sans-serif; font-size: 1.8rem; }
         .landing-page-root .plan-per { font-size: .7rem; color: var(--muted); }
@@ -517,12 +569,15 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         @media (max-width: 700px) { .landing-page-root .price-table { overflow-x: auto; } .landing-page-root .price-cols, .landing-page-root .price-row { min-width: 640px; } }
 
         /* FINAL CTA */
-        .landing-page-root .final-cta { padding: 100px 0; border-top: 1px solid var(--border); }
-        .landing-page-root .final-box { background: #0d1b2e; border: 1px solid #1a2c45; border-radius: 24px; padding: 70px 50px; text-align: center; }
-        .landing-page-root .final-box .eyebrow { color: #4fd1c5; }
-        .landing-page-root .final-box h2 { font-size: 2.4rem; margin-bottom: 18px; color: #f4f6fb; }
-        .landing-page-root .final-box .accent-italic { font-style: italic; color: #4fd1c5; }
-        .landing-page-root .final-box p { color: rgba(244,246,251,.65); max-width: 560px; margin: 0 auto 34px; }
+        .landing-page-root .final-cta { padding: 100px 0; }
+        .landing-page-root .final-box { background: linear-gradient(135deg, #1a1035 0%, #2d1b5e 45%, #4c1d95 100%); border: 1px solid rgba(255,255,255,.10); border-radius: 28px; padding: 70px 50px; text-align: center; position: relative; overflow: hidden; }
+        .landing-page-root .final-box::before { content: ""; position: absolute; top: -100px; left: -100px; width: 320px; height: 320px; background: var(--accent3); opacity: .25; border-radius: 50%; filter: blur(80px); }
+        .landing-page-root .final-box::after { content: ""; position: absolute; bottom: -100px; right: -100px; width: 320px; height: 320px; background: var(--accent4); opacity: .25; border-radius: 50%; filter: blur(80px); }
+        .landing-page-root .final-box > * { position: relative; z-index: 1; }
+        .landing-page-root .final-box .eyebrow { color: var(--accent5); }
+        .landing-page-root .final-box h2 { font-size: 2.4rem; margin-bottom: 18px; color: #ffffff; }
+        .landing-page-root .final-box .accent-italic { font-style: italic; background: linear-gradient(90deg, var(--accent5), var(--accent3)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; }
+        .landing-page-root .final-box p { color: rgba(255,255,255,.75); max-width: 560px; margin: 0 auto 34px; }
         .landing-page-root .final-cta-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
         .landing-page-root .final-box .btn-primary { background: linear-gradient(90deg, #4fd1c5, #3b6fd6); color: #04101f; }
         
@@ -583,8 +638,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
 
       {/* HERO */}
       <section className="hero">
-        <div className="glow" style={{ width: "520px", height: "520px", background: "var(--accent1)", opacity: 0.13, top: "-160px", left: "-160px" }}></div>
-        <div className="glow" style={{ width: "420px", height: "420px", background: "var(--accent2)", opacity: 0.11, top: "60px", right: "-140px" }}></div>
+        <div className="glow aurora-blob" style={{ width: "560px", height: "560px", background: "var(--accent1)", opacity: 0.18, top: "-180px", left: "-160px" }}></div>
+        <div className="glow aurora-blob delay-2" style={{ width: "460px", height: "460px", background: "var(--accent3)", opacity: 0.16, top: "40px", right: "-140px" }}></div>
+        <div className="glow aurora-blob delay-3" style={{ width: "380px", height: "380px", background: "var(--accent4)", opacity: 0.14, top: "220px", left: "45%" }}></div>
         <div className="wrap hero-inner">
           <div>
             <div className="badge">● Vyrobené na Slovensku, pripravené pre celý svet</div>
