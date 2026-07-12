@@ -384,6 +384,8 @@ export default function Vitrina() {
   });
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
+  const [copiedVs, setCopiedVs] = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
   const [handleManuallyEdited, setHandleManuallyEdited] = useState(false);
 
   // VS State for payment tracking
@@ -1925,15 +1927,39 @@ export default function Vitrina() {
                       <div className="grid grid-cols-2 gap-2">
                         <div>
                           <span className="font-semibold block" style={{ color: C.soft }}>Suma:</span>
-                          <span className="font-mono bg-white block px-2.5 py-1 rounded-lg border font-bold text-xs">
-                            {eur(total)}
-                          </span>
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border">
+                            <span className="font-mono font-bold text-xs truncate">{eur(total)}</span>
+                            <button
+                              onClick={() => {
+                                if (navigator.clipboard) {
+                                  navigator.clipboard.writeText(total.toFixed(2));
+                                  setCopiedAmount(true);
+                                  setTimeout(() => setCopiedAmount(false), 2000);
+                                }
+                              }}
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-indigo-600 hover:underline"
+                            >
+                              {copiedAmount ? "OK" : "Kop"}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <span className="font-semibold block" style={{ color: C.soft }}>Variabilný symbol:</span>
-                          <span className="font-mono bg-white block px-2.5 py-1 rounded-lg border font-bold text-xs">
-                            {orderVs}
-                          </span>
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border">
+                            <span className="font-mono font-bold text-xs truncate">{orderVs}</span>
+                            <button
+                              onClick={() => {
+                                if (navigator.clipboard) {
+                                  navigator.clipboard.writeText(orderVs);
+                                  setCopiedVs(true);
+                                  setTimeout(() => setCopiedVs(false), 2000);
+                                }
+                              }}
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-indigo-600 hover:underline"
+                            >
+                              {copiedVs ? "OK" : "Kop"}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -3251,7 +3277,9 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
     img: string | null;
   }>({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", img: null });
 
-  const ok = f.name.trim() && parseFloat(f.price) > 0 && !disabled;
+  // Slovenskí užívatelia zadávajú desatinné číslo s čiarkou (0,77) — akceptujeme obidve.
+  const parsePrice = (v: string) => parseFloat((v || "").replace(",", "."));
+  const ok = f.name.trim() && parsePrice(f.price) > 0 && !disabled;
   return (
     <section className="rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden" style={{ background: C.card, border: `1px solid ${C.line}` }}>
       {disabled && (
@@ -3326,7 +3354,7 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
             img: f.img,
             name: f.name.trim(),
             desc: f.desc.trim(),
-            price: parseFloat(f.price),
+            price: parsePrice(f.price),
             unit: f.type === "booking" ? "miesto" : "ks",
             slot: f.slot || "Po dohode",
             left: 10,
