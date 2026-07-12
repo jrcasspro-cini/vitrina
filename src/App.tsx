@@ -633,8 +633,10 @@ export default function Vitrina() {
   }, [isTrialActive, planActive, store.plan]);
 
   const hasReachedItemLimit = items.length >= maxItemsAllowed;
-  const limitMessage = store.plan === "extended"
-    ? `Dosiahli ste maximálny limit vášho plánu (6 produktov). Ak chcete pridať ďalší, najprv zmažte niektorý existujúci.`
+  // Ak už je limit maximálny (6 — Rozšírený alebo Trial), nemá zmysel odkazovať na "Rozšírený plán"
+  // — Rozšírený má tiež len 6 produktov. Text by mal hovoriť "najprv zmaž niektorý existujúci".
+  const limitMessage = maxItemsAllowed >= 6
+    ? `Dosiahli ste maximum (6 produktov) — to je najväčší limit vo Vitríne. Ak chcete pridať ďalší, najprv zmažte niektorý existujúci produkt v zozname nižšie.`
     : `Dosiahli ste limit vášho plánu (${maxItemsAllowed} ${maxItemsAllowed === 2 ? "produkty" : "produktov"}). Pre pridanie ďalších produktov si zvoľte Rozšírený plán nižšie.`;
 
   // Filter items that are visible to customers (sliced based on plan limit)
