@@ -2,7 +2,16 @@ import { useState, useMemo, useEffect, FormEvent } from "react";
 import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
 import AdminPlatformy from "./components/AdminPlatformy";
+import LegalPage, { LegalPageType } from "./components/LegalPage";
 import defaultLogo from "./assets/images/default_store_logo.jpg";
+
+const LEGAL_PATHS: Record<string, LegalPageType> = {
+  "/podmienky": "podmienky",
+  "/ochrana-udajov": "ochrana-udajov",
+  "/cookies": "cookies",
+  "/reklamacie": "reklamacie",
+  "/odstupenie": "odstupenie",
+};
 import {
   collection,
   doc,
@@ -220,6 +229,8 @@ export default function Vitrina() {
   const [authPassword, setAuthPassword] = useState("");
   const [showAuthPassword, setShowAuthPassword] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptDigitalService, setAcceptDigitalService] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authSuccess, setAuthSuccess] = useState("");
@@ -253,7 +264,18 @@ export default function Vitrina() {
       setAuthError("Prosím vyplňte e-mail a heslo.");
       return;
     }
-    
+
+    if (isRegisterMode) {
+      if (!acceptTerms) {
+        setAuthError("Prosím súhlaste s Podmienkami a Ochranou údajov.");
+        return;
+      }
+      if (!acceptDigitalService) {
+        setAuthError("Prosím potvrďte súhlas so začatím poskytovania služby.");
+        return;
+      }
+    }
+
     setAuthSubmitting(true);
     try {
       if (isRegisterMode) {
@@ -960,6 +982,11 @@ export default function Vitrina() {
     return <AdminPlatformy onNavigate={navigateTo} />;
   }
 
+  // Právne stránky (ToS, Privacy, Cookies, Reklamácie, Odstúpenie).
+  if (LEGAL_PATHS[currentPath]) {
+    return <LegalPage type={LEGAL_PATHS[currentPath]} onNavigate={navigateTo} />;
+  }
+
   if (currentPath === "/") {
     return <LandingPage onNavigate={navigateTo} />;
   }
@@ -1096,14 +1123,52 @@ export default function Vitrina() {
                 </div>
               </div>
 
+              {isRegisterMode && (
+                <div className="flex flex-col gap-2.5 mt-1">
+                  <label className="flex items-start gap-2.5 text-[11px] leading-relaxed cursor-pointer text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={acceptTerms}
+                      onChange={(e) => setAcceptTerms(e.target.checked)}
+                      className="mt-0.5 shrink-0 accent-indigo-600"
+                    />
+                    <span>
+                      Súhlasím s{" "}
+                      <a href="/podmienky" onClick={(e) => { e.preventDefault(); navigateTo("/podmienky"); }} className="text-indigo-600 font-bold hover:underline">
+                        Podmienkami používania
+                      </a>{" "}
+                      a{" "}
+                      <a href="/ochrana-udajov" onClick={(e) => { e.preventDefault(); navigateTo("/ochrana-udajov"); }} className="text-indigo-600 font-bold hover:underline">
+                        Ochranou osobných údajov
+                      </a>.
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2.5 text-[11px] leading-relaxed cursor-pointer text-slate-600">
+                    <input
+                      type="checkbox"
+                      checked={acceptDigitalService}
+                      onChange={(e) => setAcceptDigitalService(e.target.checked)}
+                      className="mt-0.5 shrink-0 accent-indigo-600"
+                    />
+                    <span>
+                      Súhlasím so začatím poskytovania digitálnej služby ihneď (viď{" "}
+                      <a href="/odstupenie" onClick={(e) => { e.preventDefault(); navigateTo("/odstupenie"); }} className="text-indigo-600 font-bold hover:underline">
+                        Odstúpenie od zmluvy
+                      </a>
+                      ).
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={authSubmitting}
                 className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
                 style={{ background: C.accent }}
               >
-                {authSubmitting 
-                  ? (isRegisterMode ? "Vytváram účet..." : "Prihlasujem...") 
+                {authSubmitting
+                  ? (isRegisterMode ? "Vytváram účet..." : "Prihlasujem...")
                   : (isRegisterMode ? "Zaregistrovať sa" : "Prihlásiť sa")
                 }
               </button>

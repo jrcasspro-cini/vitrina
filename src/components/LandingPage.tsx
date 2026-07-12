@@ -853,8 +853,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <h4>Spoločnosť</h4>
               <a href="https://zavio.sk" target="_blank" rel="noreferrer">zavio.sk</a>
               <a href="mailto:info@zavio.sk">Kontakt</a>
-              <a href="#">Súkromie</a>
-              <a href="#">Podmienky</a>
+              <a href="/podmienky" onClick={(e) => { e.preventDefault(); onNavigate("/podmienky"); }}>Podmienky</a>
+              <a href="/ochrana-udajov" onClick={(e) => { e.preventDefault(); onNavigate("/ochrana-udajov"); }}>Ochrana údajov</a>
+              <a href="/cookies" onClick={(e) => { e.preventDefault(); onNavigate("/cookies"); }}>Cookies</a>
+              <a href="/reklamacie" onClick={(e) => { e.preventDefault(); onNavigate("/reklamacie"); }}>Reklamácie</a>
+              <a href="/odstupenie" onClick={(e) => { e.preventDefault(); onNavigate("/odstupenie"); }}>Odstúpenie</a>
             </div>
           </div>
           <div className="footer-bottom">
