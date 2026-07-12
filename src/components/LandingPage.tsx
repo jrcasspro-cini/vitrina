@@ -513,7 +513,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <a href="#funkcie">Funkcie</a>
             <a href="#ako-to-funguje">Ako to funguje</a>
             <a href="#cena">Cenník</a>
-            <a href="#zakaznici">Zákazníci</a>
+            <a href="#pre-koho">Pre koho</a>
           </div>
           <a href="/app" onClick={(e) => handleNav(e, "/app")} className="nav-cta">Ovládací panel →</a>
         </div>
@@ -534,19 +534,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             </div>
             <div className="rating-row">
               <div className="rating-avatars">
-                <span style={{ background: "var(--accent1)" }}>Z</span>
-                <span style={{ background: "var(--accent2)" }}>M</span>
-                <span style={{ background: "#B4557A" }}>P</span>
+                <span style={{ background: "var(--accent1)" }}>💎</span>
+                <span style={{ background: "var(--accent2)" }}>🎨</span>
+                <span style={{ background: "#B4557A" }}>🧁</span>
               </div>
               <div className="text-left">
-                <div className="stars">★★★★★ <span style={{ color: "var(--text)", fontFamily: "'DM Sans'", fontWeight: 500 }}>4,9/5</span></div>
-                <div className="rating-text">dôveruje mu viac ako 400 predajcov</div>
+                <div className="stars"><span style={{ color: "var(--text)", fontFamily: "'DM Sans'", fontWeight: 600 }}>Nová platforma — buď medzi prvými</span></div>
+                <div className="rating-text">0 % provízia · Zrušiť kedykoľvek · Slovenský supp­ort</div>
               </div>
             </div>
             <div className="trust-row">
-              <span>Začiatok je voľný</span>
+              <span>10 dní zdarma</span>
               <span>Nastavenie za 5 minút</span>
-              <span>Žiadna kreditná karta</span>
+              <span>Bez kreditnej karty</span>
             </div>
           </div>
           <div className="mock-wrap">
@@ -721,46 +721,40 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section className="testimonials" id="zakaznici">
+      {/* PRE KOHO JE VITRÍNA */}
+      <section className="testimonials" id="pre-koho">
         <div className="wrap">
           <div className="sec-head text-left">
-            <div className="eyebrow">Príbehy zákazníkov</div>
-            <h2>Skutočné obchody. Skutočná úľava.</h2>
-            <p>Od šperkárok v Bratislave po trénerov v Košiciach — takto v skutočnosti vyzerá vypnutie chaosu v správach.</p>
+            <div className="eyebrow">Pre koho je Vitrína</div>
+            <h2>Malý predajca? Vitrína je pre teba.</h2>
+            <p>Nepotrebuješ e-shop za tisíce eur ani skladový systém. Ak predávaš cez Instagram, Facebook alebo priamo cez WhatsApp — Vitrína ti dá poriadok a QR platbu, aby si nestrácala čas prepisovaním objednávok.</p>
           </div>
           <div className="test-grid">
             <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">„Prestali sme spracovávať objednávky v súkromných správach. Teraz všetko prichádza prehľadne cez WhatsApp — pripravujeme len potvrdené objednávky a odosielame ich v ten istý deň.“</p>
+              <div className="test-stars" style={{ fontSize: "1.8rem" }}>💎</div>
+              <p className="test-quote"><b>Ručná výroba a šperky.</b> Sviečky, keramika, náhrdelníky, tašky, mydlá. Vystavíš 2–6 kúskov naraz, ostatné si necháš v zálohe a rotuješ podľa sezóny.</p>
               <div className="test-foot">
                 <div className="test-person">
-                  <div className="test-avatar" style={{ background: "var(--accent1)" }}>Z</div>
-                  <div><div className="test-name">Zuzana Kráľová</div><div className="test-role">Zakladateľka · Ateliér Nika</div></div>
+                  <div><div className="test-name">Typický profil</div><div className="test-role">Šperkárka, sviečkarka, keramikárka</div></div>
                 </div>
-                <div className="test-stat"><div className="num">3×</div><div className="lbl">Opak. kupujúci</div></div>
               </div>
             </div>
             <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">„Moji študenti si sami vyberajú termíny a rezervácia prichádza cez WhatsApp. Ušetrím tak dve hodiny denne, ktoré som predtým strácal vymieňaním si správ.“</p>
+              <div className="test-stars" style={{ fontSize: "1.8rem" }}>🎨</div>
+              <p className="test-quote"><b>Kurzy, workshopy, rezervácie.</b> Cvičenie, doučovanie, joga, kaderníctvo, masáž. Klient si sám vyberie termín a rezervácia príde priamo na tvoj WhatsApp — bez SMS a chatov.</p>
               <div className="test-foot">
                 <div className="test-person">
-                  <div className="test-avatar" style={{ background: "var(--accent2)" }}>M</div>
-                  <div><div className="test-name">Martin Sabo</div><div className="test-role">Učiteľ matematiky · Doučovanie</div></div>
+                  <div><div className="test-name">Typický profil</div><div className="test-role">Lektor, tréner, kaderníčka, masér</div></div>
                 </div>
-                <div className="test-stat"><div className="num">2 hod.</div><div className="lbl">Ušetrené denne</div></div>
               </div>
             </div>
             <div className="test-card">
-              <div className="test-stars">★★★★★</div>
-              <p className="test-quote">„Jeden odkaz, jeden prehľad, jedna čistá správa o objednávke. Moja pokladňa sa teraz cíti ako skutočný obchod — nie ako chat.“</p>
+              <div className="test-stars" style={{ fontSize: "1.8rem" }}>🧁</div>
+              <p className="test-quote"><b>Domáca kuchyňa a pečivo.</b> Torty na objednávku, koláče, chlieb z kvásku, domáce sirupy. Zákazník klikne, zaplatí QR kódom a ty si potvrdíš, kedy má prísť po objednávku.</p>
               <div className="test-foot">
                 <div className="test-person">
-                  <div className="test-avatar" style={{ background: "#B4557A" }}>P</div>
-                  <div><div className="test-name">Petra Vidová</div><div className="test-role">Majiteľka · Roots & Co</div></div>
+                  <div><div className="test-name">Typický profil</div><div className="test-role">Cukrárka, pekárka, domáca farma</div></div>
                 </div>
-                <div className="test-stat"><div className="num">+42%</div><div className="lbl">Konverzia</div></div>
               </div>
             </div>
           </div>
@@ -817,7 +811,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <p>Produkty, workshopy, rezervácie, prehliadky — o všetko sa postará jeden obchod a každá pokladňa sa otvorí s predvyplneným WhatsAppom. Žiadne poplatky za nastavenie, žiadna karta, žiadne viazanosti.</p>
             <div className="final-cta-row">
               <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-primary">Prejsť na ovládací panel →</a>
-              <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-secondary">Prihlásiť sa radšej</a>
+              <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-secondary">Prihlásiť sa</a>
             </div>
             <div className="final-trust">
               <span>10 dní zdarma na vyskúšanie</span><span>·</span><span>Nie je potrebná žiadna kreditná karta</span><span>·</span><span>Zrušiť kedykoľvek</span>
@@ -840,7 +834,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               <a href="#funkcie">Funkcie</a>
               <a href="#cena">Cenník</a>
               <a href="#ako-to-funguje">Ako to funguje</a>
-              <a href="#zakaznici">Zákazníci</a>
+              <a href="#pre-koho">Pre koho</a>
             </div>
             <div className="footer-col">
               <h4>Prípady použitia</h4>
