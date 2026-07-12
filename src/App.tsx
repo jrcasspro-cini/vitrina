@@ -983,7 +983,15 @@ export default function Vitrina() {
   const createAndLaunchStore = async () => {
     const handle = sanitizedHandle;
     if (!handle || handleIsTaken || !handleIsValid || !newStore.name.trim()) return;
-    
+
+    // Business rule: 1 účet = 1 obchod. Ak už má, blokujeme vytvorenie ďalšieho.
+    if (currentUser && stores.some(s => s.ownerId === currentUser.uid)) {
+      setDbError("Váš účet už má vytvorený obchod. Jeden účet môže mať iba jeden obchod. Pre ďalší biznis založte nový účet.");
+      setWizardOpen(false);
+      navigateTo("/app");
+      return;
+    }
+
     try {
       const storeData = {
         id: handle,
@@ -1421,36 +1429,40 @@ export default function Vitrina() {
               className="w-20 h-20 mx-auto rounded-3xl object-cover bg-white shadow-sm mb-4 border border-slate-100"
               referrerPolicy="no-referrer"
             />
-            <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">Vlastná Vitrína</h1>
+            <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">
+              {userStores.length === 0 ? "Vlastná Vitrína" : "Váš obchod"}
+            </h1>
             <p className="text-sm px-2 mb-8 leading-relaxed" style={{ color: C.soft }}>
-              Založ si moderné výkladné okno za pár sekúnd, vystav produkty a prijímaj platby priamo cez WhatsApp s Payme QR platbami!
+              {userStores.length === 0
+                ? "Založ si moderné výkladné okno za pár sekúnd, vystav produkty a prijímaj platby priamo cez WhatsApp s Payme QR platbami!"
+                : "Váš obchod je vytvorený. Pokračujte v úprave produktov alebo si pozrite ako vyzerá zákaznícka stránka."}
             </p>
 
-            {/* Hlavné tlačidlo onboarding sprievodcu */}
-            <button
-              onClick={() => {
-                setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
-                setHandleManuallyEdited(false);
-                navigateTo("/vytvorit");
-              }}
-              className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
-              style={{ background: C.accent }}
-            >
-              ✨ Vytvoriť vlastný obchod
-            </button>
+            {/* Tlačidlo Vytvoriť — LEN ak ešte nemá žiadny obchod (pravidlo: 1 účet = 1 obchod) */}
+            {userStores.length === 0 && (
+              <button
+                onClick={() => {
+                  setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
+                  setHandleManuallyEdited(false);
+                  navigateTo("/vytvorit");
+                }}
+                className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
+                style={{ background: C.accent }}
+              >
+                ✨ Vytvoriť vlastný obchod
+              </button>
+            )}
           </div>
 
-          {/* Zoznam existujúcich obchodov */}
+          {/* Zoznam existujúcich obchodov — mením "Moje Vitríny (N)" na "Môj obchod" (1 účet = 1 obchod) */}
           <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
-            <h2 className="disp text-sm font-extrabold uppercase tracking-wider mb-3" style={{ color: C.soft }}>
-              ⚡ Moje Vitríny ({userStores.length})
-            </h2>
+            {userStores.length > 0 && (
+              <h2 className="disp text-sm font-extrabold uppercase tracking-wider mb-3" style={{ color: C.soft }}>
+                {userStores.length === 1 ? "⚡ Môj obchod" : `⚡ Moje obchody (${userStores.length})`}
+              </h2>
+            )}
             <div className="flex flex-col gap-2.5">
-              {userStores.length === 0 ? (
-                <div className="p-6 text-center rounded-2xl border border-dashed text-xs font-semibold" style={{ borderColor: C.line, color: C.soft }}>
-                  Zatiaľ nemáte vytvorenú žiadnu vitrínu. Kliknite na tlačidlo vyššie a vytvorte si ju!
-                </div>
-              ) : (
+              {userStores.length === 0 ? null : (
                 userStores.map((st) => (
                 <div
                   key={st.id}
@@ -1482,6 +1494,11 @@ export default function Vitrina() {
                 </div>
               )))}
             </div>
+            {userStores.length >= 1 && (
+              <p className="text-[11px] text-slate-400 mt-4 leading-relaxed text-center px-4">
+                🔒 Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte nový účet s iným emailom.
+              </p>
+            )}
           </div>
 
           <div className="text-center mt-8 pb-2">
@@ -2698,7 +2715,26 @@ export default function Vitrina() {
       )}
 
       {/* ==================== ONBOARDING WIZARD DIALOG ==================== */}
-      {wizardOpen && (
+      {/* Guard: 1 účet = 1 obchod. Ak už má obchod, wizard neotvoríme. */}
+      {wizardOpen && userStores.length >= 1 && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl">
+            <div className="text-4xl text-center mb-2">🔒</div>
+            <h3 className="text-lg font-black text-center text-slate-800">Už máte obchod</h3>
+            <p className="text-xs text-slate-500 text-center mt-2 leading-relaxed">
+              Jeden účet môže mať iba jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte si nový účet s iným emailom. Ak chcete zmeniť názov alebo produkty, vstúpte do svojho obchodu.
+            </p>
+            <button
+              onClick={() => { setWizardOpen(false); navigateTo("/app"); }}
+              className="mt-5 w-full py-3 rounded-xl text-white font-bold text-sm"
+              style={{ background: C.accent }}
+            >
+              Vrátiť sa na môj obchod
+            </button>
+          </div>
+        </div>
+      )}
+      {wizardOpen && userStores.length === 0 && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transition-all">
             
