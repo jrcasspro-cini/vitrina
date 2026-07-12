@@ -966,14 +966,28 @@ export default function Vitrina() {
     return newStore.handle.toLowerCase().replace(/[^a-z0-9-]/g, "");
   }, [newStore.handle]);
 
+  // Rezervované handles — nesmú byť použité ako názov obchodu (kolízia s aplikačnými routami).
+  // Ak si niekto vezme "podmienky", jeho obchod by nefungoval — otvorila by sa mu legal stránka.
+  const RESERVED_HANDLES = useMemo(() => new Set([
+    "app", "vytvorit", "admin", "admin-platformy",
+    "podmienky", "ochrana-udajov", "cookies", "reklamacie", "odstupenie",
+    "api", "assets", "static", "www", "root", "faq", "cena", "cennik",
+    "prihlaseni", "registracia", "login", "signup", "logout",
+    "sitemap.xml", "robots.txt", "favicon.ico"
+  ]), []);
+
+  const handleIsReserved = useMemo(() => {
+    return RESERVED_HANDLES.has(sanitizedHandle);
+  }, [sanitizedHandle, RESERVED_HANDLES]);
+
   const handleIsTaken = useMemo(() => {
     if (!sanitizedHandle) return false;
     return stores.some(s => s.handle.toLowerCase() === sanitizedHandle);
   }, [sanitizedHandle, stores]);
 
   const handleIsValid = useMemo(() => {
-    return sanitizedHandle.length >= 3 && /^[a-z0-9-]+$/.test(sanitizedHandle);
-  }, [sanitizedHandle]);
+    return sanitizedHandle.length >= 3 && /^[a-z0-9-]+$/.test(sanitizedHandle) && !handleIsReserved;
+  }, [sanitizedHandle, handleIsReserved]);
 
   const finishStep1 = () => {
     if (handleIsValid && !handleIsTaken) {
@@ -2889,6 +2903,10 @@ export default function Vitrina() {
                         handleIsTaken ? (
                           <span className="text-red-600 font-semibold flex items-center gap-1">
                             ❌ Tento odkaz je už obsadený, skús iný.
+                          </span>
+                        ) : handleIsReserved ? (
+                          <span className="text-red-600 font-semibold flex items-center gap-1">
+                            ❌ Tento názov je rezervovaný systémom, skús iný.
                           </span>
                         ) : !handleIsValid ? (
                           <span className="text-orange-600 font-semibold flex items-center gap-1">
