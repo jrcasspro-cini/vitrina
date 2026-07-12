@@ -421,6 +421,18 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         @media (max-width: 900px) { .landing-page-root .ind-grid-4 { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 560px) { .landing-page-root .ind-grid-4 { grid-template-columns: 1fr; } }
 
+        /* FAQ */
+        .landing-page-root .faq { padding: 90px 0; border-top: 1px solid var(--border); }
+        .landing-page-root .faq-list { max-width: 780px; margin: 44px auto 0; display: flex; flex-direction: column; gap: 12px; }
+        .landing-page-root .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px 22px; transition: background .2s; }
+        .landing-page-root .faq-item[open] { background: rgba(0,158,134,.04); border-color: rgba(0,158,134,.25); }
+        .landing-page-root .faq-item summary { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .98rem; color: var(--text); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .landing-page-root .faq-item summary::-webkit-details-marker { display: none; }
+        .landing-page-root .faq-item summary::after { content: "+"; font-size: 1.3rem; color: var(--accent2); font-weight: 400; flex-shrink: 0; transition: transform .2s; }
+        .landing-page-root .faq-item[open] summary::after { content: "−"; transform: rotate(0); }
+        .landing-page-root .faq-item p { color: var(--muted); font-size: .88rem; line-height: 1.65; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .landing-page-root .faq-item p b { color: var(--text); font-weight: 700; }
+
         /* TESTIMONIALS */
         .landing-page-root .testimonials { padding: 90px 0; border-top: 1px solid var(--border); }
         .landing-page-root .test-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 50px; }
@@ -514,6 +526,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <a href="#ako-to-funguje">Ako to funguje</a>
             <a href="#cena">Cenník</a>
             <a href="#pre-koho">Pre koho</a>
+            <a href="#faq">FAQ</a>
           </div>
           <a href="/app" onClick={(e) => handleNav(e, "/app")} className="nav-cta">Ovládací panel →</a>
         </div>
@@ -757,6 +770,46 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="faq" id="faq">
+        <div className="wrap">
+          <div className="sec-head center">
+            <div className="eyebrow">Časté otázky</div>
+            <h2>Čo o Vitríne najčastejšie počúvame.</h2>
+          </div>
+          <div className="faq-list">
+            <details className="faq-item">
+              <summary>Musím mať IČO alebo živnosť?</summary>
+              <p>Nie. Vitrína ťa neregistruje ani nevystavuje faktúry — funguje aj s osobným účtom. Ak zarobíš pravidelne, odporúčame si vybaviť živnosť pre daňové povinnosti, ale to je nezávislé od Vitríny.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Koľko si Vitrína berie z každej objednávky?</summary>
+              <p><b>0 %.</b> Vitrína je predplatné (8 alebo 10 € mesačne), z tvojich predajov si nič neberie. Zákazník ti platí priamo na účet cez QR prevod — banka nezoberie nič, my nezoberieme nič.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Prečo QR kód, keď mi banka nepovie „zaplatil"?</summary>
+              <p>QR je pohodlie pre zákazníka — nemusí opisovať IBAN a variabilný symbol. Banka mu automaticky vyplní správne údaje. Ty potom v internetbankingu jednoducho nájdeš platbu s tým VS a máš istotu.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Slovenské banky pre QR platbu podporujú?</summary>
+              <p>Áno. Tatra banka, SLSP, VÚB, ČSOB, mBank, 365.bank, UniCredit — všetky majú Payme QR skener priamo v mobilnej aplikácii. Zákazník QR naskenuje, prevod dorazí do 10 sekúnd (SEPA Instant) alebo do 1–2 hodín (klasický prevod).</p>
+            </details>
+            <details className="faq-item">
+              <summary>Môžem meniť produkty aj po tom, čo som dosiahol limit?</summary>
+              <p>Áno. Zmažeš starý produkt → pridáš nový. Vitrína ti umožňuje <b>rotovať sezónnu ponuku</b> bez toho, aby si platil za veľký katalóg. Zmazané objednávky s predchádzajúcich produktov si zachovávaš.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Môžem zrušiť predplatné?</summary>
+              <p>Kedykoľvek. Predplatné platí do konca zaplateného obdobia. Obchod potom prestane byť viditeľný pre zákazníkov, ale všetky dáta zostávajú zachované — kedykoľvek zapneš späť.</p>
+            </details>
+            <details className="faq-item">
+              <summary>Ako mi chodia objednávky?</summary>
+              <p>Zákazník klikne „Odoslať objednávku" a jeho WhatsApp sa otvorí s prednastavenou správou (produkty, cena, adresa, VS). Pošle ti ju a ty máš celú objednávku v chatu ako obyčajnú správu. Nič nový nemusíš inštalovať.</p>
+            </details>
           </div>
         </div>
       </section>

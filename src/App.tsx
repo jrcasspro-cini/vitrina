@@ -2182,8 +2182,10 @@ export default function Vitrina() {
                 </button>
               </div>
 
-              {/* Pokyny na platbu — zobrazia sa, ak si predajca vybral plán a plán zatiaľ nie je aktívny */}
-              {store.plan && !planActive && (() => {
+              {/* Pokyny na platbu — zobrazia sa iba ak už netreba čakať:
+                  (a) trial skončil ALEBO
+                  (b) trial už má menej ako 4 dni (aby si predajca stihol zaplatiť pred koncom) */}
+              {store.plan && !planActive && (!isTrialActive || trialDaysLeft <= 3) && (() => {
                 const suma = store.plan === "standard" ? "8.00" : "10.00";
                 const nazovPlanu = store.plan === "standard" ? "Štandard" : "Rozšírený";
                 const cistyIban = (company.iban || "").replace(/\s+/g, "").toUpperCase();
@@ -2197,7 +2199,7 @@ export default function Vitrina() {
                       💳 Aktivujte plán {nazovPlanu} ({suma} €/mes)
                     </span>
                     <p className="text-[11px] mb-3 max-w-sm" style={{ color: C.soft }}>
-                      Zaplaťte prevodom na náš účet. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite „Nahlásiť platbu" — plán aktivujeme do 24 hodín.
+                      Zaplaťte prevodom na náš účet. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite „Nahlásiť platbu" — obvykle aktivujeme <strong>do niekoľkých hodín</strong> (pracovné dni 8–20 h).
                     </p>
 
                     {cistyIban ? (
@@ -2249,8 +2251,9 @@ export default function Vitrina() {
                     </div>
 
                     {paymentReported ? (
-                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px] font-bold" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
-                        ⏳ Nahlásili ste platbu {(store as any).paymentReportedAt ? "dňa " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}. Aktivujeme do 24 hodín.
+                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px]" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
+                        <div className="font-bold mb-1">⏳ Nahlásili ste platbu{(store as any).paymentReportedAt ? " dňa " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}.</div>
+                        <div className="font-medium">Overujeme platbu v banke a aktivujeme obvykle do niekoľkých hodín. Ak potrebujete okamžite, napíšte na <a href="mailto:info@zavio.sk" className="underline">info@zavio.sk</a>.</div>
                       </div>
                     ) : (
                       <button

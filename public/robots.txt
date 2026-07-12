@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Nechceme indexovať admin/dashboard sekcie
+Disallow: /admin-platformy
+Disallow: /vytvorit
+Disallow: /app
+
+Sitemap: https://vitrina.zavio.sk/sitemap.xml
