@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Firebase service account (nikdy do repa)
+.firebase-service-account.json
+scripts/.firebase-service-account.json

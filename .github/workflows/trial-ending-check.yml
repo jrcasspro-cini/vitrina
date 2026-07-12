@@ -1,0 +1,33 @@
+name: Trial-ending email check
+
+on:
+  schedule:
+    # Denne 05:00 UTC (07:00 SR letný čas, 06:00 SR zimný čas).
+    - cron: "0 5 * * *"
+  # Umožňuje ručne spustiť z GitHub UI (Actions → Run workflow).
+  workflow_dispatch:
+
+jobs:
+  send-trial-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "scripts/package.json"
+
+      - name: Install dependencies
+        working-directory: scripts
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Send trial-ending emails
+        working-directory: scripts
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: node check-trials.mjs

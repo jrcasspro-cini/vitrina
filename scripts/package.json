@@ -1,0 +1,13 @@
+{
+  "name": "vitrina-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cron skripty pre Vitrínu (napr. trial-ending email notifikácie).",
+  "scripts": {
+    "check-trials": "node check-trials.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}
