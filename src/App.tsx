@@ -506,10 +506,16 @@ export default function Vitrina() {
           handle: d.handle || selectedStoreHandle,
           city: d.city || "Prešov",
           phone: d.phone || "+421900123456",
+          messengerUsername: d.messengerUsername || "",
+          contactEmail: d.contactEmail || "",
           iban: d.iban || "",
           category: d.category || d.industry || "Lokálny predajca",
           trialEndsAt: trialEndsAt,
           plan: d.plan || "",
+          planEndsAt: d.planEndsAt || "",
+          paymentReported: !!d.paymentReported,
+          paymentReportedAt: d.paymentReportedAt || "",
+          paymentReportedNote: d.paymentReportedNote || "",
           createdAt: d.createdAt || null,
           logo: d.logo || "",
           description: d.description || "",
@@ -522,10 +528,16 @@ export default function Vitrina() {
           handle: selectedStoreHandle,
           city: "Prešov",
           phone: "+421900123456",
+          messengerUsername: "",
+          contactEmail: "",
           iban: "",
           category: "Lokálny predajca",
           trialEndsAt: "",
           plan: "",
+          planEndsAt: "",
+          paymentReported: false,
+          paymentReportedAt: "",
+          paymentReportedNote: "",
           createdAt: null,
           logo: "",
           description: "",
@@ -913,7 +925,17 @@ export default function Vitrina() {
   const cleanPhone = store.phone.replace(/[^0-9]/g, "");
   const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}` : "";
   const smsLink = cleanPhone ? `sms:${cleanPhone.startsWith("00") ? "+" + cleanPhone.slice(2) : "+" + cleanPhone}?body=${encodeURIComponent(waText)}` : "";
-  const messengerUsername = ((store as any).messengerUsername || "").trim().replace(/^@/, "");
+  // Predajca môže zadať username ako "polskefirmysk", "m.me/polskefirmysk", "https://m.me/polskefirmysk"
+  // alebo "facebook.com/polskefirmysk" — sanitujeme na čistý username.
+  const rawMessenger = ((store as any).messengerUsername || "").trim();
+  const messengerUsername = rawMessenger
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/^m\.me\//, "")
+    .replace(/^facebook\.com\//, "")
+    .replace(/^messenger\.com\//, "")
+    .replace(/^@/, "")
+    .split(/[/?#]/)[0];
   const messengerLink = messengerUsername ? `https://m.me/${messengerUsername}` : "";
   const contactEmail = ((store as any).contactEmail || "").trim();
   const emailLink = contactEmail
