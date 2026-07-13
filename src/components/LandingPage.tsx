@@ -568,8 +568,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         @media (max-width: 900px) { .landing-page-root .price-cols, .landing-page-root .price-row { font-size: .78rem; } }
         /* Mobile — label ide nad hodnoty, 2 plány vedľa seba (žiadny horizontálny scroll) */
         @media (max-width: 700px) {
-          .landing-page-root .price-cols { grid-template-columns: 1fr 1fr; }
-          .landing-page-root .price-cols.header .pc:first-child { display: none; }
+          .landing-page-root .price-cols { grid-template-columns: 1fr 1fr !important; }
+          /* Prvá bunka hlavičky "Porovnanie plánov" má v JSX inline display:flex — musíme prebiť */
+          .landing-page-root .price-cols.header .pc:first-child { display: none !important; }
           .landing-page-root .price-cols.header .pc { padding: 24px 12px; }
           .landing-page-root .plan-price { font-size: 1.5rem; }
           .landing-page-root .price-row .pc:first-child {
@@ -621,6 +622,16 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .footer-col a { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 12px; text-align: left; }
         .landing-page-root .footer-col a:hover { color: var(--text); }
         .landing-page-root .footer-bottom { border-top: 1px solid var(--border); padding-top: 24px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: .75rem; color: var(--muted2); }
+        /* Mobile footer — 2 stĺpce, potom 1 stĺpec pod 480px */
+        @media (max-width: 900px) {
+          .landing-page-root .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+          .landing-page-root .footer-grid > div:first-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 480px) {
+          .landing-page-root .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+          .landing-page-root .footer-grid > div:first-child { grid-column: auto; }
+          .landing-page-root .footer-desc { max-width: none; }
+        }
       `}</style>
 
       <nav>
