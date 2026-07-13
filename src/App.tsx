@@ -2173,6 +2173,16 @@ export default function Vitrina() {
                 Ak zákazník nemá WhatsApp/Messenger, môže poslať objednávku emailom.
               </span>
 
+              {/* Warning ak nemá alternatívny kanál (Messenger ani Email) */}
+              {!((store as any).messengerUsername || "").trim() && !((store as any).contactEmail || "").trim() && (
+                <div className="mt-2 p-3 rounded-xl text-[11px] flex items-start gap-2" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
+                  <span className="text-base leading-none">⚠️</span>
+                  <div>
+                    <b>Odporúčame pridať aspoň jeden alternatívny kanál.</b> Nie každý zákazník má WhatsApp. Vyplň si Messenger alebo Kontaktný email vyššie — zvýšiš tým počet objednávok, ktoré k tebe dorazia.
+                  </div>
+                </div>
+              )}
+
               <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>Mesto</label>
               <input value={store.city} onChange={(e) => updateStoreField("city", e.target.value)}
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
