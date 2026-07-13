@@ -1,9 +1,10 @@
-name: Trial-ending email check
+name: Vitrína — trial + platby email check
 
 on:
   schedule:
-    # Denne 05:00 UTC (07:00 SR letný čas, 06:00 SR zimný čas).
-    - cron: "0 5 * * *"
+    # Beží každú hodinu — kontroluje trial notifikácie + nahlásené platby.
+    # Nahlásená platba → email adminovi do max 1 hodiny.
+    - cron: "0 * * * *"
   # Umožňuje ručne spustiť z GitHub UI (Actions → Run workflow).
   workflow_dispatch:
 

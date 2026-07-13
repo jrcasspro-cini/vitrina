@@ -181,6 +181,41 @@ function emailTrialExpired(storeName) {
   return { subject, html };
 }
 
+// Email pre admin-a Vitríny keď predajca nahlási platbu
+function emailAdminPaymentReported(storeName, storeHandle, ownerEmail, plan, amount, vs, reportedAt) {
+  const planLabel = plan === "standard" ? "Štandard 8 €" : "Rozšírený 10 €";
+  const time = new Date(reportedAt).toLocaleString("sk-SK", { timeZone: "Europe/Bratislava" });
+  const subject = `💰 Vitrína — ${storeName} nahlásil platbu (${planLabel})`;
+  const html = `
+  <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:520px;margin:0 auto;padding:24px;color:#0f172a;">
+    <div style="background:#7C3AED;color:#fff;padding:24px;border-radius:16px 16px 0 0;">
+      <h1 style="margin:0;font-size:22px;font-weight:900;">💰 Nahlásená platba</h1>
+      <p style="margin:6px 0 0;opacity:.9;">Vitrína · Superadmin notifikácia</p>
+    </div>
+    <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 16px 16px;padding:28px;">
+      <p style="font-size:16px;line-height:1.55;">Predajca klikol „Nahlásiť platbu".</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;">
+        <tr><td style="padding:8px 0;color:#64748b;width:140px;">Obchod:</td><td style="font-weight:700;">${storeName}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Handle:</td><td style="font-family:monospace;">/${storeHandle}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Predajca:</td><td>${ownerEmail}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Plán:</td><td style="font-weight:700;">${planLabel}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Suma:</td><td style="font-family:monospace;font-weight:700;">${amount.toFixed(2)} €</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Variabilný symbol:</td><td style="font-family:monospace;font-weight:700;">${vs}</td></tr>
+        <tr><td style="padding:8px 0;color:#64748b;">Nahlásené:</td><td>${time}</td></tr>
+      </table>
+      <ol style="font-size:14px;line-height:1.7;padding-left:20px;color:#334155;">
+        <li>Otvor si internetbanking → hľadaj platbu s VS <b>${vs}</b>, sumu <b>${amount.toFixed(2)} €</b>.</li>
+        <li>Keď platba prišla, otvor Superadmin a klikni „Aktivovať ${plan === "standard" ? "Štd" : "Rozš"} 30d".</li>
+        <li>Ak platba nedorazila do 3 dní, klikni „Zamietnuť" v tom istom riadku.</li>
+      </ol>
+      <p style="text-align:center;margin:24px 0;">
+        <a href="${APP_URL}/admin-platformy" style="display:inline-block;background:#7C3AED;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:700;">Otvoriť Superadmin</a>
+      </p>
+    </div>
+  </div>`;
+  return { subject, html };
+}
+
 // ─── Odosielanie cez Resend ─────────────────────────────────────────────────
 
 async function sendEmail(to, subject, html) {
@@ -220,10 +255,46 @@ async function main() {
   let trialExpired = 0;
   let planWarned = 0;
   let planExpired = 0;
+  let adminNotified = 0;
   let skipped = 0;
+
+  const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "jrcasspro@gmail.com";
 
   for (const docSnap of snap.docs) {
     const s = { id: docSnap.id, ...docSnap.data() };
+
+    // ─── Nahlásené platby → email adminovi (posiela sa iba raz na report) ────
+    if (s.paymentReported && !s.paymentAdminNotifiedAt) {
+      try {
+        const plan = s.paymentReportedPlan || s.plan || "standard";
+        const amount = plan === "standard" ? 8 : 10;
+        const vs = getPaymentVs(s.ownerId);
+        let ownerEmail = "(neznámy)";
+        if (s.ownerId) {
+          try {
+            const u = await auth.getUser(s.ownerId);
+            ownerEmail = u.email || "(bez emailu)";
+          } catch {}
+        }
+        const { subject, html } = emailAdminPaymentReported(
+          s.name || s.handle,
+          s.handle || s.id,
+          ownerEmail,
+          plan,
+          amount,
+          vs,
+          s.paymentReportedAt || new Date().toISOString()
+        );
+        await sendEmail(ADMIN_EMAIL, subject, html);
+        await db.collection("stores").doc(s.id).update({
+          paymentAdminNotifiedAt: new Date().toISOString(),
+        });
+        console.log(`✔ Admin-notify → ${ADMIN_EMAIL} (${s.name})`);
+        adminNotified++;
+      } catch (e) {
+        console.error(`✘ Admin-notify error pre ${s.id}:`, e.message);
+      }
+    }
 
     // Bez ownerId nevieme kam poslať email.
     if (!s.ownerId) { skipped++; continue; }
@@ -317,7 +388,7 @@ async function main() {
     skipped++;
   }
 
-  console.log(`Hotovo: trial(warn=${trialWarned}, expired=${trialExpired}), plan(warn=${planWarned}, ending=${planExpired}), skipped=${skipped}.`);
+  console.log(`Hotovo: trial(warn=${trialWarned}, expired=${trialExpired}), plan(warn=${planWarned}, ending=${planExpired}), admin-notified=${adminNotified}, skipped=${skipped}.`);
 }
 
 main().catch((err) => {
