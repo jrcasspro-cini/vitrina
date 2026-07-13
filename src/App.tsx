@@ -1319,35 +1319,17 @@ export default function Vitrina() {
   return (
     <div className="min-h-screen w-full flex flex-col" style={{ background: C.bg, color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&family=Pacifico&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
         .disp { font-family: 'Sora', sans-serif; }
         input, select { outline: none; }
         input:focus, select:focus { border-color: ${C.accent} !important; }
-
-        /* Brand nápis "Vitrína" — retro handlettered štýl (podobný sticker/boutique) */
-        .vitrina-brand {
-          font-family: 'Pacifico', cursive;
-          font-weight: 400;
-          background: linear-gradient(180deg, #FFC542 0%, #FB923C 55%, #F97316 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          -webkit-text-fill-color: transparent;
-          -webkit-text-stroke: 1.5px #1E3A5F;
-          paint-order: stroke fill;
-          letter-spacing: .01em;
-          line-height: 1;
-          display: inline-block;
-        }
-        .vitrina-brand.lg { -webkit-text-stroke: 2.5px #1E3A5F; }
-        .vitrina-brand.xl { -webkit-text-stroke: 3px #1E3A5F; }
       `}</style>
 
       {/* ── Horná lišta ── */}
       <header className="sticky top-0 z-20 px-4 py-3 flex items-center justify-between" style={{ background: C.bg, borderBottom: `1px solid ${C.line}` }}>
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigateTo("/")}>
           <Logo />
-          <span className="vitrina-brand text-2xl" style={{ paddingTop: 2 }}>Vitrína</span>
+          <span className="disp text-lg font-bold tracking-tight">Vitrína</span>
         </div>
         {selectedStoreHandle && isOwner ? (
           <nav className="flex gap-1 p-1 rounded-full" style={{ background: C.card, border: `1px solid ${C.line}` }}>
@@ -1506,9 +1488,7 @@ export default function Vitrina() {
               referrerPolicy="no-referrer"
             />
             <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">
-              {userStores.length === 0 ? (
-                <>Vlastná <span className="vitrina-brand text-4xl lg" style={{ verticalAlign: -4 }}>Vitrína</span></>
-              ) : "Váš obchod"}
+              {userStores.length === 0 ? "Vlastná Vitrína" : "Váš obchod"}
             </h1>
             <p className="text-sm px-2 mb-8 leading-relaxed" style={{ color: C.soft }}>
               {userStores.length === 0
