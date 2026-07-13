@@ -565,8 +565,26 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .price-row.section-row .pc { text-align: left; font-weight: 600; color: var(--text); font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; grid-column: 1 / -1; padding: 12px 20px; }
         .landing-page-root .check { color: var(--accent2); }
         .landing-page-root .dash { color: var(--muted2); }
-        @media (max-width: 900px) { .landing-page-root .price-cols, .landing-page-root .price-row { font-size: .7rem; } }
-        @media (max-width: 700px) { .landing-page-root .price-table { overflow-x: auto; } .landing-page-root .price-cols, .landing-page-root .price-row { min-width: 640px; } }
+        @media (max-width: 900px) { .landing-page-root .price-cols, .landing-page-root .price-row { font-size: .78rem; } }
+        /* Mobile — label ide nad hodnoty, 2 plány vedľa seba (žiadny horizontálny scroll) */
+        @media (max-width: 700px) {
+          .landing-page-root .price-cols { grid-template-columns: 1fr 1fr; }
+          .landing-page-root .price-cols.header .pc:first-child { display: none; }
+          .landing-page-root .price-cols.header .pc { padding: 24px 12px; }
+          .landing-page-root .plan-price { font-size: 1.5rem; }
+          .landing-page-root .price-row .pc:first-child {
+            grid-column: 1 / -1;
+            text-align: left;
+            padding: 12px 16px 4px;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface2);
+            border-right: none;
+            font-size: .78rem;
+          }
+          .landing-page-root .price-row .pc { padding: 10px 12px; font-size: .82rem; }
+          .landing-page-root .price-row.section-row .pc { padding: 12px 16px; }
+        }
 
         /* FINAL CTA */
         .landing-page-root .final-cta { padding: 100px 0; }
