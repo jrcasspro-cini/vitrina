@@ -1436,6 +1436,42 @@ export default function Vitrina() {
       ) : !selectedStoreHandle ? (
         /* ==================== PORTÁL OBCHODOV (HUB) ==================== */
         <main className="max-w-md mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-between">
+          {/* Admin (jrcasspro@gmail.com) bez obchodu → uvítacia obrazovka superadmina, nie stránka predajcu */}
+          {currentUser?.email === "jrcasspro@gmail.com" && userStores.length === 0 ? (
+            <div className="text-center my-auto py-6">
+              <div className="w-20 h-20 mx-auto rounded-3xl flex items-center justify-center text-4xl bg-white shadow-sm mb-4 border border-slate-100" style={{ background: "linear-gradient(135deg, #7C3AED, #EC4899)" }}>
+                🛠️
+              </div>
+              <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">
+                Vitajte, správca
+              </h1>
+              <p className="text-sm px-2 mb-8 leading-relaxed" style={{ color: C.soft }}>
+                Prihlásili ste sa ako administrátor platformy Vitrína. Otvorte Superadmin panel pre správu obchodov, aktiváciu platieb a údajov firmy.
+              </p>
+
+              <button
+                onClick={() => navigateTo("/admin-platformy")}
+                className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
+                style={{ background: "linear-gradient(135deg, #7C3AED, #EC4899)" }}
+              >
+                🛠️ Otvoriť Superadmin panel →
+              </button>
+
+              <p className="text-[11px] text-slate-400 mt-6 leading-relaxed">
+                Ak chcete testovať Vitrínu ako predajca, môžete si založiť aj vlastný obchod na tomto účte.
+              </p>
+              <button
+                onClick={() => {
+                  setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
+                  setHandleManuallyEdited(false);
+                  navigateTo("/vytvorit");
+                }}
+                className="mt-2 text-xs font-semibold text-slate-500 hover:text-indigo-600 hover:underline"
+              >
+                Vytvoriť si testovací obchod
+              </button>
+            </div>
+          ) : (
           <div className="text-center my-auto py-6">
             <img
               src={defaultLogo}
@@ -1467,6 +1503,7 @@ export default function Vitrina() {
               </button>
             )}
           </div>
+          )}
 
           {/* Zoznam existujúcich obchodov — mením "Moje Vitríny (N)" na "Môj obchod" (1 účet = 1 obchod) */}
           <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
