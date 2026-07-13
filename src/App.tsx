@@ -877,6 +877,7 @@ export default function Vitrina() {
         paymentReportedPlan: store.plan,
       }, { merge: true });
       setStore({ ...store, paymentReported: true, paymentReportedAt: now });
+      // Notifikácia adminovi bude riešená cronom (check-trials.mjs) — nie priamo z klienta.
     } catch (err: any) {
       console.error("Error reporting payment:", err);
       setDbError("Nahlásenie platby zlyhalo: " + err.message);
