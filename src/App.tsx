@@ -401,47 +401,11 @@ export default function Vitrina() {
     let active = true;
     let unsub: (() => void) | undefined;
 
-    async function checkAndSeed() {
-      try {
-        const querySnapshot = await getDocs(collection(db, "stores"));
-        if (querySnapshot.empty && active) {
-          const defaultStores = [
-            { id: "onko", name: "onko", handle: "onko", city: "Prešov", phone: "+421900123456", iban: "SK1234567890123456789012", category: "Domáce sirupy a medy", createdAt: new Date() },
-            { id: "milasviecky", name: "Mila Sviečky", handle: "milasviecky", city: "Prešov", phone: "+421900123456", iban: "SK1234567890123456789012", category: "Sviečky a darčeky", createdAt: new Date() }
-          ];
-          for (const s of defaultStores) {
-            await setDoc(doc(db, "stores", s.id), s);
-            
-            // Seed default items for each store
-            for (const it of startItems) {
-              const itemId = `${s.id}_${it.id}`;
-              await setDoc(doc(db, "items", itemId), {
-                id: itemId,
-                storeId: s.id,
-                name: it.name,
-                desc: it.desc,
-                price: it.price,
-                unit: it.unit,
-                type: it.type,
-                imgUrl: it.img || "",
-                slot: it.slot || "",
-                leftCapacity: it.left ?? 0,
-                badge: it.badge || null,
-                emoji: it.emoji
-              });
-            }
-          }
-        }
-      } catch (err: any) {
-        console.error("Error seeding stores:", err);
-        if (active) {
-          setDbError("Nepodarilo sa vytvoriť predvolené obchody: " + err.message);
-        }
-      }
-
+    async function startListener() {
       if (!active) return;
 
-      // Start the listener ONLY after checking / seeding
+      // Priamo listener — už neseedujeme default obchody (legacy z AI Studio).
+      // Reálni predajcovia si vytvoria obchod cez wizard sami.
       unsub = onSnapshot(collection(db, "stores"), (snapshot) => {
         if (!active) return;
         const loaded = snapshot.docs.map(docSnap => {
@@ -468,7 +432,7 @@ export default function Vitrina() {
       });
     }
 
-    checkAndSeed();
+    startListener();
 
     return () => {
       active = false;
