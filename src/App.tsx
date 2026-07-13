@@ -1752,11 +1752,20 @@ export default function Vitrina() {
                 {/* Tlačidlo späť na zoznam */}
                 {isOwner && (
                   <button
-                    onClick={() => selectStore(null)}
+                    onClick={() => {
+                      // Predajca (owner) → jeho portál obchodov (/app), nie landing.
+                      setSelectedStoreHandle(null);
+                      setCart({});
+                      setSelectedProductId(null);
+                      setCheckout(false);
+                      setDbError("");
+                      setTrialModalDismissed(false);
+                      navigateTo("/app");
+                    }}
                     className="text-xs font-semibold mb-4 flex items-center gap-1 opacity-70 hover:opacity-100"
                     style={{ color: C.soft }}
                   >
-                    ← Späť na zoznam obchodov
+                    ← Späť do môjho portálu
                   </button>
                 )}
 
