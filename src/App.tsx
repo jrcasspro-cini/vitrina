@@ -94,11 +94,14 @@ interface StoreItem {
   price: number;
   unit: string;
   badge?: string | null;
-  img?: string | null;
+  img?: string | null;              // Legacy: prvá fotka (backward compat)
+  imgs?: (string | null)[];         // Multi-photo: až 4 fotky produktu
   slot?: string;
   left?: number;
   longDesc?: string;
 }
+
+const MAX_PRODUCT_PHOTOS = 4;
 
 const startItems: any[] = [
   { id: "1", type: "product", emoji: "🕯️", name: "Ručne liata sójová sviečka", desc: "Vôňa: pražená káva a vanilka", price: 14.9, unit: "ks", badge: "Bestseller" },
@@ -521,6 +524,10 @@ export default function Vitrina() {
     const unsub = onSnapshot(collection(db, "items"), (snapshot) => {
       const loaded: StoreItem[] = snapshot.docs.map((docSnap) => {
         const d = docSnap.data();
+        // Multi-photo: preferuj imgUrls array. Backward compat: fallback na legacy imgUrl.
+        const imgs: (string | null)[] = Array.isArray(d.imgUrls) && d.imgUrls.length > 0
+          ? d.imgUrls.filter((u: any) => typeof u === "string" && u)
+          : (d.imgUrl ? [d.imgUrl] : []);
         return {
           id: d.id || docSnap.id,
           storeId: d.storeId || "milasviecky",
@@ -529,7 +536,8 @@ export default function Vitrina() {
           price: Number(d.price) || 0,
           unit: d.unit || "",
           type: d.type || "product",
-          img: d.imgUrl || null,
+          img: imgs[0] || null,      // Legacy pole — prvá fotka
+          imgs,                       // Nové pole — všetky fotky
           slot: d.slot || "",
           left: d.leftCapacity ?? 0,
           badge: d.badge || null,
@@ -1640,30 +1648,24 @@ export default function Vitrina() {
                   ← Späť na ponuku
                 </button>
 
-                {/* Veľká fotka alebo pastelový emoji fallback */}
-                <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden bg-slate-100 border mb-6" style={{ borderColor: C.line }}>
-                  {selectedProduct.img ? (
-                    <img src={selectedProduct.img} alt={selectedProduct.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-8xl" style={{ background: getPastelBg(selectedProduct) }}>
-                      {selectedProduct.emoji || "🎁"}
-                    </div>
-                  )}
-                  
-                  {/* Odznaky v ľavom hornom rohu priamo na fotke */}
-                  <div className="absolute top-4 left-4 flex flex-col gap-1.5 items-start z-10">
+                {/* Galéria — carousel s bodkami ak je viac fotiek */}
+                <ProductGallery product={selectedProduct} />
+
+                {/* Odznaky pod galériou */}
+                {(selectedProduct.badge || (selectedProduct.type === "booking" && selectedProduct.left !== undefined)) && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
                     {selectedProduct.badge && (
-                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-md" style={{ background: C.accentSoft, color: C.accent }}>
+                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: C.accentSoft, color: C.accent }}>
                         {selectedProduct.badge}
                       </span>
                     )}
                     {selectedProduct.type === "booking" && selectedProduct.left !== undefined && (
-                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold shadow-md" style={{ background: "#FFF3E6", color: "#B4690E" }}>
+                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: "#FFF3E6", color: "#B4690E" }}>
                         {selectedProduct.left} voľné
                       </span>
                     )}
                   </div>
-                </div>
+                )}
 
                 {/* Detaily o produkte */}
                 <div className="flex flex-col gap-3">
@@ -2469,7 +2471,8 @@ export default function Vitrina() {
                   price: it.price,
                   unit: it.unit,
                   type: it.type,
-                  imgUrl: it.img || "",
+                  imgUrl: it.img || "",                              // Legacy pre kompatibilitu
+                  imgUrls: (it.imgs || []).filter(Boolean),         // Nové pole s viacerými fotkami
                   slot: it.slot || "",
                   leftCapacity: it.left ?? 0,
                   badge: it.badge || null,
@@ -3506,6 +3509,69 @@ function readAsDataURL(file: File, cb: (result: string) => void) {
   reader.readAsDataURL(file);
 }
 
+// ── Galéria fotiek produktu (carousel s bodkami ak > 1) ──
+function ProductGallery({ product }: { product: StoreItem }) {
+  const [idx, setIdx] = useState(0);
+  const photos = (product.imgs && product.imgs.filter((u): u is string => !!u)) || (product.img ? [product.img] : []);
+  const count = photos.length;
+
+  useEffect(() => { setIdx(0); }, [product.id]);
+
+  if (count === 0) {
+    return (
+      <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden bg-slate-100 border mb-4" style={{ borderColor: C.line }}>
+        <div className="w-full h-full flex items-center justify-center text-8xl" style={{ background: getPastelBg(product) }}>
+          {product.emoji || "🎁"}
+        </div>
+      </div>
+    );
+  }
+
+  const go = (delta: number) => setIdx((i) => (i + delta + count) % count);
+
+  return (
+    <div className="mb-4">
+      <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden bg-slate-100 border" style={{ borderColor: C.line }}>
+        <img src={photos[idx]} alt={`${product.name} ${idx + 1}/${count}`} className="w-full h-full object-cover" />
+
+        {count > 1 && (
+          <>
+            <button
+              onClick={() => go(-1)}
+              className="absolute top-1/2 left-3 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-700 flex items-center justify-center shadow font-bold text-lg"
+              aria-label="Predchádzajúca fotka"
+            >‹</button>
+            <button
+              onClick={() => go(1)}
+              className="absolute top-1/2 right-3 -translate-y-1/2 w-9 h-9 rounded-full bg-white/85 hover:bg-white text-slate-700 flex items-center justify-center shadow font-bold text-lg"
+              aria-label="Ďalšia fotka"
+            >›</button>
+            <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full bg-black/55 text-white text-[10px] font-bold">
+              {idx + 1} / {count}
+            </div>
+          </>
+        )}
+      </div>
+
+      {count > 1 && (
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+          {photos.map((p, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className={`shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 transition-all ${i === idx ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
+              style={{ borderColor: i === idx ? C.accent : "transparent" }}
+              aria-label={`Zobraziť fotku ${i + 1}`}
+            >
+              <img src={p} alt={`Náhľad ${i + 1}`} className="w-full h-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Formulár na pridanie položky ──
 function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) => void; disabled?: boolean; limitMessage?: string }) {
   const [f, setF] = useState<{
@@ -3515,8 +3581,18 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
     price: string;
     type: string;
     slot: string;
-    img: string | null;
-  }>({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", img: null });
+    imgs: (string | null)[];
+  }>({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", imgs: [] });
+
+  const addPhoto = (url: string) => {
+    setF((p) => {
+      const next = [...p.imgs, url].slice(0, MAX_PRODUCT_PHOTOS);
+      return { ...p, imgs: next };
+    });
+  };
+  const removePhoto = (idx: number) => {
+    setF((p) => ({ ...p, imgs: p.imgs.filter((_, i) => i !== idx) }));
+  };
 
   // Slovenskí užívatelia zadávajú desatinné číslo s čiarkou (0,77) — akceptujeme obidve.
   const parsePrice = (v: string) => parseFloat((v || "").replace(",", "."));
@@ -3558,41 +3634,73 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
           disabled={disabled}
           className="w-full rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
       )}
-      <div className="flex items-center gap-3">
-        <label
-          className={`px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer ${disabled ? "opacity-50 pointer-events-none" : ""}`}
-          style={{ border: `1px dashed ${C.accent}`, color: C.accent, background: C.accentSoft }}
-        >
-          📷 {f.img ? "Zmeniť fotku" : "Nahrať fotku produktu"}
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            disabled={disabled}
-            onChange={(e) => {
-              const file = e.target.files && e.target.files[0];
-              if (!file) return;
-              readAsDataURL(file, (url) => setF((p) => ({ ...p, img: url })));
-              e.target.value = "";
-            }}
-          />
-        </label>
-        {f.img && (
-          <span className="flex items-center gap-2">
-            <img src={f.img} alt="Náhľad fotky" className="w-10 h-10 rounded-lg object-cover" style={{ border: `1px solid ${C.line}` }} />
-            <button disabled={disabled} onClick={() => setF((p) => ({ ...p, img: null }))} className="text-xs font-semibold disabled:opacity-50" style={{ color: "#C2410C" }}>✕</button>
-          </span>
-        )}
+      <div className="mt-1">
+        <div className="text-[11px] font-semibold mb-1.5" style={{ color: C.soft }}>
+          Fotky produktu ({f.imgs.length}/{MAX_PRODUCT_PHOTOS}) — prvá bude titulná
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {Array.from({ length: MAX_PRODUCT_PHOTOS }).map((_, idx) => {
+            const url = f.imgs[idx];
+            if (url) {
+              return (
+                <div key={idx} className="relative aspect-square rounded-xl overflow-hidden border" style={{ borderColor: C.line }}>
+                  <img src={url} alt={`Fotka ${idx + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    disabled={disabled}
+                    onClick={() => removePhoto(idx)}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center hover:bg-black/80"
+                    aria-label="Odstrániť fotku"
+                  >✕</button>
+                  {idx === 0 && (
+                    <span className="absolute bottom-1 left-1 text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/90 text-slate-700">TITULNÁ</span>
+                  )}
+                </div>
+              );
+            }
+            // Prázdny slot — first empty slot = pridať tlačidlo
+            const isFirstEmpty = idx === f.imgs.length;
+            return (
+              <label
+                key={idx}
+                className={`aspect-square rounded-xl flex flex-col items-center justify-center text-center text-[10px] font-semibold cursor-pointer ${disabled || !isFirstEmpty ? "opacity-50 pointer-events-none" : ""}`}
+                style={{
+                  border: `1px dashed ${isFirstEmpty ? C.accent : C.line}`,
+                  color: isFirstEmpty ? C.accent : C.soft,
+                  background: isFirstEmpty ? C.accentSoft : C.bg,
+                }}
+              >
+                <span className="text-xl mb-0.5">{isFirstEmpty ? "📷" : "＋"}</span>
+                <span className="leading-tight px-1">{isFirstEmpty ? "Nahrať" : "Slot"}</span>
+                {isFirstEmpty && (
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={disabled}
+                    onChange={(e) => {
+                      const file = e.target.files && e.target.files[0];
+                      if (!file) return;
+                      readAsDataURL(file, (url) => addPhoto(url));
+                      e.target.value = "";
+                    }}
+                  />
+                )}
+              </label>
+            );
+          })}
+        </div>
       </div>
       <button
         disabled={!ok || disabled}
         onClick={() => {
+          const imgs = f.imgs.filter((u): u is string => !!u);
           onAdd({
             id: Date.now().toString(),
             storeId: "",
             type: f.type,
             emoji: f.type === "booking" ? "📅" : "🛍️",
-            img: f.img,
+            img: imgs[0] || null,       // Legacy pole — prvá fotka
+            imgs,                        // Nové pole — všetky fotky
             name: f.name.trim(),
             desc: f.desc.trim(),
             price: parsePrice(f.price),
@@ -3602,7 +3710,7 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
             badge: null,
             longDesc: f.longDesc.trim()
           });
-          setF({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", img: null });
+          setF({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", imgs: [] });
         }}
         className="mt-1 py-2 rounded-full text-sm font-bold text-white disabled:opacity-40"
         style={{ background: C.accent }}
