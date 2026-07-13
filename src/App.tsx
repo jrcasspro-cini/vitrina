@@ -2859,17 +2859,20 @@ export default function Vitrina() {
       {wizardOpen && userStores.length >= 1 && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl">
-            <div className="text-4xl text-center mb-2">🔒</div>
-            <h3 className="text-lg font-black text-center text-slate-800">Už máte obchod</h3>
+            <div className="text-5xl text-center mb-3">🎉</div>
+            <h3 className="text-lg font-black text-center text-slate-800">Váš obchod je pripravený!</h3>
             <p className="text-xs text-slate-500 text-center mt-2 leading-relaxed">
-              Jeden účet môže mať iba jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte si nový účet s iným emailom. Ak chcete zmeniť názov alebo produkty, vstúpte do svojho obchodu.
+              Vaša Vitrína je vytvorená. Vstúpte do svojho obchodu a začnite pridávať produkty, ktoré chcete predávať.
+            </p>
+            <p className="text-[10px] text-slate-400 text-center mt-3 leading-relaxed">
+              Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte si nový účet s iným emailom.
             </p>
             <button
               onClick={() => { setWizardOpen(false); navigateTo("/app"); }}
               className="mt-5 w-full py-3 rounded-xl text-white font-bold text-sm"
               style={{ background: C.accent }}
             >
-              Vrátiť sa na môj obchod
+              Vstúpiť do môjho obchodu →
             </button>
           </div>
         </div>
