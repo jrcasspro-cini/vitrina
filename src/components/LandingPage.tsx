@@ -70,7 +70,25 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
   return (
     <div className="landing-page-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Righteous&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Righteous&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=DM+Mono:wght@400;500&family=Pacifico&display=swap');
+
+        /* Brand nápis "Vitrína" v hero — retro handlettered štýl */
+        .landing-page-root .brand-inline {
+          font-family: 'Pacifico', cursive;
+          background: linear-gradient(180deg, #FFC542 0%, #FB923C 55%, #F97316 100%);
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+          -webkit-text-stroke: 3px #1E3A5F;
+          paint-order: stroke fill;
+          letter-spacing: .01em;
+          display: inline-block;
+          padding-right: 10px;
+        }
+        @media (max-width: 560px) {
+          .landing-page-root .brand-inline { -webkit-text-stroke: 2px #1E3A5F; }
+        }
 
         .landing-page-root {
           --bg: #FAFAFF;
@@ -673,7 +691,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="wrap hero-inner">
           <div>
             <div className="badge">● Vyrobené na Slovensku, pripravené pre celý svet</div>
-            <h1>Vitrína nie je e-shop.<br />Je to tvoj <span className="grad-text">výklad.</span></h1>
+            <h1><span className="brand-inline">Vitrína</span> nie je e-shop.<br />Je to tvoj <span className="grad-text">výklad.</span></h1>
             <p className="lead">Vystav do nej len to, čo práve teraz predávaš najlepšie — šperky, kozmetiku, workshopy či čokoľvek iné. Zákazník si vyberie, zaplatí QR kódom priamo z bankovej appky a objednávka príde rovno na tvoj WhatsApp.</p>
             <div className="cta-row">
               <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-primary">Prejsť na ovládací panel →</a>
