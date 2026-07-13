@@ -213,6 +213,8 @@ export default function Vitrina() {
     handle: "",
     city: "Prešov",
     phone: "+421900123456",
+    messengerUsername: "",
+    contactEmail: "",
     iban: "",
     category: "Sviečky a darčeky",
     trialEndsAt: "",
@@ -907,7 +909,16 @@ export default function Vitrina() {
     return lines.join("\n");
   }, [cartRows, total, cust, store.name, orderVs]);
 
-  const waLink = `https://wa.me/${store.phone.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(waText)}`;
+  // Multi-kanál odkazy pre checkout. Zákazník si vyberie kanál podľa toho čo má nainštalované.
+  const cleanPhone = store.phone.replace(/[^0-9]/g, "");
+  const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(waText)}` : "";
+  const smsLink = cleanPhone ? `sms:${cleanPhone.startsWith("00") ? "+" + cleanPhone.slice(2) : "+" + cleanPhone}?body=${encodeURIComponent(waText)}` : "";
+  const messengerUsername = ((store as any).messengerUsername || "").trim().replace(/^@/, "");
+  const messengerLink = messengerUsername ? `https://m.me/${messengerUsername}` : "";
+  const contactEmail = ((store as any).contactEmail || "").trim();
+  const emailLink = contactEmail
+    ? `mailto:${contactEmail}?subject=${encodeURIComponent(`Nová objednávka — ${store.name}`)}&body=${encodeURIComponent(waText)}`
+    : "";
 
   // Save order to Firestore orders
   const handleCheckout = async (e: ReactMouseEvent<HTMLAnchorElement>) => {
@@ -2010,18 +2021,67 @@ export default function Vitrina() {
                   <pre className="text-xs whitespace-pre-wrap leading-relaxed" style={{ fontFamily: "inherit", color: C.waDark }}>{waText}</pre>
                 </div>
 
-                <a
-                  href={cartRows.length && cust.name.trim() && cust.city.trim() ? waLink : undefined}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={handleCheckout}
-                  className="mt-3 block text-center py-3 rounded-full font-bold text-white transition-transform hover:scale-[1.01]"
-                  style={{ background: C.wa, cursor: (cust.name.trim() && cust.city.trim()) ? "pointer" : "not-allowed", opacity: (cust.name.trim() && cust.city.trim()) ? 1 : 0.6 }}
-                >
-                  Pokračovať na WhatsApp →
-                </a>
-                <p className="text-center text-xs mt-2" style={{ color: C.soft }}>
-                  Objednávka sa otvorí predvyplnená — stačí ťuknúť Odoslať.
+                <p className="text-xs font-semibold mt-4 mb-2" style={{ color: C.soft }}>
+                  Odošli objednávku predajcovi cez:
+                </p>
+                {(() => {
+                  const canCheckout = cartRows.length > 0 && cust.name.trim() && cust.city.trim();
+                  const btnStyle = (bg: string): { [k: string]: any } => ({
+                    background: bg,
+                    cursor: canCheckout ? "pointer" : "not-allowed",
+                    opacity: canCheckout ? 1 : 0.5,
+                  });
+                  return (
+                    <div className="flex flex-col gap-2">
+                      {waLink && (
+                        <a
+                          href={canCheckout ? waLink : undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={handleCheckout}
+                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          style={btnStyle("#25D366")}
+                        >
+                          💬 Pokračovať cez WhatsApp
+                        </a>
+                      )}
+                      {messengerLink && (
+                        <a
+                          href={canCheckout ? messengerLink : undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={handleCheckout}
+                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          style={btnStyle("#0084FF")}
+                        >
+                          💬 Pokračovať cez Messenger
+                        </a>
+                      )}
+                      {smsLink && (
+                        <a
+                          href={canCheckout ? smsLink : undefined}
+                          onClick={handleCheckout}
+                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          style={btnStyle("#7C3AED")}
+                        >
+                          📱 Poslať cez SMS
+                        </a>
+                      )}
+                      {emailLink && (
+                        <a
+                          href={canCheckout ? emailLink : undefined}
+                          onClick={handleCheckout}
+                          className="block text-center py-3 rounded-2xl font-bold text-sm transition-transform hover:scale-[1.01] border-2"
+                          style={{ ...btnStyle("transparent"), color: C.ink, borderColor: C.line }}
+                        >
+                          ✉️ Odoslať emailom
+                        </a>
+                      )}
+                    </div>
+                  );
+                })()}
+                <p className="text-center text-xs mt-3" style={{ color: C.soft }}>
+                  Správa sa otvorí predvyplnená — stačí ťuknúť Odoslať.
                 </p>
               </section>
             )}
@@ -2067,8 +2127,30 @@ export default function Vitrina() {
               
               <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>WhatsApp číslo (kam chodia objednávky)</label>
               <input value={store.phone} onChange={(e) => updateStoreField("phone", e.target.value)}
+                placeholder="napr. +421 900 123 456"
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
-              
+
+              <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>
+                Messenger username <span className="text-slate-400 font-normal">(nepovinné)</span>
+              </label>
+              <input value={(store as any).messengerUsername || ""} onChange={(e) => updateStoreField("messengerUsername", e.target.value)}
+                placeholder="napr. janakovacova (z m.me/janakovacova alebo facebook.com/janakovacova)"
+                className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+              <span className="text-[10px] text-slate-400 leading-normal">
+                Vyplň iba ak máš Facebook <b>stránku</b> (Page). Osobný profil Messenger link nemá.
+              </span>
+
+              <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>
+                Kontaktný email <span className="text-slate-400 font-normal">(nepovinné)</span>
+              </label>
+              <input value={(store as any).contactEmail || ""} onChange={(e) => updateStoreField("contactEmail", e.target.value)}
+                placeholder="napr. jana@gmail.com"
+                type="email"
+                className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+              <span className="text-[10px] text-slate-400 leading-normal">
+                Ak zákazník nemá WhatsApp/Messenger, môže poslať objednávku emailom.
+              </span>
+
               <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>Mesto</label>
               <input value={store.city} onChange={(e) => updateStoreField("city", e.target.value)}
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
