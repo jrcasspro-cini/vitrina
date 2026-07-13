@@ -2477,7 +2477,7 @@ export default function Vitrina() {
                 });
               } catch (err: any) {
                 console.error("Error adding item:", err);
-                setDbError("Nepodarilo sa pridať produkt (ak ste nahrali fotku, skúste menšiu pod 800 KB): " + err.message);
+                setDbError("Nepodarilo sa pridať produkt: " + err.message + ". Skús to znova alebo použi menšiu fotku.");
               }
             }} />
 
@@ -3441,11 +3441,68 @@ export default function Vitrina() {
   );
 }
 
-// ── Pomocník: prečíta súbor s obrázkom ako dataURL ──
+// ── Pomocník: prečíta súbor s obrázkom ako dataURL a automaticky zmenší veľké fotky ──
+// Mobilné fotky z fotoaparátu majú 2-5 MB. Firestore dokument má limit 1 MB,
+// takže nesmieme uložiť viac ako ~800 KB base64 (na obrázok samotný).
+// Funkcia teda downscale-uje obrázok cez Canvas API (max ~1200 px na dlhšiu stranu,
+// JPEG kvalita 0.85). Ak stále veľký, znižuje kvalitu.
+const MAX_IMAGE_DATA_URL_BYTES = 800 * 1024; // ~800 KB
+
 function readAsDataURL(file: File, cb: (result: string) => void) {
-  const r = new FileReader();
-  r.onload = () => cb(r.result as string);
-  r.readAsDataURL(file);
+  // Pre všetko čo nie je obrázok (alebo SVG/gif — nechajme ako je) použije raw FileReader.
+  if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
+    const r = new FileReader();
+    r.onload = () => cb(r.result as string);
+    r.readAsDataURL(file);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const originalDataUrl = reader.result as string;
+    // Ak je originál dostatočne malý, netreba nič robiť.
+    if (originalDataUrl.length <= MAX_IMAGE_DATA_URL_BYTES * 1.4) {
+      cb(originalDataUrl);
+      return;
+    }
+
+    // Downscale cez Canvas
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = 1200; // max šírka/výška
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        } else {
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { cb(originalDataUrl); return; }
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Skús JPEG kvalitu 0.85 → 0.75 → 0.6 → 0.45 kým sa nezmestí
+      const qualities = [0.85, 0.75, 0.6, 0.45];
+      for (const q of qualities) {
+        const out = canvas.toDataURL("image/jpeg", q);
+        if (out.length <= MAX_IMAGE_DATA_URL_BYTES * 1.4) {
+          cb(out);
+          return;
+        }
+      }
+      // Fallback — najnižšia kvalita
+      cb(canvas.toDataURL("image/jpeg", 0.4));
+    };
+    img.onerror = () => cb(originalDataUrl);
+    img.src = originalDataUrl;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── Formulár na pridanie položky ──
