@@ -2143,7 +2143,7 @@ export default function Vitrina() {
           </main>
         )) : (
           /* ==================== ADMINISTRÁCIA OBCHODU ==================== */
-          <main className="max-w-md mx-auto w-full px-4 pb-32 pt-6">
+          <main className="max-w-md lg:max-w-6xl mx-auto w-full px-4 lg:px-6 pb-32 pt-6">
             <button
               onClick={() => setView("shop")}
               className="text-xs font-semibold mb-4 flex items-center gap-1 opacity-70 hover:opacity-100"
@@ -2154,6 +2154,9 @@ export default function Vitrina() {
 
             <h1 className="disp text-xl font-extrabold mb-1">Nastavenia Vitríny</h1>
             <p className="text-sm mb-4" style={{ color: C.soft }}>Zmeny sa uložia okamžite a prenesú sa aj tvojim zákazníkom.</p>
+
+            <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+            <div className="max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
 
             <section className="rounded-2xl p-4 mb-4 flex flex-col gap-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <label className="text-xs font-semibold" style={{ color: C.soft }}>Názov obchodu</label>
@@ -2485,6 +2488,10 @@ export default function Vitrina() {
                 setDbError("Nepodarilo sa pridať produkt: " + err.message + ". Skús to znova alebo použi menšiu fotku.");
               }
             }} />
+
+            </div>
+
+            <div className="max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
 
             {/* ── Sekcia Objednávky v Administrácii ── */}
             <section className="mt-6 flex flex-col gap-3">
@@ -2841,6 +2848,9 @@ export default function Vitrina() {
                 )}
               </div>
             </section>
+
+            </div>
+            </div>
           </main>
         )
       )}
