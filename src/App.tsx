@@ -72,15 +72,16 @@ function copyText(text: string, onSuccess: () => void) {
 // Prototyp: storefront + rezervácie + checkout s predvyplnenou
 // objednávkou do WhatsAppu + jednoduchá administrácia.
 
+// Soft Minimalism paleta — krémová/béžová + sage green akcent (podľa Gemini návrhu Option 1)
 const C = {
-  bg: "#F2F4F1",
-  card: "#FFFFFF",
-  ink: "#22302B",
-  soft: "#5C6B64",
-  line: "#E1E6E1",
-  accent: "#6B4EFF",
-  accentSoft: "#EFEBFF",
-  wa: "#25D366",
+  bg: "#F5F0E8",        // teplá krémová (pozadie)
+  card: "#FFFFFF",      // biela karta
+  ink: "#2A2620",       // hlboká hnedá (namiesto čiernej — mäkšie)
+  soft: "#6B655C",      // teplá šedá (podtitulky)
+  line: "#E8DFD1",      // krémová obruba
+  accent: "#7A8471",    // sage green (namiesto fialovej — teplé, prírodné)
+  accentSoft: "#E4E8DE", // svetlá sage (backgrounds, hovers)
+  wa: "#25D366",         // WhatsApp green (nemeníme — je to brand)
   waDark: "#128C4B",
 };
 
