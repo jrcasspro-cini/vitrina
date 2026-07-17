@@ -2279,6 +2279,39 @@ export default function Vitrina() {
               />
             </section>
 
+            <AddItem
+              disabled={hasReachedItemLimit} 
+              limitMessage={limitMessage}
+              onAdd={async (it) => {
+              try {
+                setDbError("");
+                const itemId = `${selectedStoreHandle}_${Date.now()}`;
+                await setDoc(doc(db, "items", itemId), {
+                  id: itemId,
+                  storeId: selectedStoreHandle,
+                  name: it.name,
+                  desc: it.desc,
+                  price: it.price,
+                  unit: it.unit,
+                  type: it.type,
+                  imgUrl: it.img || "",                              // Legacy pre kompatibilitu
+                  imgUrls: (it.imgs || []).filter(Boolean),         // Nové pole s viacerými fotkami
+                  slot: it.slot || "",
+                  leftCapacity: it.left ?? 0,
+                  badge: it.badge || null,
+                  emoji: it.emoji,
+                  longDesc: it.longDesc || ""
+                });
+              } catch (err: any) {
+                console.error("Error adding item:", err);
+                setDbError("Nepodarilo sa pridať produkt: " + err.message + ". Skús to znova alebo použi menšiu fotku.");
+              }
+            }} />
+
+            </div>
+
+            <div className="max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
+
             {/* ── Predplatné a Plán ── */}
             <section className="rounded-2xl p-4 mb-4 flex flex-col gap-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div>
@@ -2325,8 +2358,8 @@ export default function Vitrina() {
                 <button
                   onClick={() => updateStoreField("plan", "standard")}
                   className={`p-3 rounded-xl text-left border flex flex-col gap-2 transition-all ${
-                    store.plan === "standard" 
-                      ? "ring-2 ring-indigo-600 bg-indigo-50/20" 
+                    store.plan === "standard"
+                      ? "ring-2 ring-indigo-600 bg-indigo-50/20"
                       : "hover:bg-slate-50"
                   }`}
                   style={{ borderColor: store.plan === "standard" ? C.accent : C.line }}
@@ -2350,8 +2383,8 @@ export default function Vitrina() {
                 <button
                   onClick={() => updateStoreField("plan", "extended")}
                   className={`p-3 rounded-xl text-left border flex flex-col gap-2 transition-all ${
-                    store.plan === "extended" 
-                      ? "ring-2 ring-indigo-600 bg-indigo-50/20" 
+                    store.plan === "extended"
+                      ? "ring-2 ring-indigo-600 bg-indigo-50/20"
                       : "hover:bg-slate-50"
                   }`}
                   style={{ borderColor: store.plan === "extended" ? C.accent : C.line }}
@@ -2459,39 +2492,6 @@ export default function Vitrina() {
                 );
               })()}
             </section>
-
-            <AddItem
-              disabled={hasReachedItemLimit} 
-              limitMessage={limitMessage}
-              onAdd={async (it) => {
-              try {
-                setDbError("");
-                const itemId = `${selectedStoreHandle}_${Date.now()}`;
-                await setDoc(doc(db, "items", itemId), {
-                  id: itemId,
-                  storeId: selectedStoreHandle,
-                  name: it.name,
-                  desc: it.desc,
-                  price: it.price,
-                  unit: it.unit,
-                  type: it.type,
-                  imgUrl: it.img || "",                              // Legacy pre kompatibilitu
-                  imgUrls: (it.imgs || []).filter(Boolean),         // Nové pole s viacerými fotkami
-                  slot: it.slot || "",
-                  leftCapacity: it.left ?? 0,
-                  badge: it.badge || null,
-                  emoji: it.emoji,
-                  longDesc: it.longDesc || ""
-                });
-              } catch (err: any) {
-                console.error("Error adding item:", err);
-                setDbError("Nepodarilo sa pridať produkt: " + err.message + ". Skús to znova alebo použi menšiu fotku.");
-              }
-            }} />
-
-            </div>
-
-            <div className="max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
 
             {/* ── Sekcia Objednávky v Administrácii ── */}
             <section className="mt-6 flex flex-col gap-3">
@@ -2798,9 +2798,12 @@ export default function Vitrina() {
               ))}
             </section>
 
-            {/* Vymazanie Vitríny — možnosť začať odznova */}
-            <section className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
-              <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2.5">
+            </div>
+            </div>
+
+            {/* Vymazanie Vitríny — možnosť začať odznova. Zámerne až úplne dole, mimo 2-stĺpcového gridu, aby to nebola prvá vec, ktorú predajca vidí. */}
+            <section className="mt-10 pt-6 border-t max-w-md lg:max-w-none mx-auto lg:mx-0" style={{ borderColor: C.line }}>
+              <div className="rounded-2xl p-4 bg-slate-50 border border-slate-200 flex flex-col gap-2.5 lg:max-w-md">
                 <div>
                   <h3 className="font-extrabold text-sm text-slate-800">Chcete začať odznova?</h3>
                   <p className="text-xs mt-0.5" style={{ color: C.soft }}>
@@ -2841,16 +2844,13 @@ export default function Vitrina() {
                 ) : (
                   <button
                     onClick={() => setConfirmDeleteStore(true)}
-                    className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+                    className="self-start text-xs font-bold text-red-500 hover:text-red-700 hover:underline transition-colors"
                   >
                     🗑️ Vymazať túto Vitrínu a začať odznova
                   </button>
                 )}
               </div>
             </section>
-
-            </div>
-            </div>
           </main>
         )
       )}
