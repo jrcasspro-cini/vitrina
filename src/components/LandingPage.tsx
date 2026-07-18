@@ -470,13 +470,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
 
         /* FEATURES GRID */
         .landing-page-root .featgrid { padding: 90px 0; border-top: 1px solid var(--border); }
-        .landing-page-root .fg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 50px; }
-        .landing-page-root .fg-card { background: var(--bg); padding: 36px 30px; text-align: left; transition: background .25s ease, transform .25s ease; }
-        .landing-page-root .fg-card:hover { background: var(--surface); transform: translateY(-3px); }
-        .landing-page-root .fg-card:nth-child(3n+1) h3 { color: var(--accent1); }
-        .landing-page-root .fg-card:nth-child(3n+2) h3 { color: var(--accent3); }
-        .landing-page-root .fg-card:nth-child(3n+3) h3 { color: var(--accent4); }
-        .landing-page-root .fg-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1rem; }
+        .landing-page-root .fg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 50px; }
+        .landing-page-root .fg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 30px 28px; text-align: left; transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        .landing-page-root .fg-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,20,40,.06); border-color: rgba(122,132,113,.4); }
+        .landing-page-root .fg-card h3 { color: var(--text); font-weight: 700; }
+        .landing-page-root .fg-icon { width: 46px; height: 46px; border-radius: 13px; background: rgba(122,132,113,.14); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.3rem; }
         .landing-page-root .fg-card h3 { font-size: 1.05rem; margin-bottom: 10px; }
         .landing-page-root .fg-card p { color: var(--muted); font-size: .85rem; }
         @media (max-width: 900px) { .landing-page-root .fg-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -834,7 +832,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="fg-card"><div className="fg-icon">📅</div><h3>Rezervácie, workshopy a prehliadky</h3><p>Termín, kapacita a trvanie služby — zákazníci si vyberú termín, vy dostanete potvrdenú rezerváciu.</p></div>
             <div className="fg-card"><div className="fg-icon">💬</div><h3>Predvyplnené objednávky cez WhatsApp</h3><p>Po dokončení objednávky sa otvorí WhatsApp s kompletne vyplnenou správou — meno, položky, adresa.</p></div>
             <div className="fg-card"><div className="fg-icon">🔗</div><h3>Jeden čistý odkaz</h3><p>Nahraďte chaotické zvýraznenia a viacero odkazov jednou stránkou, ktorá sa postará o všetko.</p></div>
-            <div className="fg-card"><div className="fg-icon">⚡</div><h3>Platba QR kódom</h3><p>Okamžitá platba priamo na váš účet do cca 10 sekúnd — žiadna platobná brána, žiadna provízia.</p></div>
+            <div className="fg-card"><div className="fg-icon">📷</div><h3>Platba QR kódom</h3><p>Okamžitá platba priamo na váš účet do cca 10 sekúnd — žiadna platobná brána, žiadna provízia.</p></div>
             <div className="fg-card"><div className="fg-icon">📱</div><h3>Zamerané na mobilné zariadenia</h3><p>Rýchle načítanie, bezpečné a navrhnuté presne pre spôsob, akým vaši zákazníci už nakupujú.</p></div>
           </div>
         </div>
