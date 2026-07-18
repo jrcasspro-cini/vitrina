@@ -118,7 +118,7 @@ export default function CompanySettings() {
               value={form[key]}
               onChange={(e) => update(key, e.target.value)}
               placeholder={placeholder}
-              className="w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:border-indigo-600 bg-slate-50 focus:bg-white transition-all outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:border-[#7A8471] bg-slate-50 focus:bg-white transition-all outline-none"
               style={{ borderColor: "#CBD5E1" }}
             />
             {help && <span className="text-[10px] text-slate-500 block mt-1">{help}</span>}
@@ -135,7 +135,7 @@ export default function CompanySettings() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-colors disabled:opacity-60"
+          className="px-6 py-2.5 rounded-xl bg-[#7A8471] hover:bg-[#647058] text-white font-bold text-sm transition-colors disabled:opacity-60"
         >
           {saving ? "Ukladám…" : "Uložiť údaje firmy"}
         </button>

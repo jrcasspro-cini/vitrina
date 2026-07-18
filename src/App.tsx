@@ -1623,7 +1623,7 @@ export default function Vitrina() {
               </button>
             </main>
           ) : (
-            <main className="max-w-2xl mx-auto w-full px-4 pb-40 pt-6">
+            <main className="max-w-2xl lg:max-w-5xl mx-auto w-full px-4 lg:px-6 pb-40 pt-6">
               {!isStoreVisibleToCustomers && isOwner && (
                 <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in slide-in-from-top-3">
                   <div>
@@ -1809,7 +1809,7 @@ export default function Vitrina() {
                 )}
 
                 {/* ── Položky ── */}
-                <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {items.length === 0 ? (
                     <div className="sm:col-span-2 text-center py-12 rounded-2xl border border-dashed p-6" style={{ borderColor: C.line, background: C.card }}>
                       <p className="text-sm font-medium" style={{ color: C.soft }}>Tento obchod zatiaľ nemá žiadne produkty.</p>
@@ -1903,7 +1903,9 @@ export default function Vitrina() {
 
             {/* ── Checkout ── */}
             {checkout && count > 0 && (
-              <section className="mt-6 rounded-2xl p-4" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <section className="mt-6 rounded-2xl p-4 lg:p-6 lg:max-w-4xl lg:mx-auto" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+                <div>
                 {/* Shopping Cart Item List with More Info button */}
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
@@ -1969,7 +1971,9 @@ export default function Vitrina() {
                     <p className="text-xs font-semibold text-red-600 -mt-0.5">⚠️ {checkoutError}</p>
                   )}
                 </div>
+                </div>
 
+                <div>
                 {/* ── QR Platba ak má obchod IBAN ── */}
                 {store.iban ? (
                   <div className="mt-4 p-4 rounded-xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
@@ -2119,6 +2123,8 @@ export default function Vitrina() {
                 <p className="text-center text-xs mt-3" style={{ color: C.soft }}>
                   Správa sa otvorí predvyplnená — stačí ťuknúť Odoslať.
                 </p>
+                </div>
+                </div>
               </section>
             )}
 
@@ -2275,7 +2281,7 @@ export default function Vitrina() {
                 }}
                 rows={3}
                 placeholder="Napr. Sme malá rodinná dielňa na severe Slovenska. Vyrábame ručne liate sviečky zo sójového vosku s tými najkrajšími vôňami..."
-                className="w-full rounded-xl px-3 py-2 text-sm border resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="w-full rounded-xl px-3 py-2 text-sm border resize-none focus:outline-none focus:ring-1 focus:ring-[#7A8471]"
                 style={{ borderColor: C.line, background: C.bg }}
               />
             </section>
@@ -2360,7 +2366,7 @@ export default function Vitrina() {
                   onClick={() => updateStoreField("plan", "standard")}
                   className={`p-3 rounded-xl text-left border flex flex-col gap-2 transition-all ${
                     store.plan === "standard"
-                      ? "ring-2 ring-indigo-600 bg-indigo-50/20"
+                      ? "ring-2 ring-[#7A8471] bg-[#7A8471]/10"
                       : "hover:bg-slate-50"
                   }`}
                   style={{ borderColor: store.plan === "standard" ? C.accent : C.line }}
@@ -2385,7 +2391,7 @@ export default function Vitrina() {
                   onClick={() => updateStoreField("plan", "extended")}
                   className={`p-3 rounded-xl text-left border flex flex-col gap-2 transition-all ${
                     store.plan === "extended"
-                      ? "ring-2 ring-indigo-600 bg-indigo-50/20"
+                      ? "ring-2 ring-[#7A8471] bg-[#7A8471]/10"
                       : "hover:bg-slate-50"
                   }`}
                   style={{ borderColor: store.plan === "extended" ? C.accent : C.line }}
@@ -2569,7 +2575,7 @@ export default function Vitrina() {
                                     ? "bg-green-50 text-green-800 border-green-200"
                                     : ord.status === "Zrušená" || ord.status === "Odstúpené - vrátené peniaze"
                                       ? "bg-slate-100 text-slate-600 border-slate-200"
-                                      : "bg-indigo-50 text-indigo-800 border-indigo-200"
+                                      : "bg-[#EDF0E8] text-[#4F5843] border-[#C7D0BC]"
                               }`}
                             >
                               <option value="Nová">Nová</option>
@@ -3001,7 +3007,7 @@ export default function Vitrina() {
                           setNewStore({ ...newStore, name, handle: autoHandle });
                         }
                       }}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
                     <div className="mt-1 text-[10px]">
@@ -3035,7 +3041,7 @@ export default function Vitrina() {
                           setHandleManuallyEdited(true);
                           setNewStore({ ...newStore, handle: cleaned });
                         }}
-                        className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm font-mono focus:border-indigo-600 bg-slate-50 transition-colors"
+                        className="w-full pl-8 pr-4 py-3 rounded-xl border text-sm font-mono focus:border-[#7A8471] bg-slate-50 transition-colors"
                         style={{ borderColor: C.line }}
                       />
                     </div>
@@ -3080,7 +3086,7 @@ export default function Vitrina() {
                       placeholder="+421900123456"
                       value={newStore.phone}
                       onChange={(e) => setNewStore({ ...newStore, phone: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
                     <p className="text-[10px] text-slate-500 mt-1 leading-normal">
@@ -3095,7 +3101,7 @@ export default function Vitrina() {
                       placeholder="Prešov"
                       value={newStore.city}
                       onChange={(e) => setNewStore({ ...newStore, city: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
                     <p className="text-[10px] text-slate-500 mt-1 leading-normal">
@@ -3115,7 +3121,7 @@ export default function Vitrina() {
                           setNewStore({ ...newStore, category: val });
                         }
                       }}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     >
                       <option value="" disabled>Vyberte kategóriu...</option>
@@ -3131,7 +3137,7 @@ export default function Vitrina() {
                         placeholder="Napr. Sójové sviečky, Výšivky, Ateliér..."
                         value={newStore.category}
                         onChange={(e) => setNewStore({ ...newStore, category: e.target.value })}
-                        className="w-full mt-2 px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
+                        className="w-full mt-2 px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
                         style={{ borderColor: C.line }}
                       />
                     )}
@@ -3152,7 +3158,7 @@ export default function Vitrina() {
                       placeholder="SK12 0000 0000 0000 1234 5678"
                       value={newStore.iban}
                       onChange={(e) => setNewStore({ ...newStore, iban: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm font-mono focus:border-indigo-600 bg-slate-50 uppercase transition-colors"
+                      className="w-full px-4 py-3 rounded-xl border text-sm font-mono focus:border-[#7A8471] bg-slate-50 uppercase transition-colors"
                       style={{ borderColor: C.line }}
                     />
                     <p className="text-[10px] text-slate-500 mt-1 leading-normal">

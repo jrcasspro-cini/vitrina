@@ -108,19 +108,19 @@ export default function LegalPage({ type, onNavigate }: LegalPageProps) {
 
         {/* Footer navigation */}
         <div className="mt-8 flex flex-wrap gap-4 justify-center text-xs font-bold text-slate-500">
-          <button onClick={() => onNavigate("/podmienky")} className="hover:text-indigo-600">Podmienky</button>
+          <button onClick={() => onNavigate("/podmienky")} className="hover:text-[#647058]">Podmienky</button>
           <span>·</span>
-          <button onClick={() => onNavigate("/ochrana-udajov")} className="hover:text-indigo-600">Ochrana údajov</button>
+          <button onClick={() => onNavigate("/ochrana-udajov")} className="hover:text-[#647058]">Ochrana údajov</button>
           <span>·</span>
-          <button onClick={() => onNavigate("/cookies")} className="hover:text-indigo-600">Cookies</button>
+          <button onClick={() => onNavigate("/cookies")} className="hover:text-[#647058]">Cookies</button>
           <span>·</span>
-          <button onClick={() => onNavigate("/reklamacie")} className="hover:text-indigo-600">Reklamácie</button>
+          <button onClick={() => onNavigate("/reklamacie")} className="hover:text-[#647058]">Reklamácie</button>
           <span>·</span>
-          <button onClick={() => onNavigate("/odstupenie")} className="hover:text-indigo-600">Odstúpenie</button>
+          <button onClick={() => onNavigate("/odstupenie")} className="hover:text-[#647058]">Odstúpenie</button>
         </div>
 
         <p className="text-center text-xs text-slate-500 mt-8">
-          Vitrína · Predajná platforma pre malých tvorcov · <a href={`mailto:${company.kontakt}`} className="text-indigo-600 hover:underline">{company.kontakt}</a>
+          Vitrína · Predajná platforma pre malých tvorcov · <a href={`mailto:${company.kontakt}`} className="text-[#647058] hover:underline">{company.kontakt}</a>
         </p>
       </main>
     </div>
@@ -410,7 +410,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section className="mb-8">
       <h2 className="text-lg font-black text-slate-800 mb-3">{title}</h2>
-      <div className="text-sm leading-relaxed [&_a]:text-indigo-600 [&_a]:underline hover:[&_a]:text-indigo-700 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_p]:mb-3">
+      <div className="text-sm leading-relaxed [&_a]:text-[#647058] [&_a]:underline hover:[&_a]:text-[#4F5843] [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:mb-1 [&_p]:mb-3">
         {children}
       </div>
     </section>
