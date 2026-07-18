@@ -79,8 +79,9 @@ const C = {
   ink: "#2A2620",       // hlboká hnedá (namiesto čiernej — mäkšie)
   soft: "#6B655C",      // teplá šedá (podtitulky)
   line: "#E8DFD1",      // krémová obruba
-  accent: "#7A8471",    // sage green (namiesto fialovej — teplé, prírodné)
+  accent: "#7A8471",    // sage green (namiesto fialovej — teplé, prírodné) — pre pozadia/okraje/ikony
   accentSoft: "#E4E8DE", // svetlá sage (backgrounds, hovers)
+  accentText: "#647058", // tmavšia sage — pre TEXT na accent farbe (kontrast 4.2–5.3:1, čitateľné na mobile)
   wa: "#25D366",         // WhatsApp green (nemeníme — je to brand)
   waDark: "#128C4B",
 };
@@ -1195,7 +1196,7 @@ export default function Vitrina() {
                       type="button"
                       onClick={() => { setResetMode(true); setAuthError(""); setAuthSuccess(""); }}
                       className="text-[10px] font-bold"
-                      style={{ color: C.accent }}
+                      style={{ color: C.accentText }}
                     >
                       Zabudli ste heslo?
                     </button>
@@ -1214,7 +1215,7 @@ export default function Vitrina() {
                   <button
                     type="button"
                     onClick={() => setShowAuthPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-sm"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 text-sm"
                     aria-label={showAuthPassword ? "Skryť heslo" : "Zobraziť heslo"}
                   >
                     {showAuthPassword ? "🙈" : "👁️"}
@@ -1233,11 +1234,11 @@ export default function Vitrina() {
                     />
                     <span>
                       Súhlasím s{" "}
-                      <a href="/podmienky" onClick={(e) => { e.preventDefault(); navigateTo("/podmienky"); }} className="text-[#7A8471] font-bold hover:underline">
+                      <a href="/podmienky" onClick={(e) => { e.preventDefault(); navigateTo("/podmienky"); }} className="text-[#647058] font-bold hover:underline">
                         Podmienkami používania
                       </a>{" "}
                       a{" "}
-                      <a href="/ochrana-udajov" onClick={(e) => { e.preventDefault(); navigateTo("/ochrana-udajov"); }} className="text-[#7A8471] font-bold hover:underline">
+                      <a href="/ochrana-udajov" onClick={(e) => { e.preventDefault(); navigateTo("/ochrana-udajov"); }} className="text-[#647058] font-bold hover:underline">
                         Ochranou osobných údajov
                       </a>.
                     </span>
@@ -1251,7 +1252,7 @@ export default function Vitrina() {
                     />
                     <span>
                       Súhlasím so začatím poskytovania digitálnej služby ihneď (viď{" "}
-                      <a href="/odstupenie" onClick={(e) => { e.preventDefault(); navigateTo("/odstupenie"); }} className="text-[#7A8471] font-bold hover:underline">
+                      <a href="/odstupenie" onClick={(e) => { e.preventDefault(); navigateTo("/odstupenie"); }} className="text-[#647058] font-bold hover:underline">
                         Odstúpenie od zmluvy
                       </a>
                       ).
@@ -1298,7 +1299,7 @@ export default function Vitrina() {
                 type="button"
                 onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(""); setAuthSuccess(""); }}
                 className="text-xs font-bold transition-colors text-center mt-2 hover:opacity-100"
-                style={{ color: C.accent }}
+                style={{ color: C.accentText }}
               >
                 {isRegisterMode ? "Už máte účet? Prihláste sa" : "Nemáte účet? Zaregistrujte sa"}
               </button>
@@ -1404,7 +1405,7 @@ export default function Vitrina() {
               </button>
               <button
                 onClick={() => setTrialModalDismissed(true)}
-                className="w-full py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                className="w-full py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-600 transition-colors"
               >
                 Pripomenúť neskôr
               </button>
@@ -1466,7 +1467,7 @@ export default function Vitrina() {
                 🛠️ Otvoriť Superadmin panel →
               </button>
 
-              <p className="text-[11px] text-slate-400 mt-6 leading-relaxed">
+              <p className="text-[11px] text-slate-500 mt-6 leading-relaxed">
                 Ak chcete testovať Vitrínu ako predajca, môžete si založiť aj vlastný obchod na tomto účte.
               </p>
               <button
@@ -1475,7 +1476,7 @@ export default function Vitrina() {
                   setHandleManuallyEdited(false);
                   navigateTo("/vytvorit");
                 }}
-                className="mt-2 text-xs font-semibold text-slate-500 hover:text-[#7A8471] hover:underline"
+                className="mt-2 text-xs font-semibold text-slate-500 hover:text-[#647058] hover:underline"
               >
                 Vytvoriť si testovací obchod
               </button>
@@ -1547,7 +1548,7 @@ export default function Vitrina() {
                     >
                       Vymazať 🗑️
                     </button>
-                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: C.accentSoft, color: C.accent }}>
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: C.accentSoft, color: C.accentText }}>
                       Vstúpiť →
                     </span>
                   </div>
@@ -1555,7 +1556,7 @@ export default function Vitrina() {
               )))}
             </div>
             {userStores.length >= 1 && (
-              <p className="text-[11px] text-slate-400 mt-4 leading-relaxed text-center px-4">
+              <p className="text-[11px] text-slate-500 mt-4 leading-relaxed text-center px-4">
                 🔒 Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte nový účet s iným emailom.
               </p>
             )}
@@ -1564,7 +1565,7 @@ export default function Vitrina() {
           <div className="text-center mt-8 pb-2">
             <button
               onClick={() => navigateTo("/admin-platformy")}
-              className="text-[11px] font-bold text-slate-400 hover:text-[#7A8471] transition-colors inline-flex items-center gap-1"
+              className="text-[11px] font-bold text-slate-500 hover:text-[#647058] transition-colors inline-flex items-center gap-1"
             >
               ⚙️ Prejsť do Adminu platformy
             </button>
@@ -1656,7 +1657,7 @@ export default function Vitrina() {
                 {(selectedProduct.badge || (selectedProduct.type === "booking" && selectedProduct.left !== undefined)) && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {selectedProduct.badge && (
-                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: C.accentSoft, color: C.accent }}>
+                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: C.accentSoft, color: C.accentText }}>
                         {selectedProduct.badge}
                       </span>
                     )}
@@ -1688,7 +1689,7 @@ export default function Vitrina() {
                   )}
 
                   <div className="mt-4 border-t pt-5" style={{ borderColor: C.line }}>
-                    <h3 className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400 mb-2.5">O produkte</h3>
+                    <h3 className="text-[10px] uppercase font-extrabold tracking-wider text-slate-500 mb-2.5">O produkte</h3>
                     <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {selectedProduct.longDesc || selectedProduct.desc || "K tomuto produktu zatiaľ predajca neuviedol podrobnejší popis."}
                     </p>
@@ -1697,7 +1698,7 @@ export default function Vitrina() {
                   {/* Ovládanie množstva a pridávania */}
                   <div className="mt-8 p-4 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: C.card, borderColor: C.line }}>
                     <div className="flex flex-col gap-1 items-center sm:items-start shrink-0">
-                      <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-400">Počet {selectedProduct.type === "booking" ? "miest" : "kusov"}</span>
+                      <span className="text-[10px] uppercase font-extrabold tracking-wider text-slate-500">Počet {selectedProduct.type === "booking" ? "miest" : "kusov"}</span>
                       <div className="flex items-center gap-1.5 rounded-xl p-0.5 border mt-1" style={{ borderColor: C.line, background: C.bg }}>
                         <button 
                           onClick={() => {
@@ -1716,7 +1717,7 @@ export default function Vitrina() {
                         <button 
                           onClick={() => add(selectedProduct.id, 1)}
                           className="w-9 h-9 flex items-center justify-center text-sm font-bold rounded-lg hover:bg-slate-100 transition-colors" 
-                          style={{ color: C.accent }}
+                          style={{ color: C.accentText }}
                         >
                           +
                         </button>
@@ -1787,7 +1788,7 @@ export default function Vitrina() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs mt-1 font-semibold hover:underline inline-flex items-center gap-1"
-                    style={{ color: C.accent }}
+                    style={{ color: C.accentText }}
                   >
                     {currentHost}/{selectedStoreHandle} ↗
                   </a>
@@ -1815,7 +1816,7 @@ export default function Vitrina() {
                       <button
                         onClick={() => setView("admin")}
                         className="mt-3 text-xs font-bold underline"
-                        style={{ color: C.accent }}
+                        style={{ color: C.accentText }}
                       >
                         Pridaj prvý produkt v Nastaveniach
                       </button>
@@ -1836,7 +1837,7 @@ export default function Vitrina() {
                             {/* Odznaky priamo na fotke v ľavom hornom rohu */}
                             <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
                               {it.badge && (
-                                <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: C.accentSoft, color: C.accent }}>
+                                <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: C.accentSoft, color: C.accentText }}>
                                   {it.badge}
                                 </span>
                               )}
@@ -1850,10 +1851,10 @@ export default function Vitrina() {
 
                           <div className="p-4 flex-1 flex flex-col justify-between">
                             <div>
-                              <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#7A8471] transition-colors">{it.name}</h3>
+                              <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#647058] transition-colors">{it.name}</h3>
                               <p className="text-xs mt-1 line-clamp-2" style={{ color: C.soft }}>{it.desc}</p>
                               {it.type === "booking" && it.slot && (
-                                <p className="text-[11px] mt-1.5 font-semibold flex items-center gap-1" style={{ color: C.accent }}>
+                                <p className="text-[11px] mt-1.5 font-semibold flex items-center gap-1" style={{ color: C.accentText }}>
                                   <span>📅</span> {it.slot}
                                 </p>
                               )}
@@ -1879,7 +1880,7 @@ export default function Vitrina() {
                                 <div className="flex items-center gap-1 rounded-full p-0.5 border shrink-0" style={{ borderColor: C.line, background: C.bg }}>
                                   <button onClick={() => add(it.id, -1)} className="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.soft }}>−</button>
                                   <span className="text-xs font-bold w-4 text-center">{cart[it.id]}</span>
-                                  <button onClick={() => add(it.id, 1)} className="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.accent }}>+</button>
+                                  <button onClick={() => add(it.id, 1)} className="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.accentText }}>+</button>
                                 </div>
                               ) : (
                                 <button
@@ -1909,7 +1910,7 @@ export default function Vitrina() {
                     <h2 className="disp font-extrabold text-base text-slate-900">Váš nákupný košík</h2>
                     <button
                       onClick={() => setCheckout(false)}
-                      className="text-xs font-bold text-[#7A8471] hover:underline"
+                      className="text-xs font-bold text-[#647058] hover:underline"
                     >
                       ← Späť do obchodu
                     </button>
@@ -1932,7 +1933,7 @@ export default function Vitrina() {
                                   setSelectedProductId(it.id);
                                   setCheckout(false);
                                 }}
-                                className="text-[10px] font-bold text-[#7A8471] hover:underline flex items-center gap-0.5"
+                                className="text-[10px] font-bold text-[#647058] hover:underline flex items-center gap-0.5"
                               >
                                 Viac info →
                               </button>
@@ -1943,7 +1944,7 @@ export default function Vitrina() {
                           <div className="flex items-center gap-1 rounded-full p-0.5 border" style={{ borderColor: C.line, background: C.bg }}>
                             <button onClick={() => add(it.id, -1)} className="w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.soft }}>−</button>
                             <span className="text-xs font-bold w-4 text-center">{it.qty}</span>
-                            <button onClick={() => add(it.id, 1)} className="w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.accent }}>+</button>
+                            <button onClick={() => add(it.id, 1)} className="w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.accentText }}>+</button>
                           </div>
                           <span className="text-xs font-extrabold text-slate-800 min-w-[50px] text-right">
                             {eur(it.price * it.qty)}
@@ -1953,7 +1954,7 @@ export default function Vitrina() {
                     ))}
                     <div className="flex items-center justify-between pt-3 mt-1 border-t font-extrabold text-sm text-slate-900" style={{ borderColor: C.line }}>
                       <span>Celkom na úhradu:</span>
-                      <span className="text-base" style={{ color: C.accent }}>{eur(total)}</span>
+                      <span className="text-base" style={{ color: C.accentText }}>{eur(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -1972,7 +1973,7 @@ export default function Vitrina() {
                 {/* ── QR Platba ak má obchod IBAN ── */}
                 {store.iban ? (
                   <div className="mt-4 p-4 rounded-xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
-                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accent }}>
+                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accentText }}>
                       ⚡ Rýchla QR platba (Prevod)
                     </span>
                     <p className="text-[11px] mb-3" style={{ color: C.soft }}>
@@ -1998,7 +1999,7 @@ export default function Vitrina() {
                                 setTimeout(() => setCopiedIban(false), 2000);
                               }
                             }}
-                            className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#7A8471] hover:underline"
+                            className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
                           >
                             {copiedIban ? "Skopírované!" : "Kopírovať"}
                           </button>
@@ -2017,7 +2018,7 @@ export default function Vitrina() {
                                   setTimeout(() => setCopiedAmount(false), 2000);
                                 }
                               }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#7A8471] hover:underline"
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
                             >
                               {copiedAmount ? "OK" : "Kop"}
                             </button>
@@ -2035,7 +2036,7 @@ export default function Vitrina() {
                                   setTimeout(() => setCopiedVs(false), 2000);
                                 }
                               }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#7A8471] hover:underline"
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
                             >
                               {copiedVs ? "OK" : "Kop"}
                             </button>
@@ -2130,13 +2131,13 @@ export default function Vitrina() {
                 <button
                   type="button"
                   onClick={() => setWithdrawalOpen(true)}
-                  className="text-xs font-bold hover:underline cursor-pointer transition-colors hover:text-[#7A8471]"
-                  style={{ color: C.accent }}
+                  className="text-xs font-bold hover:underline cursor-pointer transition-colors hover:text-[#647058]"
+                  style={{ color: C.accentText }}
                 >
                   Odstúpiť od zmluvy tu
                 </button>
               </div>
-              <p className="text-[10px] mt-2 opacity-50 font-medium" style={{ color: C.soft }}>
+              <p className="text-[11px] mt-2 font-medium" style={{ color: C.soft }}>
                 Vytvorené cez <a href="/" className="hover:underline font-bold text-slate-800">Vitrína</a> · Predajná platforma pre malých tvorcov
               </p>
             </footer>
@@ -2169,23 +2170,23 @@ export default function Vitrina() {
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
 
               <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>
-                Messenger username <span className="text-slate-400 font-normal">(nepovinné)</span>
+                Messenger username <span className="text-slate-500 font-normal">(nepovinné)</span>
               </label>
               <input value={(store as any).messengerUsername || ""} onChange={(e) => updateStoreField("messengerUsername", e.target.value)}
                 placeholder="napr. janakovacova (z m.me/janakovacova alebo facebook.com/janakovacova)"
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
-              <span className="text-[10px] text-slate-400 leading-normal">
+              <span className="text-[10px] text-slate-500 leading-normal">
                 Vyplň iba ak máš Facebook <b>stránku</b> (Page). Osobný profil Messenger link nemá.
               </span>
 
               <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>
-                Kontaktný email <span className="text-slate-400 font-normal">(nepovinné)</span>
+                Kontaktný email <span className="text-slate-500 font-normal">(nepovinné)</span>
               </label>
               <input value={(store as any).contactEmail || ""} onChange={(e) => updateStoreField("contactEmail", e.target.value)}
                 placeholder="napr. jana@gmail.com"
                 type="email"
                 className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
-              <span className="text-[10px] text-slate-400 leading-normal">
+              <span className="text-[10px] text-slate-500 leading-normal">
                 Ak zákazník nemá WhatsApp/Messenger, môže poslať objednávku emailom.
               </span>
 
@@ -2262,7 +2263,7 @@ export default function Vitrina() {
 
               <div className="flex justify-between items-center mt-3">
                 <label className="text-xs font-semibold" style={{ color: C.soft }}>Popis obchodu</label>
-                <span className="text-[10px] font-bold text-slate-400">
+                <span className="text-[10px] font-bold text-slate-500">
                   {((store as any).description || "").length}/400 znakov
                 </span>
               </div>
@@ -2372,7 +2373,7 @@ export default function Vitrina() {
                   </div>
                   <div>
                     <span className="disp text-lg font-black block text-slate-900 leading-none">8 €</span>
-                    <span className="text-[10px] text-slate-400 font-medium">/ mesiac</span>
+                    <span className="text-[10px] text-slate-500 font-medium">/ mesiac</span>
                   </div>
                   <div className="border-t pt-2 w-full text-[10px] text-slate-500 font-semibold leading-normal" style={{ borderColor: C.line }}>
                     • Max 2 produkty
@@ -2397,7 +2398,7 @@ export default function Vitrina() {
                   </div>
                   <div>
                     <span className="disp text-lg font-black block text-slate-900 leading-none">10 €</span>
-                    <span className="text-[10px] text-slate-400 font-medium">/ mesiac</span>
+                    <span className="text-[10px] text-slate-500 font-medium">/ mesiac</span>
                   </div>
                   <div className="border-t pt-2 w-full text-[10px] text-slate-500 font-semibold leading-normal" style={{ borderColor: C.line }}>
                     • Max 6 produktov
@@ -2418,7 +2419,7 @@ export default function Vitrina() {
                 const paymentReported = !!(store as any).paymentReported;
                 return (
                   <div className="mt-3 p-4 rounded-2xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
-                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accent }}>
+                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accentText }}>
                       💳 Aktivujte plán {nazovPlanu} ({suma} €/mes)
                     </span>
                     <p className="text-[11px] mb-3 max-w-sm" style={{ color: C.soft }}>
@@ -2433,7 +2434,7 @@ export default function Vitrina() {
                         style={{ borderColor: C.line }}
                       />
                     ) : (
-                      <div className="w-40 h-40 flex items-center justify-center rounded-xl border bg-white text-[10px] text-slate-400 text-center p-3" style={{ borderColor: C.line }}>
+                      <div className="w-40 h-40 flex items-center justify-center rounded-xl border bg-white text-[10px] text-slate-500 text-center p-3" style={{ borderColor: C.line }}>
                         (Administrátor Vitríny ešte nedoplnil IBAN v Admin → Údaje firmy.)
                       </div>
                     )}
@@ -2446,7 +2447,7 @@ export default function Vitrina() {
                           {company.iban && (
                             <button
                               onClick={() => { navigator.clipboard?.writeText(cistyIban); }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#7A8471] hover:underline"
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
                             >
                               Kopírovať
                             </button>
@@ -2464,7 +2465,7 @@ export default function Vitrina() {
                             <span>{paymentVs}</span>
                             <button
                               onClick={() => { navigator.clipboard?.writeText(paymentVs); }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#7A8471] hover:underline"
+                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
                             >
                               Kop
                             </button>
@@ -2540,7 +2541,7 @@ export default function Vitrina() {
                                 VS (variabilný symbol): <strong>{ord.variabilnySymbol}</strong>
                               </span>
                             )}
-                            <span className="text-[10px] text-slate-400 block mt-0.5">
+                            <span className="text-[10px] text-slate-500 block mt-0.5">
                               {orderDate}
                             </span>
                           </div>
@@ -2589,7 +2590,7 @@ export default function Vitrina() {
                               <div key={idx} className="flex justify-between items-center py-0.5">
                                 <span>
                                   {item.name} <strong className="text-slate-800">({item.qty}x)</strong>
-                                  {item.slot && <span className="block text-[10px] text-slate-400">📅 {item.slot}</span>}
+                                  {item.slot && <span className="block text-[10px] text-slate-500">📅 {item.slot}</span>}
                                 </span>
                                 <span className="font-mono">{eur(item.price * item.qty)}</span>
                               </div>
@@ -2621,7 +2622,7 @@ export default function Vitrina() {
                             </p>
                             <div className="grid grid-cols-1 gap-1 text-red-950 mt-1 pt-1.5 border-t border-red-200">
                               <p><strong>Meno spotrebiteľa:</strong> {ord.withdrawalName || "—"}</p>
-                              <p><strong>E-mail pre kontakt:</strong> <a href={`mailto:${ord.withdrawalEmail}`} className="underline hover:text-[#7A8471] font-bold">{ord.withdrawalEmail}</a></p>
+                              <p><strong>E-mail pre kontakt:</strong> <a href={`mailto:${ord.withdrawalEmail}`} className="underline hover:text-[#647058] font-bold">{ord.withdrawalEmail}</a></p>
                               <p><strong>Dátum doručenia odstúpenia:</strong> {ord.withdrawalDate ? new Date(ord.withdrawalDate).toLocaleString("sk-SK") : "—"}</p>
                             </div>
                           </div>
@@ -2667,7 +2668,7 @@ export default function Vitrina() {
                           });
                         }}
                         className="text-xs font-semibold flex items-center gap-0.5"
-                        style={{ color: C.accent }}
+                        style={{ color: C.accentText }}
                       >
                         ✏️ Upraviť
                       </button>
@@ -2879,7 +2880,7 @@ export default function Vitrina() {
             <p className="text-xs text-slate-500 text-center mt-2 leading-relaxed">
               Vaša Vitrína je vytvorená. Vstúpte do svojho obchodu a začnite pridávať produkty, ktoré chcete predávať.
             </p>
-            <p className="text-[10px] text-slate-400 text-center mt-3 leading-relaxed">
+            <p className="text-[10px] text-slate-500 text-center mt-3 leading-relaxed">
               Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte si nový účet s iným emailom.
             </p>
             <button
@@ -3009,7 +3010,7 @@ export default function Vitrina() {
                           ⚠️ Názov obchodu je povinný údaj.
                         </span>
                       ) : (
-                        <p className="text-slate-400 leading-normal">
+                        <p className="text-slate-500 leading-normal">
                           Zákazníci uvidia tento názov v záhlaví vášho obchodu a v doručených WhatsApp správach.
                         </p>
                       )}
@@ -3060,7 +3061,7 @@ export default function Vitrina() {
                           </span>
                         )
                       ) : (
-                        <span className="text-slate-400 leading-normal">
+                        <span className="text-slate-500 leading-normal">
                           Unikátny internetový odkaz pre vašu vitrínu. Zákazníkov sem môžete nasmerovať napríklad z Instagram Bio.
                         </span>
                       )}
@@ -3082,7 +3083,7 @@ export default function Vitrina() {
                       className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
-                    <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                       Telefónne číslo priradené k vášmu WhatsAppu vrátane slovenskej predvoľby +421. Na toto číslo vám prídu hotové objednávky od zákazníkov.
                     </p>
                   </div>
@@ -3097,7 +3098,7 @@ export default function Vitrina() {
                       className="w-full px-4 py-3 rounded-xl border text-sm focus:border-indigo-600 bg-slate-50 transition-colors"
                       style={{ borderColor: C.line }}
                     />
-                    <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                       Mesto, kde vyrábate alebo predávate svoje výrobky. Pomáha budovať dôveru u miestnych nakupujúcich.
                     </p>
                   </div>
@@ -3134,7 +3135,7 @@ export default function Vitrina() {
                         style={{ borderColor: C.line }}
                       />
                     )}
-                    <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                       Zákazníci uvidia túto kategóriu v hlavičke vášho obchodu.
                     </p>
                   </div>
@@ -3154,7 +3155,7 @@ export default function Vitrina() {
                       className="w-full px-4 py-3 rounded-xl border text-sm font-mono focus:border-indigo-600 bg-slate-50 uppercase transition-colors"
                       style={{ borderColor: C.line }}
                     />
-                    <p className="text-[10px] text-slate-400 mt-1 leading-normal">
+                    <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                       Sem prídu platby od zákazníkov cez QR kód. V pokladni sa automaticky vytvorí bankový QR kód (Payme štandard) pre okamžitú bezchybnú úhradu.
                     </p>
                   </div>
@@ -3165,7 +3166,7 @@ export default function Vitrina() {
               {wizardStep === 4 && (
                 <div className="flex flex-col gap-4">
                   <div className="bg-slate-50 p-4 rounded-2xl border" style={{ borderColor: C.line }}>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Prehľad obchodu</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Prehľad obchodu</span>
                     
                     <div className="flex flex-col gap-4 text-xs">
                       <div className="flex items-start gap-3">
@@ -3177,9 +3178,9 @@ export default function Vitrina() {
                           referrerPolicy="no-referrer"
                         />
                         <div>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Identita</span>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Identita</span>
                           <strong className="text-sm font-bold text-slate-800 block leading-tight">{newStore.name}</strong>
-                          <span className="text-[11px] font-mono text-[#7A8471] block mt-0.5 truncate max-w-full">
+                          <span className="text-[11px] font-mono text-[#647058] block mt-0.5 truncate max-w-full">
                             {currentHost}/{sanitizedHandle}
                           </span>
                         </div>
@@ -3187,26 +3188,26 @@ export default function Vitrina() {
 
                       <div className="grid grid-cols-2 gap-3 border-t pt-3" style={{ borderColor: C.line }}>
                         <div>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">WhatsApp číslo</span>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wider block">WhatsApp číslo</span>
                           <span className="font-semibold text-slate-700 block mt-0.5">{newStore.phone || "—"}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Mesto pôsobenia</span>
+                          <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Mesto pôsobenia</span>
                           <span className="font-semibold text-slate-700 block mt-0.5">{newStore.city || "—"}</span>
                         </div>
                       </div>
 
                       <div className="border-t pt-3" style={{ borderColor: C.line }}>
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Bankový IBAN</span>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Bankový IBAN</span>
                         <span className="font-mono font-semibold text-slate-700 block break-all uppercase mt-0.5">{newStore.iban || "—"}</span>
-                        <p className="text-[9px] text-slate-400 mt-1">
+                        <p className="text-[9px] text-slate-500 mt-1">
                           Zákazníci budú platiť priamo na váš účet pomocou automaticky generovaného QR kódu.
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-normal text-center px-2">
+                  <p className="text-[11px] text-slate-500 leading-normal text-center px-2">
                     Po kliknutí na Spustiť vám automaticky pridáme 4 predvolené ukážkové výrobky (sviečky, workshopy), ktoré môžete ihneď upraviť alebo zmazať.
                   </p>
                 </div>
@@ -3261,7 +3262,7 @@ export default function Vitrina() {
                     <div className="w-12" />
                   )}
 
-                  <span className="text-[10px] text-slate-400 font-medium text-center flex-1 px-1 leading-tight">
+                  <span className="text-[10px] text-slate-500 font-medium text-center flex-1 px-1 leading-tight">
                     Stlačte Pokračovať pre uloženie a pokračovanie
                   </span>
 
@@ -3336,17 +3337,17 @@ export default function Vitrina() {
                   {/* Potvrdenie s dátumom a časom podania */}
                   <div className="w-full bg-slate-50 rounded-2xl p-4 border text-left flex flex-col gap-2.5 my-6 text-xs text-slate-700" style={{ borderColor: C.line }}>
                     <div className="border-b pb-2 flex justify-between items-center" style={{ borderColor: C.line }}>
-                      <span className="font-bold text-slate-400 uppercase text-[9px] tracking-wider">Potvrdenie o podaní</span>
+                      <span className="font-bold text-slate-500 uppercase text-[9px] tracking-wider">Potvrdenie o podaní</span>
                       <span className="font-mono text-[10px] px-2 py-0.5 rounded-md bg-green-100 text-green-800 font-bold">ÚSPEŠNÉ</span>
                     </div>
                     <p><strong>Obchod:</strong> {store.name}</p>
                     <p><strong>Meno spotrebiteľa:</strong> {withdrawalSuccess.name}</p>
                     <p><strong>Kontaktný e-mail:</strong> {withdrawalSuccess.email}</p>
                     <p><strong>Identifikácia objednávky:</strong> #{withdrawalSuccess.orderId} {withdrawalSuccess.variabilnySymbol ? `(VS: ${withdrawalSuccess.variabilnySymbol})` : ""}</p>
-                    <p><strong>Dátum a čas podania:</strong> <strong className="text-[#7A8471] font-mono">{withdrawalSuccess.timestamp}</strong></p>
+                    <p><strong>Dátum a čas podania:</strong> <strong className="text-[#647058] font-mono">{withdrawalSuccess.timestamp}</strong></p>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 mb-4">
+                  <p className="text-[11px] text-slate-500 mb-4">
                     Kópia tohto potvrdenia je pripravená. Kliknutím na tlačidlo nižšie môžete odoslať potvrdzujúci e-mail.
                   </p>
 
@@ -3390,7 +3391,7 @@ export default function Vitrina() {
                   )}
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Meno a priezvisko</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Meno a priezvisko</label>
                     <input
                       type="text"
                       required
@@ -3403,7 +3404,7 @@ export default function Vitrina() {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Číslo objednávky / Variabilný symbol</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Číslo objednávky / Variabilný symbol</label>
                     <input
                       type="text"
                       required
@@ -3416,7 +3417,7 @@ export default function Vitrina() {
                   </div>
 
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">E-mailová adresa</label>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500">E-mailová adresa</label>
                     <input
                       type="email"
                       required

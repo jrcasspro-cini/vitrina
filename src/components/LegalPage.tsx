@@ -119,7 +119,7 @@ export default function LegalPage({ type, onNavigate }: LegalPageProps) {
           <button onClick={() => onNavigate("/odstupenie")} className="hover:text-indigo-600">Odstúpenie</button>
         </div>
 
-        <p className="text-center text-xs text-slate-400 mt-8">
+        <p className="text-center text-xs text-slate-500 mt-8">
           Vitrína · Predajná platforma pre malých tvorcov · <a href={`mailto:${company.kontakt}`} className="text-indigo-600 hover:underline">{company.kontakt}</a>
         </p>
       </main>

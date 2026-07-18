@@ -345,7 +345,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-slate-50 font-sans">
-        <div className="text-sm text-slate-400 font-bold">Načítavam…</div>
+        <div className="text-sm text-slate-500 font-bold">Načítavam…</div>
       </div>
     );
   }
@@ -360,7 +360,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
               🔒
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-800">Admin platformy</h1>
-            <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">
+            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
               Tento panel slúži výhradne pre správcu platformy Vitrína.
             </p>
           </div>
@@ -382,7 +382,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
 
           <div className="flex items-center gap-3 my-4">
             <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">alebo emailom</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">alebo emailom</span>
             <div className="flex-1 h-px bg-slate-200"></div>
           </div>
 
@@ -453,7 +453,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
           <div className="text-2xl">⚡</div>
           <div>
             <h1 className="text-lg font-black tracking-tight text-slate-800 leading-none">Vitrína Admin</h1>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 block">Platform Control Panel</span>
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 block">Platform Control Panel</span>
           </div>
         </div>
 
@@ -482,28 +482,28 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {/* STAT 1: Total stores */}
           <div className="bg-white p-5 rounded-3xl border shadow-xs" style={{ borderColor: "#E2E8F0" }}>
-            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Celkový počet obchodov</span>
+            <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider block">Celkový počet obchodov</span>
             <span className="text-3xl font-black block mt-2 text-slate-800">{loading ? "..." : stats.total}</span>
             <span className="text-[10px] text-slate-500 block mt-1">Zaregistrovaných celkom</span>
           </div>
 
           {/* STAT 2: Standard Plan */}
           <div className="bg-white p-5 rounded-3xl border shadow-xs border-l-4" style={{ borderColor: "#E2E8F0", borderLeftColor: "#4F46E5" }}>
-            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Plán Štandard (8 €/mes)</span>
+            <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider block">Plán Štandard (8 €/mes)</span>
             <span className="text-3xl font-black block mt-2 text-indigo-600">{loading ? "..." : stats.standardCount}</span>
             <span className="text-[10px] text-slate-500 block mt-1">S limitom 2 produktov</span>
           </div>
 
           {/* STAT 3: Expanded Plan */}
           <div className="bg-white p-5 rounded-3xl border shadow-xs border-l-4" style={{ borderColor: "#E2E8F0", borderLeftColor: "#10B981" }}>
-            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">Plán Rozšírený (10 €/mes)</span>
+            <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider block">Plán Rozšírený (10 €/mes)</span>
             <span className="text-3xl font-black block mt-2 text-emerald-600">{loading ? "..." : stats.extendedCount}</span>
             <span className="text-[10px] text-slate-500 block mt-1">S limitom 6 produktov</span>
           </div>
 
           {/* STAT 4: Trial count */}
           <div className="bg-white p-5 rounded-3xl border shadow-xs" style={{ borderColor: "#E2E8F0" }}>
-            <span className="text-slate-400 font-bold text-[10px] uppercase tracking-wider block">V skúšobnej dobe (Trial)</span>
+            <span className="text-slate-500 font-bold text-[10px] uppercase tracking-wider block">V skúšobnej dobe (Trial)</span>
             <span className="text-3xl font-black block mt-2 text-amber-500">{loading ? "..." : stats.trialCount}</span>
             <span className="text-[10px] text-slate-500 block mt-1">{stats.expiredCount} exspirovaných bez plánu</span>
           </div>
@@ -535,7 +535,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
         <section className="bg-white p-4 rounded-3xl border shadow-xs mb-6 flex flex-col md:flex-row gap-4 items-center justify-between" style={{ borderColor: "#E2E8F0" }}>
           {/* Search bar */}
           <div className="relative w-full md:w-96 flex items-center">
-            <span className="absolute left-4 text-slate-400 text-sm select-none">🔍</span>
+            <span className="absolute left-4 text-slate-500 text-sm select-none">🔍</span>
             <input
               type="text"
               value={searchTerm}
@@ -572,7 +572,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
         {/* STORES TABLE */}
         <section className="bg-white rounded-3xl border shadow-xs overflow-hidden" style={{ borderColor: "#E2E8F0" }}>
           {loading ? (
-            <div className="py-20 text-center text-sm font-bold text-slate-400">
+            <div className="py-20 text-center text-sm font-bold text-slate-500">
               Načítavam zoznam obchodov z databázy... ⏳
             </div>
           ) : filteredStores.length === 0 ? (
@@ -677,7 +677,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                       {/* Category & City */}
                       <td className="py-4 px-4">
                         <span className="text-slate-800 block text-xs">{store.category}</span>
-                        <span className="text-slate-400 block text-[10px] mt-0.5">📍 {store.city || "Neuvedené"}</span>
+                        <span className="text-slate-500 block text-[10px] mt-0.5">📍 {store.city || "Neuvedené"}</span>
                       </td>
 
                       {/* Phone */}
@@ -687,7 +687,7 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                             {store.phone}
                           </a>
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-slate-500">—</span>
                         )}
                       </td>
 
@@ -741,14 +741,14 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                         {store.planActive ? (
                           <div className="flex flex-col items-end gap-0.5">
                             <span className="text-emerald-600">{store.planDaysLeft} dní</span>
-                            <span className="text-[9px] font-mono text-slate-400 font-normal">do {new Date(store.planEndsAt).toLocaleDateString("sk-SK")}</span>
+                            <span className="text-[9px] font-mono text-slate-500 font-normal">do {new Date(store.planEndsAt).toLocaleDateString("sk-SK")}</span>
                           </div>
                         ) : store.status === "trial" ? (
                           <span className="text-amber-600">{store.daysLeft} dní trial</span>
                         ) : store.status === "expired" ? (
                           <span className="text-red-500">Vypršal</span>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-500">—</span>
                         )}
                       </td>
 

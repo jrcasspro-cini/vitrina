@@ -74,7 +74,7 @@ export default function CompanySettings() {
   if (!loaded) {
     return (
       <section className="bg-white p-6 rounded-3xl border shadow-xs mb-6" style={{ borderColor: "#E2E8F0" }}>
-        <div className="text-sm text-slate-400">Načítavam údaje firmy…</div>
+        <div className="text-sm text-slate-500">Načítavam údaje firmy…</div>
       </section>
     );
   }
@@ -121,7 +121,7 @@ export default function CompanySettings() {
               className="w-full px-4 py-2.5 rounded-xl border text-sm font-medium focus:border-indigo-600 bg-slate-50 focus:bg-white transition-all outline-none"
               style={{ borderColor: "#CBD5E1" }}
             />
-            {help && <span className="text-[10px] text-slate-400 block mt-1">{help}</span>}
+            {help && <span className="text-[10px] text-slate-500 block mt-1">{help}</span>}
           </div>
         ))}
       </div>
