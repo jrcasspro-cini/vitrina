@@ -2560,10 +2560,10 @@ export default function Vitrina() {
                 </button>
               </div>
 
-              {/* Pokyny na platbu — zobrazia sa iba ak už netreba čakať:
-                  (a) trial skončil ALEBO
-                  (b) trial už má menej ako 4 dni (aby si predajca stihol zaplatiť pred koncom) */}
-              {store.plan && !planActive && (!isTrialActive || trialDaysLeft <= 3) && (() => {
+              {/* Pokyny na platbu — zobrazujú sa hneď po výbere plánu, aj počas
+                  skúšobnej doby, aby predajca vedel presne čo a ako zaplatiť
+                  a nemusel sa kvôli tomu pýtať podporu. */}
+              {store.plan && !planActive && (() => {
                 const suma = store.plan === "standard" ? "8.00" : "10.00";
                 const nazovPlanu = store.plan === "standard" ? "Štandard" : "Rozšírený";
                 const cistyIban = (company.iban || "").replace(/\s+/g, "").toUpperCase();
@@ -2580,6 +2580,12 @@ export default function Vitrina() {
                     <p className="text-[11px] mb-3 max-w-sm" style={{ color: C.soft }}>
                       Zaplaťte prevodom na náš účet. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite „Nahlásiť platbu" — obvykle aktivujeme <strong>do niekoľkých hodín</strong> (pracovné dni 8–20 h).
                     </p>
+
+                    {isTrialActive && trialDaysLeft > 3 && (
+                      <p className="text-[11px] mb-3 max-w-sm font-semibold p-2.5 rounded-lg" style={{ color: C.accentText, background: "#fff" }}>
+                        ℹ️ Momentálne ešte bežíte v skúšobnej dobe (zostáva {trialDaysLeft} {trialDaysLeft === 1 ? "deň" : trialDaysLeft < 5 ? "dni" : "dní"}). Platiť môžete pokojne už teraz — po potvrdení platby vám plán aktivujeme hneď (nemusíte čakať na koniec trialu) a obchod bude bez prerušenia pokračovať ďalej.
+                      </p>
+                    )}
 
                     {cistyIban ? (
                       <img
