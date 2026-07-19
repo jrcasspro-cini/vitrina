@@ -81,19 +81,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           --muted: rgba(20,20,40,.70);
           --muted2: rgba(20,20,40,.55);
 
-          /* Rozšírená paleta — bold ale friendly */
-          --accent1: #7C3AED;       /* fialová */
-          --accent2: #10B981;       /* mätová */
-          --accent3: #F97316;       /* koralová */
-          --accent4: #EC4899;       /* ružová */
-          --accent5: #FBBF24;       /* zlatá */
+          /* Teplá zemitá paleta — zjednotená so sage brandom appky (žiadna fialová/mätová/ružová) */
+          --accent1: #C97D4E;       /* terakota */
+          --accent2: #6B8E5A;       /* sage zelená — hlavná akčná farba */
+          --accent3: #B4690E;       /* jantárová/hrdzavá */
+          --accent4: #C2985B;       /* teplá piesková */
+          --accent5: #D4A94A;       /* zlatá, tlmenejšia */
 
-          /* Subtle washy pastelové pozadia sekcií */
-          --wash-purple: rgba(124, 58, 237, .05);
-          --wash-coral: rgba(249, 115, 22, .05);
-          --wash-mint: rgba(16, 185, 129, .05);
-          --wash-pink: rgba(236, 72, 153, .05);
-          --wash-gold: rgba(251, 191, 36, .06);
+          /* Subtle washy pozadia sekcií — odvodené z novej palety */
+          --wash-purple: rgba(201, 125, 78, .05);
+          --wash-coral: rgba(180, 105, 14, .05);
+          --wash-mint: rgba(107, 142, 90, .05);
+          --wash-pink: rgba(194, 152, 91, .05);
+          --wash-gold: rgba(212, 169, 74, .06);
 
           --phone-frame: #15151f;
           --wa: #25D366;
@@ -302,10 +302,10 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           font-size: .95rem; 
           display: inline-block; 
           transition: transform .2s, box-shadow .2s; 
-          box-shadow: 0 8px 30px rgba(0,158,134,.15); 
+          box-shadow: 0 8px 30px rgba(107,142,90,.15); 
           cursor: pointer;
         }
-        .landing-page-root .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0,158,134,.28); }
+        .landing-page-root .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(107,142,90,.28); }
         
         .landing-page-root .btn-ghost-outline { 
           border: 1px solid var(--border); 
@@ -447,22 +447,23 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .sc-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .landing-page-root .sc-item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .landing-page-root .sc-item { background: var(--surface2); border-radius: 12px; padding: 12px; }
-        .landing-page-root .sc-item .badge2 { display: inline-block; font-size: .62rem; background: rgba(0,158,134,.14); color: var(--accent2); padding: 2px 8px; border-radius: 6px; margin-bottom: 8px; }
+        .landing-page-root .sc-item .badge2 { display: inline-block; font-size: .62rem; background: rgba(107,142,90,.14); color: var(--accent2); padding: 2px 8px; border-radius: 6px; margin-bottom: 8px; }
         .landing-page-root .sc-item .name { font-size: .78rem; margin-bottom: 6px; }
         .landing-page-root .sc-item .price { font-family: 'Righteous', sans-serif; font-size: .95rem; }
-        .landing-page-root .sc-wa-bubble { background: rgba(0,158,134,.08); border: 1px solid rgba(0,158,134,.22); border-radius: 12px; padding: 14px; font-size: .78rem; line-height: 1.7; }
+        .landing-page-root .sc-wa-bubble { background: rgba(107,142,90,.08); border: 1px solid rgba(107,142,90,.22); border-radius: 12px; padding: 14px; font-size: .78rem; line-height: 1.7; }
         .landing-page-root .sc-wa-bubble b { color: var(--accent2); }
         .landing-page-root .sc-wa-note { text-align: right; font-size: .68rem; color: var(--muted2); margin-top: 10px; }
         @media (max-width: 900px) { .landing-page-root .showcase-grid { grid-template-columns: 1fr; } }
 
         /* STEPS — wash coral */
         .landing-page-root .steps { padding: 90px 0; background: var(--wash-coral); }
-        .landing-page-root .steps-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 10px; }
-        .landing-page-root .step3 { background: var(--bg); padding: 38px 30px; position: relative; text-align: left; }
+        .landing-page-root .steps-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 20px; }
+        .landing-page-root .step3 { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px 28px; position: relative; text-align: left; transition: transform .25s ease, box-shadow .25s ease; }
+        .landing-page-root .step3:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,20,40,.06); }
         .landing-page-root .step3-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 1.1rem; }
-        .landing-page-root .step3:nth-child(1) .step3-icon { background: linear-gradient(135deg, rgba(124,58,237,.14), rgba(124,58,237,.06)); border-color: rgba(124,58,237,.25); }
-        .landing-page-root .step3:nth-child(2) .step3-icon { background: linear-gradient(135deg, rgba(249,115,22,.14), rgba(249,115,22,.06)); border-color: rgba(249,115,22,.25); }
-        .landing-page-root .step3:nth-child(3) .step3-icon { background: linear-gradient(135deg, rgba(236,72,153,.14), rgba(236,72,153,.06)); border-color: rgba(236,72,153,.25); }
+        .landing-page-root .step3:nth-child(1) .step3-icon { background: linear-gradient(135deg, rgba(201,125,78,.14), rgba(201,125,78,.06)); border-color: rgba(201,125,78,.25); }
+        .landing-page-root .step3:nth-child(2) .step3-icon { background: linear-gradient(135deg, rgba(180,105,14,.14), rgba(180,105,14,.06)); border-color: rgba(180,105,14,.25); }
+        .landing-page-root .step3:nth-child(3) .step3-icon { background: linear-gradient(135deg, rgba(194,152,91,.14), rgba(194,152,91,.06)); border-color: rgba(194,152,91,.25); }
         .landing-page-root .step3-label { font-family: 'DM Mono', monospace; font-size: .68rem; color: var(--accent2); margin-bottom: 6px; }
         .landing-page-root .step3 h3 { font-size: 1.2rem; margin-bottom: 12px; }
         .landing-page-root .step3 p { color: var(--muted); font-size: .88rem; }
@@ -496,8 +497,8 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .faq { padding: 90px 0; background: var(--wash-gold); }
         .landing-page-root .faq-list { max-width: 780px; margin: 44px auto 0; display: flex; flex-direction: column; gap: 12px; }
         .landing-page-root .faq-item { background: rgba(255,255,255,.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--border); border-radius: 16px; padding: 18px 22px; transition: all .25s ease; }
-        .landing-page-root .faq-item:hover { border-color: rgba(124,58,237,.25); background: rgba(255,255,255,.9); }
-        .landing-page-root .faq-item[open] { background: rgba(255,255,255,.95); border-color: var(--accent1); box-shadow: 0 6px 30px rgba(124,58,237,.10); }
+        .landing-page-root .faq-item:hover { border-color: rgba(201,125,78,.25); background: rgba(255,255,255,.9); }
+        .landing-page-root .faq-item[open] { background: rgba(255,255,255,.95); border-color: var(--accent1); box-shadow: 0 6px 30px rgba(201,125,78,.10); }
         .landing-page-root .faq-item summary { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .98rem; color: var(--text); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
         .landing-page-root .faq-item summary::-webkit-details-marker { display: none; }
         .landing-page-root .faq-item summary::after { content: "+"; font-size: 1.3rem; color: var(--accent2); font-weight: 400; flex-shrink: 0; transition: transform .2s; }
@@ -514,9 +515,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .test-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--accent1); }
         .landing-page-root .test-card:nth-child(2)::before { background: var(--accent3); }
         .landing-page-root .test-card:nth-child(3)::before { background: var(--accent4); }
-        .landing-page-root .test-card:nth-child(1) .test-stars { background: rgba(124,58,237,.10); }
-        .landing-page-root .test-card:nth-child(2) .test-stars { background: rgba(249,115,22,.10); }
-        .landing-page-root .test-card:nth-child(3) .test-stars { background: rgba(236,72,153,.10); }
+        .landing-page-root .test-card:nth-child(1) .test-stars { background: rgba(201,125,78,.10); }
+        .landing-page-root .test-card:nth-child(2) .test-stars { background: rgba(180,105,14,.10); }
+        .landing-page-root .test-card:nth-child(3) .test-stars { background: rgba(194,152,91,.10); }
         .landing-page-root .test-card .test-stars { width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
         .landing-page-root .test-stars { color: #ffb347; font-size: .85rem; margin-bottom: 16px; letter-spacing: 2px; }
         .landing-page-root .test-quote { font-size: .92rem; color: var(--text); line-height: 1.7; margin-bottom: 20px; flex: 1; }
@@ -537,7 +538,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .price-cols { display: grid; grid-template-columns: 1.6fr repeat(2, 1fr); max-width: 720px; margin: 0 auto; }
         .landing-page-root .price-cols.header .pc { padding: 34px 20px; text-align: center; border-right: 1px solid var(--border); }
         .landing-page-root .price-cols.header .pc:last-child { border-right: none; }
-        .landing-page-root .price-cols.header .pc.highlight { background: linear-gradient(135deg, rgba(124,58,237,.06), rgba(236,72,153,.06)); position: relative; }
+        .landing-page-root .price-cols.header .pc.highlight { background: linear-gradient(135deg, rgba(201,125,78,.06), rgba(194,152,91,.06)); position: relative; }
         .landing-page-root .price-cols.header .pc.highlight::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent1), var(--accent4)); }
         .landing-page-root .plan-badge { display: inline-block; font-size: .62rem; background: linear-gradient(90deg, var(--accent1), var(--accent4)); color: #fff; padding: 3px 10px; border-radius: 20px; margin-bottom: 12px; font-weight: 700; letter-spacing: .05em; }
         .landing-page-root .plan-name { font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
@@ -766,7 +767,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               </div>
               <div className="sc-item-grid">
                 <div className="sc-item"><span className="badge2">BESTSELLER</span><div className="name">Strieborné náušnice</div><div className="price">24,90 €</div></div>
-                <div className="sc-item"><span className="badge2" style={{ background: "rgba(0,158,134,.14)", color: "var(--accent2)" }}>3 VOĽNÉ</span><div className="name">Workshop: Prsteň</div><div className="price">59,00 €</div></div>
+                <div className="sc-item"><span className="badge2" style={{ background: "rgba(107,142,90,.14)", color: "var(--accent2)" }}>3 VOĽNÉ</span><div className="name">Workshop: Prsteň</div><div className="price">59,00 €</div></div>
                 <div className="sc-item"><div className="name">Retiazka s príveskom</div><div className="price">32,00 €</div></div>
                 <div className="sc-item"><div className="name">Náramok na želanie</div><div className="price">18,00 €</div></div>
               </div>
@@ -847,19 +848,19 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="ind-grid-4">
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(108,99,255,.25), rgba(0,158,134,.1))" }}>💍</div>
+              <div className="art" style={{ background: "linear-gradient(135deg, rgba(201,125,78,.25), rgba(107,142,90,.1))" }}>💍</div>
               <div className="body"><h3>Šperky a doplnky</h3><p>Ručná práca, obmedzené kolekcie — predávaj priamo z Instagramu.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(0,158,134,.2), rgba(108,99,255,.12))" }}>🎨</div>
+              <div className="art" style={{ background: "linear-gradient(135deg, rgba(107,142,90,.2), rgba(201,125,78,.12))" }}>🎨</div>
               <div className="body"><h3>Tréneri a lektori</h3><p>Nechajte účastníkov, aby si sami vybrali termín. Vy dostanete potvrdenú rezerváciu.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,85,122,.22), rgba(108,99,255,.1))" }}>🧵</div>
+              <div className="art" style={{ background: "linear-gradient(135deg, rgba(194,152,91,.22), rgba(107,142,90,.1))" }}>🧵</div>
               <div className="body"><h3>Ručná výroba</h3><p>Prijímajte hromadné aj drobné objednávky bez chaosu vo WhatsAppe.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(255,179,71,.18), rgba(0,158,134,.1))" }}>👜</div>
+              <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,105,14,.18), rgba(107,142,90,.1))" }}>👜</div>
               <div className="body"><h3>Móda a butiky</h3><p>Moderný zdieľateľný obchod, ktorý odráža vašu značku — bez zložitého e-commerce systému.</p></div>
             </div>
           </div>
