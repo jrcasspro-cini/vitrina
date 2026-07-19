@@ -2069,23 +2069,20 @@ export default function Vitrina() {
                   Odošli objednávku predajcovi cez:
                 </p>
                 {(() => {
-                  const canCheckout = cartRows.length > 0 && cust.name.trim() && cust.city.trim();
-                  const btnStyle = (bg: string): { [k: string]: any } => ({
-                    background: bg,
-                    cursor: canCheckout ? "pointer" : "not-allowed",
-                    opacity: canCheckout ? 1 : 0.5,
-                  });
-                  const btnClass = "flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-white text-sm shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm";
+                  // Farby tlačidiel sú vždy plné/sýte — validácia mena a mesta prebieha
+                  // priamo v handleCheckout (zobrazí červené chybové hlásenie), takže
+                  // tlačidlá netreba vizuálne "blednúť" pri prázdnom formulári.
+                  const btnClass = "flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-white text-sm shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm cursor-pointer";
                   return (
                     <div className="flex flex-col gap-2.5">
                       {waLink && (
                         <a
-                          href={canCheckout ? waLink : undefined}
+                          href={waLink}
                           target="_blank"
                           rel="noreferrer"
                           onClick={handleCheckout}
                           className={btnClass}
-                          style={btnStyle("#25D366")}
+                          style={{ background: "#25D366" }}
                         >
                           <span className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs shrink-0">💬</span>
                           Pokračovať cez WhatsApp
@@ -2093,12 +2090,12 @@ export default function Vitrina() {
                       )}
                       {messengerLink && (
                         <a
-                          href={canCheckout ? messengerLink : undefined}
+                          href={messengerLink}
                           target="_blank"
                           rel="noreferrer"
                           onClick={handleCheckout}
                           className={btnClass}
-                          style={btnStyle("#0084FF")}
+                          style={{ background: "#0084FF" }}
                         >
                           <span className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs shrink-0">💬</span>
                           Pokračovať cez Messenger
@@ -2106,10 +2103,10 @@ export default function Vitrina() {
                       )}
                       {smsLink && (
                         <a
-                          href={canCheckout ? smsLink : undefined}
+                          href={smsLink}
                           onClick={handleCheckout}
                           className={btnClass}
-                          style={btnStyle(C.ink)}
+                          style={{ background: C.ink }}
                         >
                           <span className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center text-xs shrink-0">📱</span>
                           Poslať cez SMS
@@ -2117,10 +2114,10 @@ export default function Vitrina() {
                       )}
                       {emailLink && (
                         <a
-                          href={canCheckout ? emailLink : undefined}
+                          href={emailLink}
                           onClick={handleCheckout}
                           className={`${btnClass} border`}
-                          style={{ ...btnStyle("transparent"), color: C.ink, borderColor: C.line, boxShadow: "none" }}
+                          style={{ color: C.ink, borderColor: C.line, boxShadow: "none" }}
                         >
                           <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0" style={{ background: C.accentSoft }}>✉️</span>
                           Odoslať emailom
