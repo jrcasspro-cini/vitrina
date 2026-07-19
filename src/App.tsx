@@ -2102,7 +2102,7 @@ export default function Vitrina() {
                           href={canCheckout ? smsLink : undefined}
                           onClick={handleCheckout}
                           className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
-                          style={btnStyle("#7C3AED")}
+                          style={btnStyle(C.ink)}
                         >
                           📱 Poslať cez SMS
                         </a>
