@@ -2171,10 +2171,44 @@ export default function Vitrina() {
                   </div>
                 )}
 
-                {/* Signature: živý náhľad WhatsApp správy */}
-                <p className="text-xs font-semibold mt-4 mb-1" style={{ color: C.soft }}>Takto bude vyzerať tvoja správa:</p>
-                <div className="rounded-2xl p-3 shadow-sm" style={{ background: "#E7F8EE", border: `1px solid #CBEBD8` }}>
-                  <pre className="text-xs whitespace-pre-wrap leading-relaxed" style={{ fontFamily: "inherit", color: C.waDark }}>{waText}</pre>
+                {/* Signature: prehľadný náhľad objednávky (odosiela sa ako čistý text — WhatsApp/SMS/email si formátovanie neponechá, toto je len prehľadnejšie zobrazenie na našej stránke) */}
+                <p className="text-xs font-semibold mt-4 mb-1" style={{ color: C.soft }}>Takto vyzerá tvoja objednávka:</p>
+                <div className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: "#EAF2FB", borderColor: "#CFE0F3" }}>
+                  <div className="p-3.5 flex flex-col gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#3B6BA8" }}>
+                      {store.name}
+                    </span>
+                    {cartRows.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between text-xs" style={{ color: "#1E3A5F" }}>
+                        <span className="min-w-0 truncate pr-2">{r.emoji} {r.name} <span style={{ color: "#5A7CA0" }}>({r.qty}×)</span></span>
+                        <span className="font-mono font-semibold shrink-0">{eur(r.price * r.qty)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="px-3.5 py-2.5 flex items-center justify-between text-xs font-extrabold border-t" style={{ borderColor: "#CFE0F3", color: "#1E3A5F" }}>
+                    <span>Spolu</span>
+                    <span>{eur(total)}</span>
+                  </div>
+                  <div className="px-3.5 py-3 flex flex-col gap-1.5 text-xs border-t" style={{ borderColor: "#CFE0F3" }}>
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: "#5A7CA0" }}>Meno</span>
+                      <span className="font-semibold" style={{ color: "#1E3A5F" }}>{cust.name || "—"}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: "#5A7CA0" }}>Mesto</span>
+                      <span className="font-semibold" style={{ color: "#1E3A5F" }}>{cust.city || "—"}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span style={{ color: "#5A7CA0" }}>Platba</span>
+                      <span className="font-semibold" style={{ color: "#1E3A5F" }}>{cust.pay}</span>
+                    </div>
+                    {cust.pay === "Prevod na účet" && (
+                      <div className="flex items-center justify-between">
+                        <span style={{ color: "#5A7CA0" }}>Variabilný symbol</span>
+                        <span className="font-mono font-semibold" style={{ color: "#1E3A5F" }}>{orderVs}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <p className="text-xs font-semibold mt-5 mb-2" style={{ color: C.soft }}>
