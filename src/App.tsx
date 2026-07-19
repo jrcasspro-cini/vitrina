@@ -3652,11 +3652,16 @@ export default function Vitrina() {
 }
 
 // ── Pomocník: prečíta súbor s obrázkom ako dataURL a automaticky zmenší veľké fotky ──
-// Mobilné fotky z fotoaparátu majú 2-5 MB. Firestore dokument má limit 1 MB,
-// takže nesmieme uložiť viac ako ~800 KB base64 (na obrázok samotný).
-// Funkcia teda downscale-uje obrázok cez Canvas API (max ~1200 px na dlhšiu stranu,
-// JPEG kvalita 0.85). Ak stále veľký, znižuje kvalitu.
-const MAX_IMAGE_DATA_URL_BYTES = 800 * 1024; // ~800 KB
+// Mobilné fotky z fotoaparátu majú 2-5 MB. Firestore DOKUMENT (nie pole) má
+// tvrdý limit 1 MB — a produkt môže mať až MAX_PRODUCT_PHOTOS (4) fotiek v
+// jednom dokumente naraz. Pôvodne bol limit 800 KB *na fotku*, čo pri 2-4
+// fotkách v jednom produkte ľahko prekročilo 1 MB dokumentu a Firestore write
+// zlyhal ("systémová chyba" pri pridávaní ďalšej fotky). Preto teraz cielime
+// oveľa menší rozpočet na fotku (~180 KB), aby sa aj 4 fotky spolu s textom
+// bezpečne zmestili pod 1 MB. Ak sa to nepodarí ani pri najnižšej kvalite,
+// obrázok sa navyše zmenší aj rozmerovo (nie len kvalitou).
+const TARGET_IMAGE_BYTES = 180 * 1024; // ~180 KB na fotku — bezpečné aj pri 4 fotkách/produkt
+const SKIP_COMPRESSION_BYTES = TARGET_IMAGE_BYTES * 1.3; // originál pod touto hranicou sa nedotýka
 
 function readAsDataURL(file: File, cb: (result: string) => void) {
   // Pre všetko čo nie je obrázok (alebo SVG/gif — nechajme ako je) použije raw FileReader.
@@ -3671,43 +3676,52 @@ function readAsDataURL(file: File, cb: (result: string) => void) {
   reader.onload = () => {
     const originalDataUrl = reader.result as string;
     // Ak je originál dostatočne malý, netreba nič robiť.
-    if (originalDataUrl.length <= MAX_IMAGE_DATA_URL_BYTES * 1.4) {
+    if (originalDataUrl.length <= SKIP_COMPRESSION_BYTES) {
       cb(originalDataUrl);
       return;
     }
 
-    // Downscale cez Canvas
     const img = new Image();
     img.onload = () => {
-      const maxDim = 1200; // max šírka/výška
-      let { width, height } = img;
-      if (width > maxDim || height > maxDim) {
-        if (width > height) {
-          height = Math.round(height * (maxDim / width));
-          width = maxDim;
-        } else {
-          width = Math.round(width * (maxDim / height));
-          height = maxDim;
-        }
-      }
       const canvas = document.createElement("canvas");
-      canvas.width = width;
-      canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) { cb(originalDataUrl); return; }
-      ctx.drawImage(img, 0, 0, width, height);
 
-      // Skús JPEG kvalitu 0.85 → 0.75 → 0.6 → 0.45 kým sa nezmestí
-      const qualities = [0.85, 0.75, 0.6, 0.45];
-      for (const q of qualities) {
-        const out = canvas.toDataURL("image/jpeg", q);
-        if (out.length <= MAX_IMAGE_DATA_URL_BYTES * 1.4) {
-          cb(out);
-          return;
+      // Skús postupne menšie rozmery, a pri každom rozmere aj klesajúcu kvalitu,
+      // kým sa výsledok nezmestí do rozpočtu. Väčšina fotiek sa vyrieši už na
+      // prvom kroku (1200 px, kvalita 0.8); extrémne detailné fotky prejdú
+      // ďalšími krokmi až po najmenší rozmer.
+      const dims = [1200, 900, 700, 500];
+      const qualities = [0.8, 0.68, 0.55, 0.42];
+      let best = "";
+
+      for (const maxDim of dims) {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round(height * (maxDim / width));
+            width = maxDim;
+          } else {
+            width = Math.round(width * (maxDim / height));
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+
+        for (const q of qualities) {
+          const out = canvas.toDataURL("image/jpeg", q);
+          best = out; // vždy si pamätaj posledný (najmenší) pokus ako fallback
+          if (out.length <= TARGET_IMAGE_BYTES) {
+            cb(out);
+            return;
+          }
         }
       }
-      // Fallback — najnižšia kvalita
-      cb(canvas.toDataURL("image/jpeg", 0.4));
+      // Ani na najmenšom rozmere/kvalite sa nezmestilo — použi aspoň najmenší pokus.
+      cb(best || originalDataUrl);
     };
     img.onerror = () => cb(originalDataUrl);
     img.src = originalDataUrl;
