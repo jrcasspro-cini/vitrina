@@ -990,23 +990,23 @@ export default function Vitrina() {
   // Predvyplnená WhatsApp správa
   const waText = useMemo(() => {
     const lines = [
-      `🛍️ Nová objednávka — ${store.name}`,
+      `NOVÁ OBJEDNÁVKA — ${store.name}`,
       "",
       ...cartRows.map(
         (r) =>
-          `${r.emoji} ${r.name}\n   ${r.qty} × ${eur(r.price)}${r.type === "booking" ? `\n   📅 ${r.slot}` : ""}`
+          `${r.name}\n   ${r.qty} × ${eur(r.price)}${r.type === "booking" ? `\n   Termín: ${r.slot}` : ""}`
       ),
       "",
       "──────────",
-      `💰 Spolu: ${eur(total)}`,
+      `Spolu: ${eur(total)}`,
       "",
-      "📋 Vaše údaje",
-      `👤 Meno: ${cust.name || "—"}`,
-      `📍 Mesto: ${cust.city || "—"}`,
-      `💳 Platba: ${cust.pay}`,
-      cust.pay === "Prevod na účet" ? `🔢 VS: ${orderVs}` : null,
+      "VAŠE ÚDAJE",
+      `Meno: ${cust.name || "—"}`,
+      `Mesto: ${cust.city || "—"}`,
+      `Platba: ${cust.pay}`,
+      cust.pay === "Prevod na účet" ? `VS: ${orderVs}` : null,
       "",
-      "Odoslané cez Vitrína ✨",
+      "Odoslané cez Vitrína",
     ].filter((l) => l !== null);
     return lines.join("\n");
   }, [cartRows, total, cust, store.name, orderVs]);
@@ -2183,8 +2183,13 @@ export default function Vitrina() {
                       {store.name}
                     </span>
                     {cartRows.map((r) => (
-                      <div key={r.id} className="flex items-center justify-between text-xs" style={{ color: "#1E3A5F" }}>
-                        <span className="min-w-0 truncate pr-2">{r.emoji} {r.name} <span style={{ color: "#5A7CA0" }}>({r.qty}×)</span></span>
+                      <div key={r.id} className="flex items-center gap-2 text-xs" style={{ color: "#1E3A5F" }}>
+                        {r.img ? (
+                          <img src={r.img} alt="" className="w-7 h-7 rounded-md object-cover shrink-0" />
+                        ) : (
+                          <span className="w-7 h-7 rounded-md flex items-center justify-center text-sm shrink-0" style={{ background: "#DCE8F7" }}>{r.emoji}</span>
+                        )}
+                        <span className="min-w-0 truncate flex-1">{r.name} <span style={{ color: "#5A7CA0" }}>({r.qty}×)</span></span>
                         <span className="font-mono font-semibold shrink-0">{eur(r.price * r.qty)}</span>
                       </div>
                     ))}
