@@ -1903,8 +1903,8 @@ export default function Vitrina() {
                     href={`${currentOrigin}/${selectedStoreHandle}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs mt-1 font-semibold hover:underline inline-flex items-center gap-1"
-                    style={{ color: C.accentText }}
+                    className="text-sm font-bold mt-2.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm"
+                    style={{ background: "#1E3A5F", color: "#fff" }}
                   >
                     {currentHost}/{selectedStoreHandle} ↗
                   </a>
