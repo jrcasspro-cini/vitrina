@@ -446,12 +446,36 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .sc-store-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
         .landing-page-root .sc-avatar { width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, var(--accent1), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
         .landing-page-root .sc-item-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .landing-page-root .sc-item { background: var(--surface2); border-radius: 12px; padding: 12px; }
-        .landing-page-root .sc-item .badge2 { display: inline-block; font-size: .62rem; background: rgba(107,142,90,.14); color: var(--accent2); padding: 2px 8px; border-radius: 6px; margin-bottom: 8px; }
+        .landing-page-root .sc-item { background: var(--surface2); border-radius: 12px; padding: 10px; position: relative; }
+        .landing-page-root .sc-item-photo { width: 100%; aspect-ratio: 4 / 3; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 8px; overflow: hidden; }
+        .landing-page-root .sc-item-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .landing-page-root .sc-item:nth-child(1) .sc-item-photo { background: linear-gradient(135deg, var(--accent1), var(--accent5)); }
+        .landing-page-root .sc-item:nth-child(2) .sc-item-photo { background: linear-gradient(135deg, var(--accent2), var(--accent4)); }
+        .landing-page-root .sc-item:nth-child(3) .sc-item-photo { background: linear-gradient(135deg, var(--accent3), var(--accent1)); }
+        .landing-page-root .sc-item:nth-child(4) .sc-item-photo { background: linear-gradient(135deg, var(--accent4), var(--accent2)); }
+        .landing-page-root .sc-item .badge2 { position: absolute; top: 18px; left: 18px; display: inline-block; font-size: .6rem; font-weight: 700; background: rgba(255,255,255,.92); color: var(--accent2); padding: 3px 8px; border-radius: 6px; }
         .landing-page-root .sc-item .name { font-size: .78rem; margin-bottom: 6px; }
-        .landing-page-root .sc-item .price { font-family: 'Righteous', sans-serif; font-size: .95rem; }
-        .landing-page-root .sc-wa-bubble { background: rgba(107,142,90,.08); border: 1px solid rgba(107,142,90,.22); border-radius: 12px; padding: 14px; font-size: .78rem; line-height: 1.7; }
-        .landing-page-root .sc-wa-bubble b { color: var(--accent2); }
+        .landing-page-root .sc-item .price-row { display: flex; align-items: center; justify-content: space-between; }
+        .landing-page-root .sc-item .price { font-family: 'Righteous', sans-serif; font-size: .92rem; }
+        .landing-page-root .sc-item .add-btn { font-size: .62rem; font-weight: 700; background: var(--text); color: var(--surface); padding: 4px 10px; border-radius: 20px; }
+        .landing-page-root .wa-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
+        .landing-page-root .wa-card-head { display: flex; justify-content: space-between; align-items: center; font-size: .66rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent2); margin-bottom: 10px; }
+        .landing-page-root .wa-card-time { color: var(--muted2); text-transform: none; font-weight: 500; }
+        .landing-page-root .wa-customer { font-family: 'Righteous', sans-serif; font-size: 1rem; }
+        .landing-page-root .wa-customer-sub { font-size: .74rem; color: var(--muted); margin-bottom: 10px; }
+        .landing-page-root .wa-item-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+        .landing-page-root .wa-item-photo { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: .95rem; flex-shrink: 0; overflow: hidden; }
+        .landing-page-root .wa-item-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .landing-page-root .wa-item-row:nth-child(1) .wa-item-photo { background: linear-gradient(135deg, var(--accent1), var(--accent5)); }
+        .landing-page-root .wa-item-row:nth-child(2) .wa-item-photo { background: linear-gradient(135deg, var(--accent3), var(--accent1)); }
+        .landing-page-root .wa-item-info { flex: 1; min-width: 0; }
+        .landing-page-root .wa-item-name { font-size: .8rem; }
+        .landing-page-root .wa-item-qty { font-size: .68rem; color: var(--muted2); }
+        .landing-page-root .wa-item-price { font-family: 'DM Mono', monospace; font-size: .8rem; flex-shrink: 0; }
+        .landing-page-root .wa-divider { height: 1px; background: var(--border); margin: 10px 0; }
+        .landing-page-root .wa-row { display: flex; justify-content: space-between; font-size: .75rem; color: var(--muted); padding: 3px 0; }
+        .landing-page-root .wa-row-val { color: var(--text); font-weight: 600; }
+        .landing-page-root .wa-total-row { display: flex; justify-content: space-between; align-items: center; font-family: 'Righteous', sans-serif; font-size: 1.15rem; margin-top: 2px; }
         .landing-page-root .sc-wa-note { text-align: right; font-size: .68rem; color: var(--muted2); margin-top: 10px; }
         @media (max-width: 900px) { .landing-page-root .showcase-grid { grid-template-columns: 1fr; } }
 
@@ -766,22 +790,60 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 </div>
               </div>
               <div className="sc-item-grid">
-                <div className="sc-item"><span className="badge2">BESTSELLER</span><div className="name">Strieborné náušnice</div><div className="price">24,90 €</div></div>
-                <div className="sc-item"><span className="badge2" style={{ background: "rgba(107,142,90,.14)", color: "var(--accent2)" }}>3 VOĽNÉ</span><div className="name">Workshop: Prsteň</div><div className="price">59,00 €</div></div>
-                <div className="sc-item"><div className="name">Retiazka s príveskom</div><div className="price">32,00 €</div></div>
-                <div className="sc-item"><div className="name">Náramok na želanie</div><div className="price">18,00 €</div></div>
+                {/* Fotky produktov — zatiaľ farebný placeholder s emoji, dá sa nahradiť <img src="..." /> */}
+                <div className="sc-item">
+                  <div className="sc-item-photo">💍</div>
+                  <span className="badge2">BESTSELLER</span>
+                  <div className="name">Strieborné náušnice</div>
+                  <div className="price-row"><span className="price">24,90 €</span><span className="add-btn">Pridať</span></div>
+                </div>
+                <div className="sc-item">
+                  <div className="sc-item-photo">💎</div>
+                  <span className="badge2">3 VOĽNÉ</span>
+                  <div className="name">Workshop: Prsteň</div>
+                  <div className="price-row"><span className="price">59,00 €</span><span className="add-btn">Kniha</span></div>
+                </div>
+                <div className="sc-item">
+                  <div className="sc-item-photo">⛓️</div>
+                  <div className="name">Retiazka s príveskom</div>
+                  <div className="price-row"><span className="price">32,00 €</span><span className="add-btn">Pridať</span></div>
+                </div>
+                <div className="sc-item">
+                  <div className="sc-item-photo">✨</div>
+                  <div className="name">Náramok na želanie</div>
+                  <div className="price-row"><span className="price">18,00 €</span><span className="add-btn">Pridať</span></div>
+                </div>
               </div>
             </div>
             <div className="sc-card">
               <div className="sc-label"><span>💬 WhatsApp sa otvorí s predvyplnenou objednávkou</span><span className="tag">Pripravené na odoslanie</span></div>
-              <div className="sc-wa-bubble">
-                <b>NOVÁ OBJEDNÁVKA · #A-1042</b><br /><br />
-                <b>Zuzana Kráľová</b><br />
-                Bratislava · +421 900 xxx xxx<br /><br />
-                2× Strieborné náušnice — 24,90 €<br />
-                1× Retiazka s príveskom — 32,00 €<br /><br />
-                ✅ Platba odoslaná QR kódom<br />
-                <b>Spolu: 56,90 €</b>
+              <div className="wa-card">
+                <div className="wa-card-head">
+                  <span>Nová objednávka · #A-1042</span>
+                  <span className="wa-card-time">16:12</span>
+                </div>
+                <div className="wa-customer">Zuzana Kráľová</div>
+                <div className="wa-customer-sub">Bratislava · +421 900 xxx xxx</div>
+                <div className="wa-item-row">
+                  <div className="wa-item-photo">💍</div>
+                  <div className="wa-item-info">
+                    <div className="wa-item-name">Strieborné náušnice</div>
+                    <div className="wa-item-qty">2×</div>
+                  </div>
+                  <div className="wa-item-price">49,80 €</div>
+                </div>
+                <div className="wa-item-row">
+                  <div className="wa-item-photo">⛓️</div>
+                  <div className="wa-item-info">
+                    <div className="wa-item-name">Retiazka s príveskom</div>
+                    <div className="wa-item-qty">1×</div>
+                  </div>
+                  <div className="wa-item-price">32,00 €</div>
+                </div>
+                <div className="wa-divider"></div>
+                <div className="wa-row"><span>Spôsob platby</span><span className="wa-row-val">✅ Zaplatené QR kódom</span></div>
+                <div className="wa-divider"></div>
+                <div className="wa-total-row"><span>Spolu</span><span>81,80 €</span></div>
               </div>
               <div className="sc-wa-note">Predvyplnené na WhatsApp — odoslanie jedným klepnutím</div>
             </div>
