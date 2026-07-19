@@ -1976,24 +1976,25 @@ export default function Vitrina() {
                 <div>
                 {/* ── QR Platba ak má obchod IBAN ── */}
                 {store.iban ? (
-                  <div className="mt-4 p-4 rounded-xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
-                    <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accentText }}>
-                      ⚡ Rýchla QR platba (Prevod)
-                    </span>
-                    <p className="text-[11px] mb-3" style={{ color: C.soft }}>
-                      Naskenuj QR kód v bankovej aplikácii (Payme štandard) pre automatické vyplnenie údajov.
-                    </p>
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(paymeUrl)}`}
-                      alt="Payme QR kód"
-                      className="w-40 h-40 bg-white p-2 rounded-xl border"
-                      style={{ borderColor: C.line }}
-                    />
-                    
-                    <div className="w-full mt-3 flex flex-col gap-1.5 text-left text-xs">
+                  <div className="mt-4 rounded-2xl border overflow-hidden" style={{ borderColor: C.line, background: C.card, boxShadow: "0 1px 3px rgba(20,20,20,.05)" }}>
+                    <div className="px-4 pt-4 pb-4 flex flex-col items-center text-center" style={{ background: C.accentSoft + "45" }}>
+                      <span className="text-xs font-bold tracking-wide uppercase px-2.5 py-1 rounded-full mb-2 bg-white shadow-sm" style={{ color: C.accentText }}>
+                        ⚡ Rýchla QR platba (Prevod)
+                      </span>
+                      <p className="text-[11px] mb-3" style={{ color: C.soft }}>
+                        Naskenuj QR kód v bankovej aplikácii (Payme štandard) pre automatické vyplnenie údajov.
+                      </p>
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(paymeUrl)}`}
+                        alt="Payme QR kód"
+                        className="w-40 h-40 bg-white p-2 rounded-2xl shadow-sm"
+                      />
+                    </div>
+
+                    <div className="w-full p-4 flex flex-col gap-1.5 text-left text-xs">
                       <div>
-                        <span className="font-semibold block" style={{ color: C.soft }}>IBAN príjemcu:</span>
-                        <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border text-xs font-mono">
+                        <span className="font-semibold block mb-1" style={{ color: C.soft }}>IBAN príjemcu:</span>
+                        <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border text-xs font-mono" style={{ borderColor: C.line }}>
                           <span className="truncate">{store.iban}</span>
                           <button
                             onClick={() => {
@@ -2003,16 +2004,17 @@ export default function Vitrina() {
                                 setTimeout(() => setCopiedIban(false), 2000);
                               }
                             }}
-                            className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
+                            className="shrink-0 ml-1.5 flex items-center gap-1 font-sans text-[10px] font-bold uppercase px-2 py-1 rounded-lg transition-colors hover:bg-[#EDF0E8]"
+                            style={{ color: C.accentText }}
                           >
-                            {copiedIban ? "Skopírované!" : "Kopírovať"}
+                            {copiedIban ? "✓ Hotovo" : <>⧉ Kopírovať</>}
                           </button>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <span className="font-semibold block" style={{ color: C.soft }}>Suma:</span>
-                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border">
+                          <span className="font-semibold block mb-1" style={{ color: C.soft }}>Suma:</span>
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-xl border" style={{ borderColor: C.line }}>
                             <span className="font-mono font-bold text-xs truncate">{eur(total)}</span>
                             <button
                               onClick={() => {
@@ -2022,15 +2024,16 @@ export default function Vitrina() {
                                   setTimeout(() => setCopiedAmount(false), 2000);
                                 }
                               }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
+                              className="shrink-0 ml-1.5 flex items-center font-sans text-[10px] font-bold uppercase px-1.5 py-1 rounded-lg transition-colors hover:bg-[#EDF0E8]"
+                              style={{ color: C.accentText }}
                             >
-                              {copiedAmount ? "OK" : "Kop"}
+                              {copiedAmount ? "✓" : "⧉"}
                             </button>
                           </div>
                         </div>
                         <div>
-                          <span className="font-semibold block" style={{ color: C.soft }}>Variabilný symbol:</span>
-                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border">
+                          <span className="font-semibold block mb-1" style={{ color: C.soft }}>Variabilný symbol:</span>
+                          <div className="flex items-center justify-between bg-white px-2.5 py-1 rounded-xl border" style={{ borderColor: C.line }}>
                             <span className="font-mono font-bold text-xs truncate">{orderVs}</span>
                             <button
                               onClick={() => {
@@ -2040,9 +2043,10 @@ export default function Vitrina() {
                                   setTimeout(() => setCopiedVs(false), 2000);
                                 }
                               }}
-                              className="shrink-0 ml-1.5 font-sans text-[10px] font-bold uppercase text-[#647058] hover:underline"
+                              className="shrink-0 ml-1.5 flex items-center font-sans text-[10px] font-bold uppercase px-1.5 py-1 rounded-lg transition-colors hover:bg-[#EDF0E8]"
+                              style={{ color: C.accentText }}
                             >
-                              {copiedVs ? "OK" : "Kop"}
+                              {copiedVs ? "✓" : "⧉"}
                             </button>
                           </div>
                         </div>
@@ -2057,11 +2061,11 @@ export default function Vitrina() {
 
                 {/* Signature: živý náhľad WhatsApp správy */}
                 <p className="text-xs font-semibold mt-4 mb-1" style={{ color: C.soft }}>Takto bude vyzerať tvoja správa:</p>
-                <div className="rounded-2xl p-3" style={{ background: "#E7F8EE", border: `1px solid #CBEBD8` }}>
+                <div className="rounded-2xl p-3 shadow-sm" style={{ background: "#E7F8EE", border: `1px solid #CBEBD8` }}>
                   <pre className="text-xs whitespace-pre-wrap leading-relaxed" style={{ fontFamily: "inherit", color: C.waDark }}>{waText}</pre>
                 </div>
 
-                <p className="text-xs font-semibold mt-4 mb-2" style={{ color: C.soft }}>
+                <p className="text-xs font-semibold mt-5 mb-2" style={{ color: C.soft }}>
                   Odošli objednávku predajcovi cez:
                 </p>
                 {(() => {
@@ -2071,18 +2075,20 @@ export default function Vitrina() {
                     cursor: canCheckout ? "pointer" : "not-allowed",
                     opacity: canCheckout ? 1 : 0.5,
                   });
+                  const btnClass = "flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-bold text-white text-sm shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm";
                   return (
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2.5">
                       {waLink && (
                         <a
                           href={canCheckout ? waLink : undefined}
                           target="_blank"
                           rel="noreferrer"
                           onClick={handleCheckout}
-                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          className={btnClass}
                           style={btnStyle("#25D366")}
                         >
-                          💬 Pokračovať cez WhatsApp
+                          <span className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs shrink-0">💬</span>
+                          Pokračovať cez WhatsApp
                         </a>
                       )}
                       {messengerLink && (
@@ -2091,30 +2097,33 @@ export default function Vitrina() {
                           target="_blank"
                           rel="noreferrer"
                           onClick={handleCheckout}
-                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          className={btnClass}
                           style={btnStyle("#0084FF")}
                         >
-                          💬 Pokračovať cez Messenger
+                          <span className="w-6 h-6 rounded-full bg-white/25 flex items-center justify-center text-xs shrink-0">💬</span>
+                          Pokračovať cez Messenger
                         </a>
                       )}
                       {smsLink && (
                         <a
                           href={canCheckout ? smsLink : undefined}
                           onClick={handleCheckout}
-                          className="block text-center py-3 rounded-2xl font-bold text-white text-sm transition-transform hover:scale-[1.01]"
+                          className={btnClass}
                           style={btnStyle(C.ink)}
                         >
-                          📱 Poslať cez SMS
+                          <span className="w-6 h-6 rounded-full bg-white/15 flex items-center justify-center text-xs shrink-0">📱</span>
+                          Poslať cez SMS
                         </a>
                       )}
                       {emailLink && (
                         <a
                           href={canCheckout ? emailLink : undefined}
                           onClick={handleCheckout}
-                          className="block text-center py-3 rounded-2xl font-bold text-sm transition-transform hover:scale-[1.01] border-2"
-                          style={{ ...btnStyle("transparent"), color: C.ink, borderColor: C.line }}
+                          className={`${btnClass} border`}
+                          style={{ ...btnStyle("transparent"), color: C.ink, borderColor: C.line, boxShadow: "none" }}
                         >
-                          ✉️ Odoslať emailom
+                          <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0" style={{ background: C.accentSoft }}>✉️</span>
+                          Odoslať emailom
                         </a>
                       )}
                     </div>
