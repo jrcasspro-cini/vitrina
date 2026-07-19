@@ -568,7 +568,11 @@ export default function Vitrina() {
           createdAt: d.createdAt || null,
           logo: d.logo || "",
           description: d.description || "",
-          ownerId: d.ownerId || ""
+          ownerId: d.ownerId || "",
+          fakturaNazov: d.fakturaNazov || "",
+          fakturaAdresa: d.fakturaAdresa || "",
+          fakturaIco: d.fakturaIco || "",
+          fakturaDic: d.fakturaDic || ""
         });
       } else {
         setStoreExists(false);
@@ -590,7 +594,11 @@ export default function Vitrina() {
           createdAt: null,
           logo: "",
           description: "",
-          ownerId: ""
+          ownerId: "",
+          fakturaNazov: "",
+          fakturaAdresa: "",
+          fakturaIco: "",
+          fakturaDic: ""
         });
       }
     }, (error) => {
