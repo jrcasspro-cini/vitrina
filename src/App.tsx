@@ -1722,7 +1722,18 @@ export default function Vitrina() {
       ) : (
         /* ==================== INDIVIDUÁLNY OBCHOD ==================== */
         (!isOwner || view === "shop") ? (
-          !isStoreVisibleToCustomers && !isOwner ? (
+          // Kým sa dáta obchodu ešte len načítavajú z Firestore (storeExists === null), store
+          // je v predvolenom prázdnom stave a isStoreVisibleToCustomers by vyšlo false — bez tejto
+          // podmienky by sa na zlomok sekundy pri každom vstupe zákazníka mihla "Vitrína je offline"
+          // obrazovka, kým sa reálne dáta nenačítajú.
+          storeExists === null ? (
+            <main className="max-w-md mx-auto w-full px-4 py-16 flex-1 flex flex-col items-center justify-center min-h-[60vh]">
+              <div className="flex flex-col items-center gap-4">
+                <Logo size={40} />
+                <div className="text-sm font-semibold animate-pulse" style={{ color: C.soft }}>Načítavam Vitrínu...</div>
+              </div>
+            </main>
+          ) : !isStoreVisibleToCustomers && !isOwner ? (
             <main className="max-w-md mx-auto w-full px-4 py-16 text-center flex flex-col items-center justify-center min-h-[60vh]">
               <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 flex items-center justify-center text-4xl mb-4 shadow-sm animate-bounce">
                 📴
@@ -1731,7 +1742,7 @@ export default function Vitrina() {
               <p className="text-sm mt-3 text-slate-500 leading-relaxed px-4">
                 Tento obchod momentálne nie je verejne dostupný. Predajca si musí vybrať plán, aby bol jeho obchod viditeľný pre zákazníkov.
               </p>
-              <button 
+              <button
                 onClick={() => navigateTo("/")}
                 className="mt-8 px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold text-xs hover:bg-slate-700 transition-colors"
               >
