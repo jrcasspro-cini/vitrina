@@ -2727,17 +2727,21 @@ export default function Vitrina() {
               </section>
             )}
 
+            </div>
+            </div>
+
             {/* ── Zoznam produktov ── */}
-            <section className="mt-4 flex flex-col gap-2">
+            <section className="mt-4 flex flex-col gap-2 max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
               <h2 className="disp text-xs font-extrabold uppercase tracking-wider mb-1" style={{ color: C.soft }}>
                 Zoznam produktov ({items.length})
               </h2>
               {items.length > maxItemsAllowed && (
                 <div className="p-3 text-xs rounded-xl bg-amber-50 text-amber-800 border border-amber-200 font-medium animate-in fade-in slide-in-from-top-2">
-                  ⚠️ Váš plán umožňuje zobraziť len <strong>{maxItemsAllowed}</strong> {maxItemsAllowed === 2 ? "aktívne produkty" : "aktívnych produktov"}. 
+                  ⚠️ Váš plán umožňuje zobraziť len <strong>{maxItemsAllowed}</strong> {maxItemsAllowed === 2 ? "aktívne produkty" : "aktívnych produktov"}.
                   Zákazníci uvidia len prvých {maxItemsAllowed} produktov z vášho zoznamu. Zvoľte si prosím vyšší plán alebo skryte/vymažte nadbytočné produkty.
                 </div>
               )}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
               {items.map((it) => (
                 <div key={it.id} className="flex flex-col gap-1.5 p-1 rounded-xl" style={{ border: `1px solid ${C.line}`, background: C.card }}>
                   <div className="px-2 py-1 flex items-center justify-between gap-2 text-sm">
@@ -2778,7 +2782,10 @@ export default function Vitrina() {
                             readAsDataURL(file, async (url) => {
                               try {
                                 setDbError("");
-                                await setDoc(doc(db, "items", it.id), { imgUrl: url }, { merge: true });
+                                // Nahradí titulnú (prvú) fotku — zápis aj do imgUrls (prioritné pole pre zobrazenie),
+                                // nielen do legacy imgUrl, inak sa zmena vizuálne neprejaví.
+                                const newImgs = [url, ...((it.imgs || []).slice(1))];
+                                await setDoc(doc(db, "items", it.id), { imgUrl: url, imgUrls: newImgs }, { merge: true });
                               } catch (err: any) {
                                 console.error("Error updating item photo:", err);
                                 setDbError("Nepodarilo sa uložiť fotku: " + err.message);
@@ -2891,10 +2898,11 @@ export default function Vitrina() {
                   )}
                 </div>
               ))}
+              </div>
             </section>
 
             {/* ── Sekcia Objednávky v Administrácii ── */}
-            <section className="mt-6 flex flex-col gap-3">
+            <section className="mt-6 flex flex-col gap-3 max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <h2 className="disp text-xs font-extrabold uppercase tracking-wider text-slate-500">
                   Objednávky a odstúpenia ({adminOrders.length})
@@ -2949,7 +2957,7 @@ export default function Vitrina() {
                   );
                 }
                 return (
-                <div className="flex flex-col gap-3">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
                   {visibleOrders.map((ord) => {
                     const hasWithdrawal = ord.status === "Žiadosť o odstúpenie";
                     const orderDate = ord.createdAt?.toDate ? ord.createdAt.toDate().toLocaleString("sk-SK") : new Date(ord.createdAt || 0).toLocaleString("sk-SK");
@@ -3075,10 +3083,6 @@ export default function Vitrina() {
                 );
               })()}
             </section>
-
-
-            </div>
-            </div>
 
             {/* Vymazanie Vitríny — možnosť začať odznova. Zámerne až úplne dole, mimo 2-stĺpcového gridu, aby to nebola prvá vec, ktorú predajca vidí. */}
             <section className="mt-10 pt-6 border-t max-w-md lg:max-w-none mx-auto lg:mx-0" style={{ borderColor: C.line }}>
