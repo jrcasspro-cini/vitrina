@@ -126,6 +126,86 @@ const CATEGORIES = [
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
+// Vygeneruje a stiahne jednoduché PDF faktúry priamo v prehliadači (bez servera).
+// Vstup je "snapshot" dokumentu z kolekcie invoices — nič sa nedopočítava naživo.
+async function downloadInvoicePdf(inv: any) {
+  const { jsPDF } = await import("jspdf");
+  const d = new jsPDF({ unit: "mm", format: "a4" });
+  const left = 20;
+  let y = 22;
+
+  d.setFont("helvetica", "bold");
+  d.setFontSize(18);
+  d.text(`Faktúra č. ${inv.number}`, left, y);
+  y += 6;
+  d.setFont("helvetica", "normal");
+  d.setFontSize(10);
+  d.text(`Dátum vystavenia: ${new Date(inv.dateIssued).toLocaleDateString("sk-SK")}`, left, y);
+  y += 5;
+  d.text(`Spôsob úhrady: ${inv.paymentMethod || "Bankový prevod"} · VS: ${inv.vs || "—"}`, left, y);
+  y += 12;
+
+  const col2 = 110;
+  d.setFont("helvetica", "bold");
+  d.text("Dodávateľ", left, y);
+  d.text("Odberateľ", col2, y);
+  y += 6;
+  d.setFont("helvetica", "normal");
+  const supplierLines = [
+    inv.supplierName || "—",
+    inv.supplierAddress || "",
+    inv.supplierIco ? `IČO: ${inv.supplierIco}` : "",
+    inv.supplierDic ? `DIČ: ${inv.supplierDic}` : "",
+    inv.supplierIcDph ? `IČ DPH: ${inv.supplierIcDph}` : "",
+    inv.supplierIban ? `IBAN: ${inv.supplierIban}` : "",
+  ].filter(Boolean);
+  const buyerLines = [
+    inv.buyerName || "—",
+    inv.buyerAddress || "",
+    inv.buyerIco ? `IČO: ${inv.buyerIco}` : "",
+    inv.buyerDic ? `DIČ: ${inv.buyerDic}` : "",
+  ].filter(Boolean);
+  const maxLines = Math.max(supplierLines.length, buyerLines.length);
+  for (let i = 0; i < maxLines; i++) {
+    if (supplierLines[i]) d.text(supplierLines[i], left, y);
+    if (buyerLines[i]) d.text(buyerLines[i], col2, y);
+    y += 5;
+  }
+  y += 8;
+
+  d.setDrawColor(200);
+  d.line(left, y, 190, y);
+  y += 8;
+
+  d.setFont("helvetica", "bold");
+  d.text("Popis", left, y);
+  d.text("Obdobie", 120, y);
+  d.text("Suma", 170, y);
+  y += 6;
+  d.setFont("helvetica", "normal");
+  d.text(`Predplatné Vitrína — Plán ${inv.planLabel || inv.plan}`, left, y, { maxWidth: 95 });
+  const periodText = inv.periodFrom && inv.periodTo
+    ? `${new Date(inv.periodFrom).toLocaleDateString("sk-SK")} – ${new Date(inv.periodTo).toLocaleDateString("sk-SK")}`
+    : "—";
+  d.text(periodText, 120, y, { maxWidth: 45 });
+  d.text(`${(inv.amount ?? 0).toFixed(2)} €`, 170, y);
+  y += 10;
+
+  d.line(left, y, 190, y);
+  y += 8;
+  d.setFont("helvetica", "bold");
+  d.setFontSize(12);
+  d.text(`Celkom na úhradu: ${(inv.amount ?? 0).toFixed(2)} €`, left, y);
+  y += 16;
+
+  d.setFont("helvetica", "normal");
+  d.setFontSize(8.5);
+  d.setTextColor(120);
+  d.text("Vyhotovené a odoslané elektronicky, faktúra je platná bez podpisu a pečiatky.", left, y);
+
+  d.save(`faktura-${inv.number}.pdf`);
+}
+
 const getPastelBg = (it: StoreItem) => {
   const emoji = it.emoji || "🎁";
   const code = emoji.codePointAt(0) || 0;
@@ -665,6 +745,30 @@ export default function Vitrina() {
       setAdminOrders(loaded);
     }, (err) => {
       console.error("Error loading orders:", err);
+    });
+    return unsub;
+  }, [selectedStoreHandle, isOwner]);
+
+  // Listen to invoices (faktúry za predplatné) for the admin view
+  const [adminInvoices, setAdminInvoices] = useState<any[]>([]);
+  useEffect(() => {
+    if (!selectedStoreHandle || !isOwner) {
+      setAdminInvoices([]);
+      return;
+    }
+    const q = query(
+      collection(db, "invoices"),
+      where("storeId", "==", selectedStoreHandle)
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      const loaded = snapshot.docs.map(docSnap => ({
+        id: docSnap.id,
+        ...docSnap.data()
+      }));
+      loaded.sort((a: any, b: any) => new Date(b.dateIssued || 0).getTime() - new Date(a.dateIssued || 0).getTime());
+      setAdminInvoices(loaded);
+    }, (err) => {
+      console.error("Error loading invoices:", err);
     });
     return unsub;
   }, [selectedStoreHandle, isOwner]);
@@ -2325,6 +2429,36 @@ export default function Vitrina() {
 
             <div className="max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
 
+            {/* ── Fakturačné údaje (potrebné na vystavenie faktúry za predplatné) ── */}
+            <section className="rounded-2xl p-4 mb-4 flex flex-col gap-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+              <div>
+                <h2 className="disp text-sm font-extrabold text-slate-800">Fakturačné údaje</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Potrebné na vystavenie faktúry za predplatné. Meno/názov a adresa sú povinné, IČO/DIČ len ak ich máš.</p>
+              </div>
+              <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>Meno alebo názov firmy *</label>
+              <input value={(store as any).fakturaNazov || ""} onChange={(e) => updateStoreField("fakturaNazov", e.target.value)}
+                placeholder="napr. Jana Kováčová alebo Jana Kováčová s.r.o."
+                className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+              <label className="text-xs font-semibold mt-1" style={{ color: C.soft }}>Fakturačná adresa *</label>
+              <input value={(store as any).fakturaAdresa || ""} onChange={(e) => updateStoreField("fakturaAdresa", e.target.value)}
+                placeholder="napr. Hlavná 12, 080 01 Prešov"
+                className="w-full rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <div>
+                  <label className="text-xs font-semibold" style={{ color: C.soft }}>IČO <span className="text-slate-400 font-normal">(ak máš)</span></label>
+                  <input value={(store as any).fakturaIco || ""} onChange={(e) => updateStoreField("fakturaIco", e.target.value)}
+                    placeholder="napr. 12345678"
+                    className="w-full mt-1 rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold" style={{ color: C.soft }}>DIČ <span className="text-slate-400 font-normal">(ak máš)</span></label>
+                  <input value={(store as any).fakturaDic || ""} onChange={(e) => updateStoreField("fakturaDic", e.target.value)}
+                    placeholder="napr. 2023456789"
+                    className="w-full mt-1 rounded-xl px-3 py-2 text-sm border" style={{ borderColor: C.line, background: C.bg }} />
+                </div>
+              </div>
+            </section>
+
             {/* ── Predplatné a Plán ── */}
             <section className="rounded-2xl p-4 mb-4 flex flex-col gap-3" style={{ background: C.card, border: `1px solid ${C.line}` }}>
               <div>
@@ -2429,6 +2563,7 @@ export default function Vitrina() {
                   ? `https://payme.sk?v=1&iban=${cistyIban}&amount=${suma}&currency=EUR&vs=${paymentVs}&desc=${encodeURIComponent(`Vitrina ${nazovPlanu}`)}`
                   : "";
                 const paymentReported = !!(store as any).paymentReported;
+                const fakturaOk = !!((store as any).fakturaNazov || "").trim() && !!((store as any).fakturaAdresa || "").trim();
                 return (
                   <div className="mt-3 p-4 rounded-2xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
                     <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accentText }}>
@@ -2491,6 +2626,10 @@ export default function Vitrina() {
                         <div className="font-bold mb-1">⏳ Nahlásili ste platbu{(store as any).paymentReportedAt ? " dňa " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}.</div>
                         <div className="font-medium">Overujeme platbu v banke a aktivujeme obvykle do niekoľkých hodín. Ak potrebujete okamžite, napíšte na <a href="mailto:info@zavio.sk" className="underline">info@zavio.sk</a>.</div>
                       </div>
+                    ) : !fakturaOk ? (
+                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px] text-left" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
+                        ⚠️ Pred nahlásením platby vyplňte <b>Fakturačné údaje</b> vyššie (meno/názov a adresu) — potrebujeme ich na vystavenie faktúry.
+                      </div>
                     ) : (
                       <button
                         onClick={reportPayment}
@@ -2505,6 +2644,35 @@ export default function Vitrina() {
                 );
               })()}
             </section>
+
+            {/* ── Faktúry za predplatné ── */}
+            {adminInvoices.length > 0 && (
+              <section className="rounded-2xl p-4 mb-4 flex flex-col gap-2" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div>
+                  <h2 className="disp text-sm font-extrabold text-slate-800">Faktúry</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Faktúry za predplatné Vitrína, vystavené pri aktivácii plánu.</p>
+                </div>
+                <div className="flex flex-col gap-1.5 mt-1">
+                  {adminInvoices.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-slate-800 block">Faktúra č. {inv.number}</span>
+                        <span className="text-[10px] text-slate-500 block mt-0.5">
+                          {new Date(inv.dateIssued).toLocaleDateString("sk-SK")} · {(inv.amount ?? 0).toFixed(2)} € · {inv.planLabel || inv.plan}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => downloadInvoicePdf(inv)}
+                        className="shrink-0 text-[11px] font-bold px-3 py-1.5 rounded-lg transition-colors hover:bg-[#EDF0E8]"
+                        style={{ color: C.accentText }}
+                      >
+                        ⬇ Stiahnuť PDF
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* ── Sekcia Objednávky v Administrácii ── */}
             <section className="mt-6 flex flex-col gap-3">

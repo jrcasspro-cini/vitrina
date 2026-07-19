@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, onSnapshot, getDocs, query, where, deleteDoc, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, getDocs, getDoc, query, where, deleteDoc, doc, updateDoc, setDoc, runTransaction } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import { signInWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import defaultLogo from "../assets/images/default_store_logo.jpg";
@@ -26,6 +26,10 @@ interface StoreData {
   trialEndsAt: string;
   logo: string;
   ownerId?: string;
+  fakturaNazov?: string;
+  fakturaAdresa?: string;
+  fakturaIco?: string;
+  fakturaDic?: string;
 }
 
 // Zoznam admin emailov. Musí sedieť s Firestore rules isAdmin() funkciou.
@@ -46,6 +50,59 @@ function getPaymentVs(ownerId?: string): string {
   }
   const abs = Math.abs(h) % 90000000 + 10000000;
   return String(abs);
+}
+
+// Vystaví faktúru za predplatné pri aktivácii plánu — atomicky pridelí
+// poradové číslo (config/invoiceCounter), načíta dodávateľa (config/company)
+// a uloží nemenný "snapshot" faktúry do kolekcie invoices.
+async function createSubscriptionInvoice(
+  store: StoreData,
+  plan: "standard" | "extended",
+  periodFrom: string,
+  periodTo: string
+) {
+  const seq = await runTransaction(db, async (tx) => {
+    const counterRef = doc(db, "config", "invoiceCounter");
+    const counterSnap = await tx.get(counterRef);
+    const last = counterSnap.exists() ? (counterSnap.data().lastNumber || 0) : 0;
+    const next = last + 1;
+    tx.set(counterRef, { lastNumber: next }, { merge: true });
+    return next;
+  });
+  const year = new Date().getFullYear();
+  const number = `${year}${String(seq).padStart(4, "0")}`;
+
+  const companySnap = await getDoc(doc(db, "config", "company"));
+  const company: any = companySnap.exists() ? companySnap.data() : {};
+
+  const amount = plan === "standard" ? 8 : 10;
+  const planLabel = plan === "standard" ? "Štandard" : "Rozšírený";
+
+  const invoiceRef = doc(collection(db, "invoices"));
+  await setDoc(invoiceRef, {
+    number,
+    dateIssued: new Date().toISOString(),
+    storeId: store.handle,
+    storeName: store.name,
+    buyerName: store.fakturaNazov || store.name,
+    buyerAddress: store.fakturaAdresa || "",
+    buyerIco: store.fakturaIco || "",
+    buyerDic: store.fakturaDic || "",
+    supplierName: company.nazov || "",
+    supplierAddress: company.adresa || "",
+    supplierIco: company.ico || "",
+    supplierDic: company.dic || "",
+    supplierIcDph: company.ic_dph || "",
+    supplierIban: company.iban || "",
+    plan,
+    planLabel,
+    amount,
+    currency: "EUR",
+    vs: getPaymentVs(store.ownerId),
+    periodFrom,
+    periodTo,
+    paymentMethod: "Bankový prevod",
+  });
 }
 
 export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
@@ -123,7 +180,11 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
             createdAt: d.createdAt,
             trialEndsAt: d.trialEndsAt || "",
             logo: d.logo || "",
-            ownerId: d.ownerId || ""
+            ownerId: d.ownerId || "",
+            fakturaNazov: d.fakturaNazov || "",
+            fakturaAdresa: d.fakturaAdresa || "",
+            fakturaIco: d.fakturaIco || "",
+            fakturaDic: d.fakturaDic || ""
           };
         });
         setStores(loaded);
@@ -283,6 +344,17 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
         paymentReportedAt: "",
         paymentReportedPlan: "",
       }, { merge: true });
+
+      // Vystaviť faktúru za toto obdobie. Nesmie zablokovať aktiváciu plánu,
+      // ak by faktúra z nejakého dôvodu zlyhala — preto samostatný try/catch.
+      if (store) {
+        try {
+          await createSubscriptionInvoice(store, plan, new Date(startFrom).toISOString(), newEnd);
+        } catch (invErr: any) {
+          console.error("createSubscriptionInvoice error:", invErr);
+          setDbError("Plán bol aktivovaný, ale vystavenie faktúry zlyhalo: " + invErr.message);
+        }
+      }
     } catch (err: any) {
       console.error("activatePlan error:", err);
       setDbError("Aktivácia plánu zlyhala: " + err.message);

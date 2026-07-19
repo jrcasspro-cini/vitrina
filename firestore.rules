@@ -47,5 +47,14 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+
+    // Faktúry za predplatné (Zavio → predajca). Vystavuje iba admin (pri
+    // aktivácii plánu), predajca si vie prečítať len svoje vlastné faktúry.
+    match /invoices/{invoiceId} {
+      allow read: if isAdmin() || (
+        request.auth != null && isStoreOwner(resource.data.storeId)
+      );
+      allow create, update, delete: if isAdmin();
+    }
   }
 }
