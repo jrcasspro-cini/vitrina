@@ -996,7 +996,10 @@ export default function Vitrina() {
           `${r.emoji} ${r.name}\n   ${r.qty} × ${eur(r.price)}${r.type === "booking" ? `\n   📅 ${r.slot}` : ""}`
       ),
       "",
+      "──────────",
       `💰 Spolu: ${eur(total)}`,
+      "",
+      "📋 Vaše údaje",
       `👤 Meno: ${cust.name || "—"}`,
       `📍 Mesto: ${cust.city || "—"}`,
       `💳 Platba: ${cust.pay}`,
@@ -2190,6 +2193,7 @@ export default function Vitrina() {
                     <span>{eur(total)}</span>
                   </div>
                   <div className="px-3.5 py-3 flex flex-col gap-1.5 text-xs border-t" style={{ borderColor: "#CFE0F3" }}>
+                    <span className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: "#3B6BA8" }}>Vaše údaje</span>
                     <div className="flex items-center justify-between">
                       <span style={{ color: "#5A7CA0" }}>Meno</span>
                       <span className="font-semibold" style={{ color: "#1E3A5F" }}>{cust.name || "—"}</span>
