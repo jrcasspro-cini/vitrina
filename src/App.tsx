@@ -998,7 +998,7 @@ export default function Vitrina() {
       ),
       "",
       "──────────",
-      `Spolu: ${eur(total)}`,
+      `*Spolu: ${eur(total)}*`,
       "",
       "VAŠE ÚDAJE",
       `Meno: ${cust.name || "—"}`,
@@ -2205,7 +2205,7 @@ export default function Vitrina() {
                       </div>
                     ))}
                   </div>
-                  <div className="px-3.5 py-2.5 flex items-center justify-between text-xs font-extrabold border-t" style={{ borderColor: "#CFE0F3", color: "#1E3A5F" }}>
+                  <div className="px-3.5 py-3 flex items-center justify-between text-base font-extrabold border-t" style={{ borderColor: "#CFE0F3", color: "#1E3A5F" }}>
                     <span>Spolu</span>
                     <span>{eur(total)}</span>
                   </div>
