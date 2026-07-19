@@ -292,6 +292,7 @@ export default function Vitrina() {
   const [withdrawalError, setWithdrawalError] = useState("");
   const [withdrawalSuccess, setWithdrawalSuccess] = useState<any | null>(null);
   const [adminOrders, setAdminOrders] = useState<any[]>([]);
+  const [orderFilter, setOrderFilter] = useState<"week" | "month" | "all">("week");
 
   const [store, setStore] = useState({
     name: "",
@@ -2726,146 +2727,7 @@ export default function Vitrina() {
               </section>
             )}
 
-            {/* ── Sekcia Objednávky v Administrácii ── */}
-            <section className="mt-6 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <h2 className="disp text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                  Objednávky a odstúpenia ({adminOrders.length})
-                </h2>
-                {adminOrders.some(o => o.status === "Žiadosť o odstúpenie") && (
-                  <span className="text-[10px] bg-red-100 text-red-700 font-extrabold px-2 py-0.5 rounded-full animate-pulse">
-                    ⚠️ Žiadosť o odstúpenie
-                  </span>
-                )}
-              </div>
-
-              {adminOrders.length === 0 ? (
-                <div className="text-center py-8 rounded-2xl border border-dashed p-4" style={{ borderColor: C.line, background: C.card }}>
-                  <p className="text-xs font-medium" style={{ color: C.soft }}>Zatiaľ tu nie sú žiadne objednávky.</p>
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3">
-                  {adminOrders.map((ord) => {
-                    const hasWithdrawal = ord.status === "Žiadosť o odstúpenie";
-                    const orderDate = ord.createdAt?.toDate ? ord.createdAt.toDate().toLocaleString("sk-SK") : new Date(ord.createdAt || 0).toLocaleString("sk-SK");
-                    
-                    return (
-                      <div 
-                        key={ord.id} 
-                        className={`p-4 rounded-2xl border flex flex-col gap-3 transition-all ${
-                          hasWithdrawal 
-                            ? "bg-red-50/40 border-red-200" 
-                            : "bg-white"
-                        }`}
-                        style={{ 
-                          borderColor: hasWithdrawal ? undefined : C.line,
-                          background: hasWithdrawal ? undefined : C.card 
-                        }}
-                      >
-                        {/* Hlavička objednávky */}
-                        <div className="flex items-start justify-between gap-2 border-b pb-2.5" style={{ borderColor: C.line }}>
-                          <div>
-                            <span className="font-mono text-xs font-bold text-slate-900 block">
-                              #ID: {ord.id}
-                            </span>
-                            {ord.variabilnySymbol && (
-                              <span className="font-mono text-[11px] text-slate-500 block mt-0.5">
-                                VS (variabilný symbol): <strong>{ord.variabilnySymbol}</strong>
-                              </span>
-                            )}
-                            <span className="text-[10px] text-slate-500 block mt-0.5">
-                              {orderDate}
-                            </span>
-                          </div>
-                          
-                          {/* Výber statusu */}
-                          <div className="flex flex-col items-end gap-1.5">
-                            <select
-                              value={ord.status || "Nová"}
-                              onChange={async (e) => {
-                                try {
-                                  setDbError("");
-                                  await setDoc(doc(db, "orders", ord.id), {
-                                    ...ord,
-                                    status: e.target.value
-                                  });
-                                } catch (err: any) {
-                                  console.error("Error updating order status:", err);
-                                  setDbError("Nepodarilo sa zmeniť stav objednávky: " + err.message);
-                                }
-                              }}
-                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border focus:outline-none ${
-                                hasWithdrawal 
-                                  ? "bg-red-100 text-red-800 border-red-300" 
-                                  : ord.status === "Vybavená"
-                                    ? "bg-green-50 text-green-800 border-green-200"
-                                    : ord.status === "Zrušená" || ord.status === "Odstúpené - vrátené peniaze"
-                                      ? "bg-slate-100 text-slate-600 border-slate-200"
-                                      : "bg-[#EDF0E8] text-[#4F5843] border-[#C7D0BC]"
-                              }`}
-                            >
-                              <option value="Nová">Nová</option>
-                              <option value="Zaplatená">Zaplatená</option>
-                              <option value="Vybavená">Vybavená</option>
-                              <option value="Žiadosť o odstúpenie">Žiadosť o odstúpenie ⚠️</option>
-                              <option value="Odstúpené - vrátené peniaze">Odstúpené (vrátené peniaze)</option>
-                              <option value="Zrušená">Zrušená</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Položky a celková cena */}
-                        <div className="text-xs">
-                          <p className="font-bold text-slate-700 mb-1">Objednané položky:</p>
-                          <div className="flex flex-col gap-1 text-slate-600">
-                            {ord.items?.map((item: any, idx: number) => (
-                              <div key={idx} className="flex justify-between items-center py-0.5">
-                                <span>
-                                  {item.name} <strong className="text-slate-800">({item.qty}x)</strong>
-                                  {item.slot && <span className="block text-[10px] text-slate-500">📅 {item.slot}</span>}
-                                </span>
-                                <span className="font-mono">{eur(item.price * item.qty)}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex justify-between items-center border-t pt-2 mt-2 font-extrabold text-slate-900">
-                            <span>Celkom:</span>
-                            <span className="text-sm font-mono">{eur(ord.total || 0)}</span>
-                          </div>
-                        </div>
-
-                        {/* Informácie o zákazníkovi */}
-                        <div className="text-xs p-2.5 rounded-xl bg-slate-50 border flex flex-col gap-1 text-slate-600" style={{ borderColor: C.line }}>
-                          <p className="font-bold text-slate-800 text-[11px] mb-0.5">👤 Zákazník:</p>
-                          <p><strong>Meno:</strong> {ord.customerName || "—"}</p>
-                          <p><strong>Adresa:</strong> {ord.customerCity || "—"}</p>
-                          {ord.customerTime && <p><strong>Čas doručenia:</strong> {ord.customerTime}</p>}
-                        </div>
-
-                        {/* ⚠️ DETAIL ODSTÚPENIA OD ZMLUVY */}
-                        {hasWithdrawal && (
-                          <div className="p-3 rounded-xl border border-red-200 bg-red-50 text-xs flex flex-col gap-1.5 animate-in fade-in duration-200">
-                            <div className="flex items-center gap-1.5 text-red-900 font-extrabold">
-                              <span className="text-sm leading-none">⚠️</span>
-                              <span>SPOTREBITEĽ ODSTÚPIL OD ZMLUVY</span>
-                            </div>
-                            <p className="text-red-800">
-                              Zákazník podal žiadosť o odstúpenie od zmluvy k tejto objednávke v zmysle § 20a zákona č. 108/2024 Z.z.
-                            </p>
-                            <div className="grid grid-cols-1 gap-1 text-red-950 mt-1 pt-1.5 border-t border-red-200">
-                              <p><strong>Meno spotrebiteľa:</strong> {ord.withdrawalName || "—"}</p>
-                              <p><strong>E-mail pre kontakt:</strong> <a href={`mailto:${ord.withdrawalEmail}`} className="underline hover:text-[#647058] font-bold">{ord.withdrawalEmail}</a></p>
-                              <p><strong>Dátum doručenia odstúpenia:</strong> {ord.withdrawalDate ? new Date(ord.withdrawalDate).toLocaleString("sk-SK") : "—"}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-
+            {/* ── Zoznam produktov ── */}
             <section className="mt-4 flex flex-col gap-2">
               <h2 className="disp text-xs font-extrabold uppercase tracking-wider mb-1" style={{ color: C.soft }}>
                 Zoznam produktov ({items.length})
@@ -3030,6 +2892,190 @@ export default function Vitrina() {
                 </div>
               ))}
             </section>
+
+            {/* ── Sekcia Objednávky v Administrácii ── */}
+            <section className="mt-6 flex flex-col gap-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="disp text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                  Objednávky a odstúpenia ({adminOrders.length})
+                </h2>
+                {adminOrders.some(o => o.status === "Žiadosť o odstúpenie") && (
+                  <span className="text-[10px] bg-red-100 text-red-700 font-extrabold px-2 py-0.5 rounded-full animate-pulse">
+                    ⚠️ Žiadosť o odstúpenie
+                  </span>
+                )}
+              </div>
+
+              {adminOrders.length > 0 && (
+                <div className="flex gap-1.5">
+                  {([
+                    ["week", "Posledný týždeň"],
+                    ["month", "Posledný mesiac"],
+                    ["all", "Všetky"],
+                  ] as const).map(([k, l]) => (
+                    <button
+                      key={k}
+                      onClick={() => setOrderFilter(k)}
+                      className="px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors"
+                      style={orderFilter === k
+                        ? { background: C.ink, color: "#fff" }
+                        : { border: `1px solid ${C.line}`, color: C.soft }}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {adminOrders.length === 0 ? (
+                <div className="text-center py-8 rounded-2xl border border-dashed p-4" style={{ borderColor: C.line, background: C.card }}>
+                  <p className="text-xs font-medium" style={{ color: C.soft }}>Zatiaľ tu nie sú žiadne objednávky.</p>
+                </div>
+              ) : (() => {
+                const now = Date.now();
+                const cutoff = orderFilter === "week" ? now - 7 * 24 * 60 * 60 * 1000
+                  : orderFilter === "month" ? now - 30 * 24 * 60 * 60 * 1000
+                  : 0;
+                const visibleOrders = adminOrders.filter((ord) => {
+                  if (!cutoff) return true;
+                  const t = ord.createdAt?.toDate ? ord.createdAt.toDate().getTime() : new Date(ord.createdAt || 0).getTime();
+                  return t >= cutoff;
+                });
+                if (visibleOrders.length === 0) {
+                  return (
+                    <div className="text-center py-8 rounded-2xl border border-dashed p-4" style={{ borderColor: C.line, background: C.card }}>
+                      <p className="text-xs font-medium" style={{ color: C.soft }}>V tomto období nie sú žiadne objednávky.</p>
+                    </div>
+                  );
+                }
+                return (
+                <div className="flex flex-col gap-3">
+                  {visibleOrders.map((ord) => {
+                    const hasWithdrawal = ord.status === "Žiadosť o odstúpenie";
+                    const orderDate = ord.createdAt?.toDate ? ord.createdAt.toDate().toLocaleString("sk-SK") : new Date(ord.createdAt || 0).toLocaleString("sk-SK");
+                    const orderNumber = adminOrders.length - adminOrders.indexOf(ord);
+
+                    return (
+                      <div 
+                        key={ord.id} 
+                        className={`p-4 rounded-2xl border flex flex-col gap-3 transition-all ${
+                          hasWithdrawal 
+                            ? "bg-red-50/40 border-red-200" 
+                            : "bg-white"
+                        }`}
+                        style={{ 
+                          borderColor: hasWithdrawal ? undefined : C.line,
+                          background: hasWithdrawal ? undefined : C.card 
+                        }}
+                      >
+                        {/* Hlavička objednávky */}
+                        <div className="flex items-start justify-between gap-2 border-b pb-2.5" style={{ borderColor: C.line }}>
+                          <div>
+                            <span className="text-xs font-extrabold text-slate-900 block">
+                              Objednávka č. {orderNumber}
+                            </span>
+                            <span className="font-mono text-[10px] text-slate-400 block mt-0.5">
+                              ID: {ord.id}
+                            </span>
+                            {ord.variabilnySymbol && (
+                              <span className="font-mono text-[11px] text-slate-500 block mt-0.5">
+                                VS (variabilný symbol): <strong>{ord.variabilnySymbol}</strong>
+                              </span>
+                            )}
+                            <span className="text-[10px] text-slate-500 block mt-0.5">
+                              {orderDate}
+                            </span>
+                          </div>
+                          
+                          {/* Výber statusu */}
+                          <div className="flex flex-col items-end gap-1.5">
+                            <select
+                              value={ord.status || "Nová"}
+                              onChange={async (e) => {
+                                try {
+                                  setDbError("");
+                                  await setDoc(doc(db, "orders", ord.id), {
+                                    ...ord,
+                                    status: e.target.value
+                                  });
+                                } catch (err: any) {
+                                  console.error("Error updating order status:", err);
+                                  setDbError("Nepodarilo sa zmeniť stav objednávky: " + err.message);
+                                }
+                              }}
+                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border focus:outline-none ${
+                                hasWithdrawal 
+                                  ? "bg-red-100 text-red-800 border-red-300" 
+                                  : ord.status === "Vybavená"
+                                    ? "bg-green-50 text-green-800 border-green-200"
+                                    : ord.status === "Zrušená" || ord.status === "Odstúpené - vrátené peniaze"
+                                      ? "bg-slate-100 text-slate-600 border-slate-200"
+                                      : "bg-[#EDF0E8] text-[#4F5843] border-[#C7D0BC]"
+                              }`}
+                            >
+                              <option value="Nová">Nová</option>
+                              <option value="Zaplatená">Zaplatená</option>
+                              <option value="Vybavená">Vybavená</option>
+                              <option value="Žiadosť o odstúpenie">Žiadosť o odstúpenie ⚠️</option>
+                              <option value="Odstúpené - vrátené peniaze">Odstúpené (vrátené peniaze)</option>
+                              <option value="Zrušená">Zrušená</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Položky a celková cena */}
+                        <div className="text-xs">
+                          <p className="font-bold text-slate-700 mb-1">Objednané položky:</p>
+                          <div className="flex flex-col gap-1 text-slate-600">
+                            {ord.items?.map((item: any, idx: number) => (
+                              <div key={idx} className="flex justify-between items-center py-0.5">
+                                <span>
+                                  {item.name} <strong className="text-slate-800">({item.qty}x)</strong>
+                                  {item.slot && <span className="block text-[10px] text-slate-500">📅 {item.slot}</span>}
+                                </span>
+                                <span className="font-mono">{eur(item.price * item.qty)}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center border-t pt-2 mt-2 font-extrabold text-slate-900">
+                            <span>Celkom:</span>
+                            <span className="text-sm font-mono">{eur(ord.total || 0)}</span>
+                          </div>
+                        </div>
+
+                        {/* Informácie o zákazníkovi */}
+                        <div className="text-xs p-2.5 rounded-xl bg-slate-50 border flex flex-col gap-1 text-slate-600" style={{ borderColor: C.line }}>
+                          <p className="font-bold text-slate-800 text-[11px] mb-0.5">👤 Zákazník:</p>
+                          <p><strong>Meno:</strong> {ord.customerName || "—"}</p>
+                          <p><strong>Adresa:</strong> {ord.customerCity || "—"}</p>
+                          {ord.customerTime && <p><strong>Čas doručenia:</strong> {ord.customerTime}</p>}
+                        </div>
+
+                        {/* ⚠️ DETAIL ODSTÚPENIA OD ZMLUVY */}
+                        {hasWithdrawal && (
+                          <div className="p-3 rounded-xl border border-red-200 bg-red-50 text-xs flex flex-col gap-1.5 animate-in fade-in duration-200">
+                            <div className="flex items-center gap-1.5 text-red-900 font-extrabold">
+                              <span className="text-sm leading-none">⚠️</span>
+                              <span>SPOTREBITEĽ ODSTÚPIL OD ZMLUVY</span>
+                            </div>
+                            <p className="text-red-800">
+                              Zákazník podal žiadosť o odstúpenie od zmluvy k tejto objednávke v zmysle § 20a zákona č. 108/2024 Z.z.
+                            </p>
+                            <div className="grid grid-cols-1 gap-1 text-red-950 mt-1 pt-1.5 border-t border-red-200">
+                              <p><strong>Meno spotrebiteľa:</strong> {ord.withdrawalName || "—"}</p>
+                              <p><strong>E-mail pre kontakt:</strong> <a href={`mailto:${ord.withdrawalEmail}`} className="underline hover:text-[#647058] font-bold">{ord.withdrawalEmail}</a></p>
+                              <p><strong>Dátum doručenia odstúpenia:</strong> {ord.withdrawalDate ? new Date(ord.withdrawalDate).toLocaleString("sk-SK") : "—"}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                );
+              })()}
+            </section>
+
 
             </div>
             </div>
@@ -3855,15 +3901,19 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
   // Slovenskí užívatelia zadávajú desatinné číslo s čiarkou (0,77) — akceptujeme obidve.
   const parsePrice = (v: string) => parseFloat((v || "").replace(",", "."));
   const ok = f.name.trim() && parsePrice(f.price) > 0 && !disabled;
+  if (disabled) {
+    return (
+      <section className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#FBF2E4", border: "1px solid #EFDBB2" }}>
+        <span className="text-xl leading-none shrink-0">🔒</span>
+        <div>
+          <span className="font-extrabold text-xs uppercase tracking-wider" style={{ color: "#8A5A1E" }}>Limit dosiahnutý</span>
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: "#9C6B2A" }}>{limitMessage}</p>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="rounded-2xl p-4 flex flex-col gap-2 relative overflow-hidden" style={{ background: C.card, border: `1px solid ${C.line}` }}>
-      {disabled && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20">
-          <span className="text-2xl mb-1.5">🔒</span>
-          <span className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Limit dosiahnutý</span>
-          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed max-w-[240px]">{limitMessage}</p>
-        </div>
-      )}
       <h2 className="disp font-bold text-sm">Pridať položku</h2>
       <div className="flex gap-2">
         {[[ "product", "Produkt" ], [ "booking", "Rezervácia" ]].map(([k, l]) => (
