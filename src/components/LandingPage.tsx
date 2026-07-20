@@ -834,25 +834,25 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 <div className="wa-customer">Zuzana Kráľová</div>
                 <div className="wa-customer-sub">Bratislava · +421 900 xxx xxx</div>
                 <div className="wa-item-row">
-                  <div className="wa-item-photo">💍</div>
+                  <div className="wa-item-photo"><img src="/landing/sperk.jpg" alt="Šperk s prívesom" /></div>
                   <div className="wa-item-info">
-                    <div className="wa-item-name">Strieborné náušnice</div>
-                    <div className="wa-item-qty">2×</div>
-                  </div>
-                  <div className="wa-item-price">49,80 €</div>
-                </div>
-                <div className="wa-item-row">
-                  <div className="wa-item-photo">⛓️</div>
-                  <div className="wa-item-info">
-                    <div className="wa-item-name">Retiazka s príveskom</div>
+                    <div className="wa-item-name">Šperk s prívesom</div>
                     <div className="wa-item-qty">1×</div>
                   </div>
-                  <div className="wa-item-price">32,00 €</div>
+                  <div className="wa-item-price">29,00 €</div>
+                </div>
+                <div className="wa-item-row">
+                  <div className="wa-item-photo"><img src="/landing/krem.jpg" alt="Krém na suchú pleť" /></div>
+                  <div className="wa-item-info">
+                    <div className="wa-item-name">Krém na suchú pleť</div>
+                    <div className="wa-item-qty">2×</div>
+                  </div>
+                  <div className="wa-item-price">38,00 €</div>
                 </div>
                 <div className="wa-divider"></div>
                 <div className="wa-row"><span>Spôsob platby</span><span className="wa-row-val">✅ Zaplatené QR kódom</span></div>
                 <div className="wa-divider"></div>
-                <div className="wa-total-row"><span>Spolu</span><span>81,80 €</span></div>
+                <div className="wa-total-row"><span>Spolu</span><span>67,00 €</span></div>
               </div>
               <div className="sc-wa-note">Predvyplnené na WhatsApp — odoslanie jedným klepnutím</div>
             </div>
