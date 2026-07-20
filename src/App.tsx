@@ -3945,7 +3945,10 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
         body: JSON.stringify({ image: base64Data, mimeType }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "Generovanie zlyhalo.");
+      if (!res.ok) {
+        const detail = Array.isArray(json?.details) && json.details.length > 0 ? ` (${json.details[0]})` : "";
+        throw new Error((json?.error || "Generovanie zlyhalo.") + detail);
+      }
       const urls: string[] = (json.images || []).map((im: { mimeType: string; data: string }) => `data:${im.mimeType};base64,${im.data}`);
       if (urls.length === 0) throw new Error("Nepodarilo sa vygenerovať žiadnu fotku.");
       setAiResults(urls);

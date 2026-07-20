@@ -42,6 +42,11 @@ async function generateOne(apiKey: string, prompt: string, imageBase64: string, 
           ],
         },
       ],
+      // Bez tohto Gemini defaultne vráti len text (žiadny obrázok) — musíme mu explicitne
+      // povedať, že očakávame aj obrazový výstup.
+      generationConfig: {
+        responseModalities: ["TEXT", "IMAGE"],
+      },
     }),
   });
 
@@ -51,10 +56,14 @@ async function generateOne(apiKey: string, prompt: string, imageBase64: string, 
   }
 
   const json: any = await res.json();
-  const parts: GenPart[] = json?.candidates?.[0]?.content?.parts || [];
+  const candidate = json?.candidates?.[0];
+  const parts: GenPart[] = candidate?.content?.parts || [];
   const imgPart = parts.find((p) => p.inlineData?.data);
   if (!imgPart?.inlineData) {
-    throw new Error("Gemini nevrátil obrázok (možno bezpečnostný filter alebo nejasný vstup).");
+    const finishReason = candidate?.finishReason || json?.promptFeedback?.blockReason;
+    throw new Error(
+      `Gemini nevrátil obrázok${finishReason ? ` (dôvod: ${finishReason})` : ""} — možno bezpečnostný filter alebo nejasný vstup.`
+    );
   }
   return { mimeType: imgPart.inlineData.mimeType, data: imgPart.inlineData.data };
 }
