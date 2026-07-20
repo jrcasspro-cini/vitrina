@@ -8,7 +8,10 @@
 
 export const config = { runtime: "edge" };
 
-const MODEL = "gemini-2.5-flash";
+// "gemini-flash-latest" je alias, ktorý Google priebežne presmeruváva na aktuálny
+// GA Flash model — bezpečnejšie ako pevná verzia, ktorá časom prestane byť dostupná
+// (presne to sa stalo s "gemini-2.5-flash").
+const MODEL = "gemini-flash-latest";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
 export default async function handler(req: Request): Promise<Response> {
