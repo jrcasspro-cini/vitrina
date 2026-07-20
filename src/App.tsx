@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, FormEvent, MouseEvent as ReactMouseEvent } from "react";
+import { useState, useMemo, useEffect, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
 import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
 import AdminPlatformy from "./components/AdminPlatformy";
@@ -442,6 +442,7 @@ export default function Vitrina() {
   const [cart, setCart] = useState<Record<string, number>>({}); // id -> qty
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [postGenItem, setPostGenItem] = useState<any | null>(null);
   const [editFields, setEditFields] = useState({
     name: "",
     desc: "",
@@ -2787,6 +2788,15 @@ export default function Vitrina() {
                       >
                         ✏️ Upraviť
                       </button>
+                      {store.plan === "extended" && (
+                        <button
+                          onClick={() => setPostGenItem(it)}
+                          className="text-xs font-semibold flex items-center gap-0.5"
+                          style={{ color: C.accentText }}
+                        >
+                          📢 Príspevok
+                        </button>
+                      )}
                       <label className="text-xs font-semibold cursor-pointer" style={{ color: C.soft }}>
                         📷 Fotka
                         <input
@@ -3752,6 +3762,207 @@ export default function Vitrina() {
           </div>
         </div>
       )}
+
+      {/* ── Modálne okno: Generátor propagačného príspevku (len Rozšírený plán) ── */}
+      {postGenItem && (
+        <SocialPostModal item={postGenItem} storeName={store.name} onClose={() => setPostGenItem(null)} />
+      )}
+    </div>
+  );
+}
+
+// ── Generátor propagačného príspevku na Instagram/Facebook ──
+// Zámerne bez AI — text vygenerovaný AI priamo do obrázka býva nespoľahlivý
+// (preklepy, poškodené diakritické znamienka). Text tu kreslíme natívne cez
+// canvas, takže je vždy 100% čitateľný a presný.
+const POST_THEMES: Record<string, { bg1: string; bg2: string; text: string; badge: string; badgeText: string }> = {
+  sage: { bg1: "#7A8471", bg2: "#5C6552", text: "#FFFFFF", badge: "#FFFFFF", badgeText: "#4F5843" },
+  terracotta: { bg1: "#C97D4E", bg2: "#A8623A", text: "#FFFFFF", badge: "#FFFFFF", badgeText: "#8A4E2A" },
+  cream: { bg1: "#F5F0E8", bg2: "#EFE6D6", text: "#2A2620", badge: "#2A2620", badgeText: "#F5F0E8" },
+};
+
+function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function SocialPostModal({ item, storeName, onClose }: { item: any; storeName: string; onClose: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [headline, setHeadline] = useState("Novinka v ponuke!");
+  const [theme, setTheme] = useState<keyof typeof POST_THEMES>("sage");
+  const [showPrice, setShowPrice] = useState(true);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const SIZE = 1080;
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const t = POST_THEMES[theme];
+
+    const draw = (img: HTMLImageElement | null) => {
+      const grad = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+      grad.addColorStop(0, t.bg1);
+      grad.addColorStop(1, t.bg2);
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, SIZE, SIZE);
+
+      const pad = 80;
+      const areaW = SIZE - pad * 2;
+      const areaH = areaW * 0.72;
+      const photoY = 70;
+      ctx.save();
+      roundRectPath(ctx, pad, photoY, areaW, areaH, 32);
+      ctx.clip();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(pad, photoY, areaW, areaH);
+      if (img) {
+        const scale = Math.max(areaW / img.width, areaH / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        const x = pad + (areaW - w) / 2;
+        const y = photoY + (areaH - h) / 2;
+        ctx.drawImage(img, x, y, w, h);
+      } else {
+        ctx.font = "160px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#C9C2B4";
+        ctx.fillText(item.emoji || "🛍️", SIZE / 2, photoY + areaH / 2);
+      }
+      ctx.restore();
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = t.text;
+      ctx.font = "800 68px 'Sora', system-ui, sans-serif";
+      ctx.fillText(headline, SIZE / 2, photoY + areaH + 105, SIZE - pad * 1.2);
+
+      ctx.font = "600 38px system-ui, sans-serif";
+      ctx.globalAlpha = 0.9;
+      ctx.fillText(item.name, SIZE / 2, photoY + areaH + 165, SIZE - pad * 1.2);
+      ctx.globalAlpha = 1;
+
+      if (showPrice) {
+        const priceText = eur(item.price);
+        ctx.font = "bold 38px system-ui, sans-serif";
+        const metrics = ctx.measureText(priceText);
+        const badgeW = metrics.width + 64;
+        const badgeH = 68;
+        const badgeX = SIZE / 2 - badgeW / 2;
+        const badgeY = SIZE - 128;
+        roundRectPath(ctx, badgeX, badgeY, badgeW, badgeH, badgeH / 2);
+        ctx.fillStyle = t.badge;
+        ctx.fill();
+        ctx.fillStyle = t.badgeText;
+        ctx.textBaseline = "middle";
+        ctx.fillText(priceText, SIZE / 2, badgeY + badgeH / 2 + 2);
+        ctx.textBaseline = "alphabetic";
+      }
+
+      ctx.textAlign = "left";
+      ctx.font = "700 30px system-ui, sans-serif";
+      ctx.fillStyle = t.text;
+      ctx.globalAlpha = 0.85;
+      ctx.fillText(storeName, 56, 58);
+      ctx.globalAlpha = 1;
+    };
+
+    if (item.img) {
+      const img = new Image();
+      img.onload = () => draw(img);
+      img.onerror = () => draw(null);
+      img.src = item.img;
+    } else {
+      draw(null);
+    }
+  }, [headline, theme, showPrice, item, storeName]);
+
+  const download = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const link = document.createElement("a");
+    const safeName = (item.name || "produkt").replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    link.download = `${safeName}-prispevok.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="bg-white rounded-3xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="disp text-lg font-extrabold text-slate-900">📢 Propagačný príspevok</h3>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-sm transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+
+        <canvas ref={canvasRef} className="w-full rounded-2xl border" style={{ borderColor: "#E8DFD1", aspectRatio: "1 / 1" }} />
+
+        <div className="mt-4 flex flex-col gap-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-600">Text na príspevku</label>
+            <input
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value.slice(0, 40))}
+              className="w-full mt-1 rounded-xl px-3 py-2 text-sm border"
+              style={{ borderColor: "#E8DFD1" }}
+            />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {["🆕 Novinka v ponuke!", "🔥 Obľúbený produkt", "💚 Akcia tento týždeň"].map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setHeadline(preset.replace(/^\S+\s/, ""))}
+                className="text-[11px] px-2.5 py-1.5 rounded-full border font-semibold text-slate-600 hover:bg-slate-50"
+                style={{ borderColor: "#E8DFD1" }}
+              >
+                {preset}
+              </button>
+            ))}
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-600 block mb-1.5">Farba</label>
+            <div className="flex gap-2">
+              {(Object.keys(POST_THEMES) as (keyof typeof POST_THEMES)[]).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setTheme(k)}
+                  className="w-9 h-9 rounded-full border-2 transition-all"
+                  style={{ background: POST_THEMES[k].bg1, borderColor: theme === k ? "#2A2620" : "transparent" }}
+                  aria-label={k}
+                />
+              ))}
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <input type="checkbox" checked={showPrice} onChange={(e) => setShowPrice(e.target.checked)} />
+            Zobraziť cenu
+          </label>
+          <button
+            onClick={download}
+            className="mt-1 py-3 rounded-full text-sm font-bold text-white hover:opacity-90 transition-opacity"
+            style={{ background: "#7A8471" }}
+          >
+            ⬇ Stiahnuť obrázok
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
