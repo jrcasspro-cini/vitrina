@@ -782,45 +782,45 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="showcase-grid">
             <div className="sc-card">
-              <div className="sc-label"><span>🛍️ Vaša stránka obchodu</span><span className="tag">eshop.zavio.sk/ateliernika</span></div>
+              <div className="sc-label"><span>🛍️ Vaša stránka obchodu</span><span className="tag">vitrina.zavio.sk/vas-obchod</span></div>
               <div className="sc-store-header">
-                <div className="sc-avatar">💍</div>
+                <div className="sc-avatar">🛍️</div>
                 <div>
-                  <div style={{ fontFamily: "'Righteous', sans-serif", fontSize: "1rem" }}>Ateliér Nika</div>
-                  <div style={{ fontSize: ".75rem", color: "var(--muted)" }}>Šperky · Bratislava</div>
+                  <div style={{ fontFamily: "'Righteous', sans-serif", fontSize: "1rem" }}>Tvoja Vitrína</div>
+                  <div style={{ fontSize: ".75rem", color: "var(--muted)" }}>Produkty aj služby na jednom mieste</div>
                 </div>
               </div>
               <div className="sc-item-grid">
-                {/* Fotky produktov — reálne fotky šperkov (Wikimedia Commons, voľne použiteľné) */}
+                {/* Fotky produktov — reálne fotky od predajcu */}
                 <div className="sc-item">
                   <div className="sc-item-photo">
-                    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Modern_Earrings.jpg?width=400" alt="Strieborné náušnice" loading="lazy" />
+                    <img src="/landing/sperk.jpg" alt="Šperk s rubínmi" loading="lazy" />
                   </div>
                   <span className="badge2">BESTSELLER</span>
-                  <div className="name">Strieborné náušnice</div>
-                  <div className="price-row"><span className="price">24,90 €</span><span className="add-btn">Pridať</span></div>
+                  <div className="name">Šperk s prívesom</div>
+                  <div className="price-row"><span className="price">29,00 €</span><span className="add-btn">Pridať</span></div>
                 </div>
                 <div className="sc-item">
                   <div className="sc-item-photo">
-                    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Weddingring.JPG?width=400" alt="Workshop: Prsteň" loading="lazy" />
+                    <img src="/landing/torta.jpg" alt="Torta na narodeniny" loading="lazy" />
                   </div>
-                  <span className="badge2">3 VOĽNÉ</span>
-                  <div className="name">Workshop: Prsteň</div>
-                  <div className="price-row"><span className="price">59,00 €</span><span className="add-btn">Kniha</span></div>
+                  <div className="name">Torta na narodeniny</div>
+                  <div className="price-row"><span className="price">od 69,00 €</span><span className="add-btn">Pridať</span></div>
                 </div>
                 <div className="sc-item">
                   <div className="sc-item-photo">
-                    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Handmade_Gold_Necklace.jpg?width=400" alt="Retiazka s príveskom" loading="lazy" />
+                    <img src="/landing/masaz.jpg" alt="Masážne služby" loading="lazy" />
                   </div>
-                  <div className="name">Retiazka s príveskom</div>
-                  <div className="price-row"><span className="price">32,00 €</span><span className="add-btn">Pridať</span></div>
+                  <span className="badge2">VOĽNÉ TERMÍNY</span>
+                  <div className="name">Masážne služby</div>
+                  <div className="price-row"><span className="price">15,00 €</span><span className="add-btn">Kniha</span></div>
                 </div>
                 <div className="sc-item">
                   <div className="sc-item-photo">
-                    <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Green_Aventurine_Bracelet.jpg?width=400" alt="Náramok na želanie" loading="lazy" />
+                    <img src="/landing/krem.jpg" alt="Krém na suchú pleť" loading="lazy" />
                   </div>
-                  <div className="name">Náramok na želanie</div>
-                  <div className="price-row"><span className="price">18,00 €</span><span className="add-btn">Pridať</span></div>
+                  <div className="name">Krém na suchú pleť</div>
+                  <div className="price-row"><span className="price">19,00 €</span><span className="add-btn">Pridať</span></div>
                 </div>
               </div>
             </div>
