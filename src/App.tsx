@@ -2460,8 +2460,9 @@ export default function Vitrina() {
             </section>
 
             <AddItem
-              disabled={hasReachedItemLimit} 
+              disabled={hasReachedItemLimit}
               limitMessage={limitMessage}
+              storePlan={store.plan}
               onAdd={async (it) => {
               try {
                 setDbError("");
@@ -3777,60 +3778,64 @@ function readAsDataURL(file: File, cb: (result: string) => void) {
   }
 
   const reader = new FileReader();
-  reader.onload = () => {
-    const originalDataUrl = reader.result as string;
-    // Ak je originál dostatočne malý, netreba nič robiť.
-    if (originalDataUrl.length <= SKIP_COMPRESSION_BYTES) {
-      cb(originalDataUrl);
-      return;
-    }
+  reader.onload = () => compressDataUrl(reader.result as string, cb);
+  reader.readAsDataURL(file);
+}
 
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      if (!ctx) { cb(originalDataUrl); return; }
+// ── Zdieľaná kompresia — použitá aj pri nahrávaní z disku, aj pri AI-vygenerovaných
+// fotkách (tie prídu z Gemini API ako veľké PNG, treba ich rovnako zmenšiť pred
+// uložením do Firestore). ──
+function compressDataUrl(originalDataUrl: string, cb: (result: string) => void) {
+  // Ak je originál dostatočne malý, netreba nič robiť.
+  if (originalDataUrl.length <= SKIP_COMPRESSION_BYTES) {
+    cb(originalDataUrl);
+    return;
+  }
 
-      // Skús postupne menšie rozmery, a pri každom rozmere aj klesajúcu kvalitu,
-      // kým sa výsledok nezmestí do rozpočtu. Väčšina fotiek sa vyrieši už na
-      // prvom kroku (1200 px, kvalita 0.8); extrémne detailné fotky prejdú
-      // ďalšími krokmi až po najmenší rozmer.
-      const dims = [1200, 900, 700, 500];
-      const qualities = [0.8, 0.68, 0.55, 0.42];
-      let best = "";
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { cb(originalDataUrl); return; }
 
-      for (const maxDim of dims) {
-        let { width, height } = img;
-        if (width > maxDim || height > maxDim) {
-          if (width > height) {
-            height = Math.round(height * (maxDim / width));
-            width = maxDim;
-          } else {
-            width = Math.round(width * (maxDim / height));
-            height = maxDim;
-          }
-        }
-        canvas.width = width;
-        canvas.height = height;
-        ctx.clearRect(0, 0, width, height);
-        ctx.drawImage(img, 0, 0, width, height);
+    // Skús postupne menšie rozmery, a pri každom rozmere aj klesajúcu kvalitu,
+    // kým sa výsledok nezmestí do rozpočtu. Väčšina fotiek sa vyrieši už na
+    // prvom kroku (1200 px, kvalita 0.8); extrémne detailné fotky prejdú
+    // ďalšími krokmi až po najmenší rozmer.
+    const dims = [1200, 900, 700, 500];
+    const qualities = [0.8, 0.68, 0.55, 0.42];
+    let best = "";
 
-        for (const q of qualities) {
-          const out = canvas.toDataURL("image/jpeg", q);
-          best = out; // vždy si pamätaj posledný (najmenší) pokus ako fallback
-          if (out.length <= TARGET_IMAGE_BYTES) {
-            cb(out);
-            return;
-          }
+    for (const maxDim of dims) {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round(height * (maxDim / width));
+          width = maxDim;
+        } else {
+          width = Math.round(width * (maxDim / height));
+          height = maxDim;
         }
       }
-      // Ani na najmenšom rozmere/kvalite sa nezmestilo — použi aspoň najmenší pokus.
-      cb(best || originalDataUrl);
-    };
-    img.onerror = () => cb(originalDataUrl);
-    img.src = originalDataUrl;
+      canvas.width = width;
+      canvas.height = height;
+      ctx.clearRect(0, 0, width, height);
+      ctx.drawImage(img, 0, 0, width, height);
+
+      for (const q of qualities) {
+        const out = canvas.toDataURL("image/jpeg", q);
+        best = out; // vždy si pamätaj posledný (najmenší) pokus ako fallback
+        if (out.length <= TARGET_IMAGE_BYTES) {
+          cb(out);
+          return;
+        }
+      }
+    }
+    // Ani na najmenšom rozmere/kvalite sa nezmestilo — použi aspoň najmenší pokus.
+    cb(best || originalDataUrl);
   };
-  reader.readAsDataURL(file);
+  img.onerror = () => cb(originalDataUrl);
+  img.src = originalDataUrl;
 }
 
 // ── Galéria fotiek produktu (carousel s bodkami ak > 1) ──
@@ -3897,7 +3902,7 @@ function ProductGallery({ product }: { product: StoreItem }) {
 }
 
 // ── Formulár na pridanie položky ──
-function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) => void; disabled?: boolean; limitMessage?: string }) {
+function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: StoreItem) => void; disabled?: boolean; limitMessage?: string; storePlan?: string }) {
   const [f, setF] = useState<{
     name: string;
     desc: string;
@@ -3916,6 +3921,47 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
   };
   const removePhoto = (idx: number) => {
     setF((p) => ({ ...p, imgs: p.imgs.filter((_, i) => i !== idx) }));
+  };
+
+  // ── AI generovanie ďalších fotiek (len Rozšírený plán) ──
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiResults, setAiResults] = useState<string[]>([]);
+  const hasExtendedPlan = storePlan === "extended";
+
+  const generateAiPhotos = async () => {
+    const sourceUrl = f.imgs[0];
+    if (!sourceUrl) return;
+    setAiLoading(true);
+    setAiError("");
+    setAiResults([]);
+    try {
+      const match = sourceUrl.match(/^data:([^;]+);base64,(.+)$/);
+      if (!match) throw new Error("Neplatný formát fotky.");
+      const [, mimeType, base64Data] = match;
+      const res = await fetch("/api/generate-photos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: base64Data, mimeType }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "Generovanie zlyhalo.");
+      const urls: string[] = (json.images || []).map((im: { mimeType: string; data: string }) => `data:${im.mimeType};base64,${im.data}`);
+      if (urls.length === 0) throw new Error("Nepodarilo sa vygenerovať žiadnu fotku.");
+      setAiResults(urls);
+    } catch (err: any) {
+      console.error("AI photo generation error:", err);
+      setAiError(err.message || "Generovanie zlyhalo. Skús to prosím znova.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const acceptAiPhoto = (url: string) => {
+    // AI obrázky prídu z Gemini ako veľké PNG — pred pridaním ich skomprimujeme rovnako
+    // ako bežne nahraté fotky, aby sa zmestili do Firestore limitu.
+    compressDataUrl(url, (compressed) => addPhoto(compressed));
+    setAiResults((prev) => prev.filter((u) => u !== url));
   };
 
   // Slovenskí užívatelia zadávajú desatinné číslo s čiarkou (0,77) — akceptujeme obidve.
@@ -4017,6 +4063,47 @@ function AddItem({ onAdd, disabled, limitMessage }: { onAdd: (item: StoreItem) =
             );
           })}
         </div>
+
+        {/* AI generovanie ďalších fotiek — len keď je nahratá aspoň 1 fotka a je miesto na ďalšiu */}
+        {f.imgs.length > 0 && f.imgs.length < MAX_PRODUCT_PHOTOS && (
+          hasExtendedPlan ? (
+            <div className="mt-2.5 p-3 rounded-xl" style={{ background: C.accentSoft, border: `1px solid ${C.line}` }}>
+              <button
+                type="button"
+                onClick={generateAiPhotos}
+                disabled={aiLoading}
+                className="text-xs font-bold flex items-center gap-1.5 disabled:opacity-60"
+                style={{ color: C.accentText }}
+              >
+                {aiLoading ? "✨ Generujem fotky…" : "✨ Vygenerovať ďalšie fotky pomocou AI"}
+              </button>
+              {aiError && <p className="text-[11px] mt-1.5 text-red-600">{aiError}</p>}
+              {aiResults.length > 0 && (
+                <div className="mt-2.5">
+                  <p className="text-[10px] font-semibold mb-1.5" style={{ color: C.soft }}>Klepni na fotku, ktorú chceš pridať:</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {aiResults.map((url, i) => (
+                      <button
+                        type="button"
+                        key={i}
+                        onClick={() => acceptAiPhoto(url)}
+                        disabled={f.imgs.length >= MAX_PRODUCT_PHOTOS}
+                        className="aspect-square rounded-lg overflow-hidden border hover:opacity-80 transition-opacity disabled:opacity-40"
+                        style={{ borderColor: C.line }}
+                      >
+                        <img src={url} alt={`AI návrh ${i + 1}`} className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="mt-2 text-[11px]" style={{ color: C.soft }}>
+              🔒 Automatické generovanie ďalších fotiek pomocou AI je dostupné s Rozšíreným plánom.
+            </p>
+          )
+        )}
       </div>
       <button
         disabled={!ok || disabled}
