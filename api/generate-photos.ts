@@ -15,11 +15,25 @@ export const config = { runtime: "edge" };
 const MODEL = "gemini-2.5-flash-image";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
 
-const PROMPTS = [
+const DEFAULT_PROMPTS = [
   "Professional e-commerce product photography of the EXACT same product shown in the input image. Close-up angle, clean minimal light-grey studio background, soft studio lighting, sharp focus. Do not change the product itself, its shape, its label, logo, printed text or colors in any way — only change the camera angle, framing and background.",
   "Professional e-commerce product photography of the EXACT same product shown in the input image, styled as a natural lifestyle scene (e.g. on a wooden table or stone surface with a few tasteful complementary props nearby, soft natural light). Do not change the product itself, its shape, its label, logo, printed text or colors in any way — only change the background, props and composition.",
   "Professional e-commerce product photography of the EXACT same product shown in the input image, from a different angle (three-quarter view or slightly from above), simple clean background, soft even lighting, sharp focus. Do not change the product itself, its shape, its label, logo, printed text or colors in any way — only change the angle and background.",
 ];
+
+// Ak predajca zadá vlastný popis scény (napr. "žena nanáša krém na tvár"), postavíme
+// naň 3 varianty s rôznym rámovaním namiesto univerzálnych promptov vyššie — inak
+// vychádzajú príliš podobné (len iné pozadie pri tom istom zátiší).
+function buildPrompts(description?: string): string[] {
+  if (!description || !description.trim()) return DEFAULT_PROMPTS;
+  const scene = description.trim();
+  const base = `Professional e-commerce product photography. The product bottle/jar/package must be the EXACT same as in the input image — do not change its shape, label, logo, printed text or colors in any way. Scene to depict: ${scene}.`;
+  return [
+    `${base} Close, sharp focus on the product within the scene, well-lit, high quality.`,
+    `${base} Wider shot showing more of the surrounding context and environment, natural lighting.`,
+    `${base} A different camera angle than the other shots, soft natural light, editorial style.`,
+  ];
+}
 
 interface GenPart {
   text?: string;
@@ -88,13 +102,17 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: "Neplatné telo požiadavky." }), { status: 400 });
   }
 
-  const { image, mimeType } = body || {};
+  const { image, mimeType, description } = body || {};
   if (!image || typeof image !== "string" || !mimeType || typeof mimeType !== "string") {
     return new Response(JSON.stringify({ error: "Chýba obrázok (image) alebo mimeType." }), { status: 400 });
   }
+  if (description !== undefined && (typeof description !== "string" || description.length > 300)) {
+    return new Response(JSON.stringify({ error: "Popis scény je neplatný alebo príliš dlhý (max 300 znakov)." }), { status: 400 });
+  }
 
+  const prompts = buildPrompts(description);
   const results = await Promise.allSettled(
-    PROMPTS.map((prompt) => generateOne(apiKey, prompt, image, mimeType))
+    prompts.map((prompt) => generateOne(apiKey, prompt, image, mimeType))
   );
 
   const images = results

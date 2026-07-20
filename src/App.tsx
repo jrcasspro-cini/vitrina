@@ -3927,6 +3927,7 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState("");
   const [aiResults, setAiResults] = useState<string[]>([]);
+  const [aiPrompt, setAiPrompt] = useState("");
   const hasExtendedPlan = storePlan === "extended";
 
   const generateAiPhotos = async () => {
@@ -3942,7 +3943,7 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
       const res = await fetch("/api/generate-photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64Data, mimeType }),
+        body: JSON.stringify({ image: base64Data, mimeType, description: aiPrompt.trim() || undefined }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -4071,6 +4072,15 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
         {f.imgs.length > 0 && f.imgs.length < MAX_PRODUCT_PHOTOS && (
           hasExtendedPlan ? (
             <div className="mt-2.5 p-3 rounded-xl" style={{ background: C.accentSoft, border: `1px solid ${C.line}` }}>
+              <p className="text-[11px] font-semibold mb-1.5" style={{ color: C.soft }}>✨ AI fotky produktu</p>
+              <input
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value.slice(0, 300))}
+                placeholder='Voliteľne opíš, čo majú fotky zobrazovať (napr. "žena si nanáša krém na tvár", "produkt v ruke na drevenom stole")'
+                disabled={aiLoading}
+                className="w-full rounded-lg px-2.5 py-1.5 text-xs border mb-2 disabled:opacity-60"
+                style={{ borderColor: C.line, background: "#fff" }}
+              />
               <button
                 type="button"
                 onClick={generateAiPhotos}
