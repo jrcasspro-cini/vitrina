@@ -449,6 +449,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .sc-item { background: var(--surface2); border-radius: 12px; padding: 10px; position: relative; }
         .landing-page-root .sc-item-photo { width: 100%; aspect-ratio: 4 / 3; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 8px; overflow: hidden; }
         .landing-page-root .sc-item-photo img { width: 100%; height: 100%; object-fit: cover; }
+        .landing-page-root .sc-item-photo svg { width: 42%; height: 42%; opacity: .95; }
         .landing-page-root .sc-item:nth-child(1) .sc-item-photo { background: linear-gradient(135deg, var(--accent1), var(--accent5)); }
         .landing-page-root .sc-item:nth-child(2) .sc-item-photo { background: linear-gradient(135deg, var(--accent2), var(--accent4)); }
         .landing-page-root .sc-item:nth-child(3) .sc-item-photo { background: linear-gradient(135deg, var(--accent3), var(--accent1)); }
@@ -790,26 +791,53 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
                 </div>
               </div>
               <div className="sc-item-grid">
-                {/* Fotky produktov — zatiaľ farebný placeholder s emoji, dá sa nahradiť <img src="..." /> */}
+                {/* Fotky produktov — elegantné vektorové ikony šperkov (žiadna závislosť na externých fotkách), dá sa kedykoľvek nahradiť <img src="..." /> */}
                 <div className="sc-item">
-                  <div className="sc-item-photo">💍</div>
+                  <div className="sc-item-photo">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="22" cy="14" r="4" stroke="white" strokeWidth="2" />
+                      <path d="M22 18 L22 30" stroke="white" strokeWidth="2" />
+                      <path d="M14 30 a8 8 0 1 0 16 0" stroke="white" strokeWidth="2" />
+                      <circle cx="44" cy="14" r="4" stroke="white" strokeWidth="2" />
+                      <path d="M44 18 L44 30" stroke="white" strokeWidth="2" />
+                      <path d="M36 30 a8 8 0 1 0 16 0" stroke="white" strokeWidth="2" />
+                    </svg>
+                  </div>
                   <span className="badge2">BESTSELLER</span>
                   <div className="name">Strieborné náušnice</div>
                   <div className="price-row"><span className="price">24,90 €</span><span className="add-btn">Pridať</span></div>
                 </div>
                 <div className="sc-item">
-                  <div className="sc-item-photo">💎</div>
+                  <div className="sc-item-photo">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="32" cy="40" r="15" stroke="white" strokeWidth="2.5" />
+                      <path d="M24 24 L32 11 L40 24 L34.5 24 L32 19 L29.5 24 Z" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  </div>
                   <span className="badge2">3 VOĽNÉ</span>
                   <div className="name">Workshop: Prsteň</div>
                   <div className="price-row"><span className="price">59,00 €</span><span className="add-btn">Kniha</span></div>
                 </div>
                 <div className="sc-item">
-                  <div className="sc-item-photo">⛓️</div>
+                  <div className="sc-item-photo">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 12 Q32 32 56 12" stroke="white" strokeWidth="2" />
+                      <path d="M32 26 L32 32" stroke="white" strokeWidth="2" />
+                      <path d="M24 32 Q32 27 40 32 L38 46 Q32 52 26 46 Z" stroke="white" strokeWidth="2" strokeLinejoin="round" />
+                    </svg>
+                  </div>
                   <div className="name">Retiazka s príveskom</div>
                   <div className="price-row"><span className="price">32,00 €</span><span className="add-btn">Pridať</span></div>
                 </div>
                 <div className="sc-item">
-                  <div className="sc-item-photo">✨</div>
+                  <div className="sc-item-photo">
+                    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <ellipse cx="32" cy="32" rx="22" ry="13" stroke="white" strokeWidth="2.5" />
+                      <circle cx="10" cy="32" r="2.5" fill="white" />
+                      <circle cx="54" cy="32" r="2.5" fill="white" />
+                      <circle cx="32" cy="19" r="2.5" fill="white" />
+                    </svg>
+                  </div>
                   <div className="name">Náramok na želanie</div>
                   <div className="price-row"><span className="price">18,00 €</span><span className="add-btn">Pridať</span></div>
                 </div>
