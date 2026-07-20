@@ -3968,6 +3968,44 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
     setAiResults((prev) => prev.filter((u) => u !== url));
   };
 
+  // ── AI napíše popis produktu (len Rozšírený plán) ──
+  const [aiDescLoading, setAiDescLoading] = useState(false);
+  const [aiDescError, setAiDescError] = useState("");
+  const [aiKeywords, setAiKeywords] = useState("");
+
+  const generateAiDescription = async () => {
+    setAiDescLoading(true);
+    setAiDescError("");
+    try {
+      const sourceUrl = f.imgs[0];
+      let image: string | undefined;
+      let mimeType: string | undefined;
+      if (sourceUrl) {
+        const match = sourceUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (match) {
+          mimeType = match[1];
+          image = match[2];
+        }
+      }
+      const res = await fetch("/api/generate-description", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: f.name, keywords: aiKeywords, image, mimeType }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = Array.isArray(json?.details) && json.details.length > 0 ? ` (${json.details[0]})` : "";
+        throw new Error((json?.error || "Generovanie zlyhalo.") + detail);
+      }
+      setF((p) => ({ ...p, desc: json.desc || p.desc, longDesc: json.longDesc || p.longDesc }));
+    } catch (err: any) {
+      console.error("AI description generation error:", err);
+      setAiDescError(err.message || "Generovanie zlyhalo. Skús to prosím znova.");
+    } finally {
+      setAiDescLoading(false);
+    }
+  };
+
   // Slovenskí užívatelia zadávajú desatinné číslo s čiarkou (0,77) — akceptujeme obidve.
   const parsePrice = (v: string) => parseFloat((v || "").replace(",", "."));
   const ok = f.name.trim() && parsePrice(f.price) > 0 && !disabled;
@@ -3998,6 +4036,35 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
       <input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder="Názov"
         disabled={disabled}
         className="w-full rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
+
+      {hasExtendedPlan ? (
+        <div className="p-3 rounded-xl" style={{ background: C.accentSoft, border: `1px solid ${C.line}` }}>
+          <p className="text-[11px] font-semibold mb-1.5" style={{ color: C.soft }}>✨ AI napíše popis produktu</p>
+          <input
+            value={aiKeywords}
+            onChange={(e) => setAiKeywords(e.target.value.slice(0, 300))}
+            placeholder='Voliteľne pridaj kľúčové slová (napr. "sójová sviečka, škorica, ručná výroba")'
+            disabled={aiDescLoading}
+            className="w-full rounded-lg px-2.5 py-1.5 text-xs border mb-2 disabled:opacity-60"
+            style={{ borderColor: C.line, background: "#fff" }}
+          />
+          <button
+            type="button"
+            onClick={generateAiDescription}
+            disabled={aiDescLoading || (!f.name.trim() && !aiKeywords.trim() && !f.imgs[0])}
+            className="text-xs font-bold flex items-center gap-1.5 disabled:opacity-60"
+            style={{ color: C.accentText }}
+          >
+            {aiDescLoading ? "✨ Píšem popis…" : "✨ AI napíše popis produktu"}
+          </button>
+          {aiDescError && <p className="text-[11px] mt-1.5 text-red-600">{aiDescError}</p>}
+        </div>
+      ) : (
+        <p className="text-[11px]" style={{ color: C.soft }}>
+          🔒 AI napísanie popisu produktu je dostupné s Rozšíreným plánom.
+        </p>
+      )}
+
       <input value={f.desc} onChange={(e) => setF({ ...f, desc: e.target.value })} placeholder="Doplňujúce info / krátky popis (napr. Vôňa: škorica)"
         disabled={disabled}
         className="w-full rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
