@@ -22,7 +22,8 @@ import {
   query,
   where,
   getDoc,
-  updateDoc
+  updateDoc,
+  increment
 } from "firebase/firestore";
 import {
   signInWithEmailAndPassword,
@@ -448,7 +449,8 @@ export default function Vitrina() {
     desc: "",
     longDesc: "",
     price: "",
-    slot: ""
+    slot: "",
+    capacity: ""
   });
   const [checkout, setCheckout] = useState(false);
   const [cust, setCust] = useState({ name: "", city: "", time: "", pay: "Prevod na účet" });
@@ -939,7 +941,9 @@ export default function Vitrina() {
 
   const add = (id: string, d: number) =>
     setCart((c) => {
-      const q = Math.max(0, (c[id] || 0) + d);
+      const item = items.find((i) => i.id === id);
+      const maxQty = item?.type === "booking" && item.left !== undefined ? Math.max(0, item.left) : Infinity;
+      const q = Math.min(maxQty, Math.max(0, (c[id] || 0) + d));
       const n = { ...c, [id]: q };
       if (q === 0) delete n[id];
       return n;
@@ -1070,6 +1074,18 @@ export default function Vitrina() {
 
     try {
       await setDoc(doc(db, "orders", orderId), orderData);
+
+      // Pri rezerváciách (workshopy, termíny) reálne znížime počet voľných miest,
+      // aby odznak "X voľné" zodpovedal skutočnému stavu, nie len pevnému číslu z vytvorenia.
+      const bookingRows = cartRows.filter((r) => r.type === "booking" && r.qty > 0);
+      for (const r of bookingRows) {
+        try {
+          await updateDoc(doc(db, "items", r.id), { leftCapacity: increment(-r.qty) });
+        } catch (capErr) {
+          console.error("Error updating leftCapacity for item", r.id, capErr);
+        }
+      }
+
       setCart({});
       setCheckout(false);
     } catch (error) {
@@ -1790,9 +1806,15 @@ export default function Vitrina() {
                       </span>
                     )}
                     {selectedProduct.type === "booking" && selectedProduct.left !== undefined && (
-                      <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: "#FFF3E6", color: "#B4690E" }}>
-                        {selectedProduct.left} voľné
-                      </span>
+                      selectedProduct.left <= 0 ? (
+                        <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: "#FEE2E2", color: "#B91C1C" }}>
+                          Vypredané
+                        </span>
+                      ) : (
+                        <span className="text-[10px] uppercase tracking-wider px-3 py-1 rounded-full font-bold" style={{ background: "#FFF3E6", color: "#B4690E" }}>
+                          {selectedProduct.left} voľné
+                        </span>
+                      )
                     )}
                   </div>
                 )}
@@ -1852,30 +1874,40 @@ export default function Vitrina() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        const qty = cart[selectedProduct.id] ?? 0;
-                        if (qty === 0) {
-                          add(selectedProduct.id, 1);
-                        } else {
-                          setCheckout(true);
-                          setSelectedProductId(null); // return to store to show checkout
-                        }
-                      }}
-                      className="w-full sm:flex-1 py-3.5 px-6 rounded-full text-white font-extrabold text-sm flex items-center justify-between shadow-lg transition-transform hover:scale-[1.01] active:scale-95"
-                      style={{ background: C.accent }}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        {(cart[selectedProduct.id] ?? 0) === 0 ? (
-                          <>🛒 {selectedProduct.type === "booking" ? "Rezervovať miesto" : "Pridať do košíka"}</>
-                        ) : (
-                          <>💳 Pokračovať k objednávke</>
-                        )}
-                      </span>
-                      <span className="font-mono text-xs px-2.5 py-1 rounded-md bg-white/20">
-                        {eur(((cart[selectedProduct.id] ?? 0) || 1) * selectedProduct.price)}
-                      </span>
-                    </button>
+                    {selectedProduct.type === "booking" && selectedProduct.left !== undefined && selectedProduct.left <= 0 && (cart[selectedProduct.id] ?? 0) === 0 ? (
+                      <button
+                        disabled
+                        className="w-full sm:flex-1 py-3.5 px-6 rounded-full font-extrabold text-sm flex items-center justify-center opacity-50 cursor-not-allowed"
+                        style={{ background: C.line, color: C.soft }}
+                      >
+                        Vypredané
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          const qty = cart[selectedProduct.id] ?? 0;
+                          if (qty === 0) {
+                            add(selectedProduct.id, 1);
+                          } else {
+                            setCheckout(true);
+                            setSelectedProductId(null); // return to store to show checkout
+                          }
+                        }}
+                        className="w-full sm:flex-1 py-3.5 px-6 rounded-full text-white font-extrabold text-sm flex items-center justify-between shadow-lg transition-transform hover:scale-[1.01] active:scale-95"
+                        style={{ background: C.accent }}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          {(cart[selectedProduct.id] ?? 0) === 0 ? (
+                            <>🛒 {selectedProduct.type === "booking" ? "Rezervovať miesto" : "Pridať do košíka"}</>
+                          ) : (
+                            <>💳 Pokračovať k objednávke</>
+                          )}
+                        </span>
+                        <span className="font-mono text-xs px-2.5 py-1 rounded-md bg-white/20">
+                          {eur(((cart[selectedProduct.id] ?? 0) || 1) * selectedProduct.price)}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1970,9 +2002,15 @@ export default function Vitrina() {
                                 </span>
                               )}
                               {it.type === "booking" && it.left !== undefined && (
-                                <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: "#FFF3E6", color: "#B4690E" }}>
-                                  {it.left} voľné
-                                </span>
+                                it.left <= 0 ? (
+                                  <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: "#FEE2E2", color: "#B91C1C" }}>
+                                    Vypredané
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: "#FFF3E6", color: "#B4690E" }}>
+                                    {it.left} voľné
+                                  </span>
+                                )
                               )}
                             </div>
                           </div>
@@ -2010,6 +2048,14 @@ export default function Vitrina() {
                                   <span className="text-xs font-bold w-4 text-center">{cart[it.id]}</span>
                                   <button onClick={() => add(it.id, 1)} className="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.accentText }}>+</button>
                                 </div>
+                              ) : it.type === "booking" && it.left !== undefined && it.left <= 0 ? (
+                                <button
+                                  disabled
+                                  className="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 opacity-50 cursor-not-allowed"
+                                  style={{ background: C.line, color: C.soft }}
+                                >
+                                  Vypredané
+                                </button>
                               ) : (
                                 <button
                                   onClick={() => add(it.id, 1)}
@@ -2780,7 +2826,8 @@ export default function Vitrina() {
                             desc: it.desc,
                             longDesc: it.longDesc || "",
                             price: it.price.toString(),
-                            slot: it.slot || ""
+                            slot: it.slot || "",
+                            capacity: it.left !== undefined ? it.left.toString() : ""
                           });
                         }}
                         className="text-xs font-semibold flex items-center gap-0.5"
@@ -2885,6 +2932,17 @@ export default function Vitrina() {
                             />
                           )}
                         </div>
+                        {it.type === "booking" && (
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={editFields.capacity}
+                            onChange={(e) => setEditFields({ ...editFields, capacity: e.target.value.replace(/[^0-9]/g, "") })}
+                            placeholder="Voľné miesta"
+                            className="w-full rounded-lg px-2.5 py-1.5 text-xs border"
+                            style={{ borderColor: C.line, background: "#fff" }}
+                          />
+                        )}
                       </div>
                       <div className="flex gap-2 justify-end mt-1">
                         <button
@@ -2905,7 +2963,8 @@ export default function Vitrina() {
                                   desc: editFields.desc.trim(),
                                   longDesc: editFields.longDesc.trim(),
                                   price: parseFloat(editFields.price) || 0,
-                                  slot: editFields.slot
+                                  slot: editFields.slot,
+                                  ...(it.type === "booking" ? { leftCapacity: parseInt(editFields.capacity, 10) || 0 } : {})
                                 },
                                 { merge: true }
                               );
@@ -4121,8 +4180,9 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
     price: string;
     type: string;
     slot: string;
+    capacity: string;
     imgs: (string | null)[];
-  }>({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", imgs: [] });
+  }>({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", capacity: "10", imgs: [] });
 
   const addPhoto = (url: string) => {
     setF((p) => {
@@ -4286,9 +4346,14 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
         disabled={disabled}
         className="w-full rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
       {f.type === "booking" && (
-        <input value={f.slot} onChange={(e) => setF({ ...f, slot: e.target.value })} placeholder="Termín (napr. So 20. 12. · 15:00)"
-          disabled={disabled}
-          className="w-full rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
+        <div className="flex gap-2">
+          <input value={f.slot} onChange={(e) => setF({ ...f, slot: e.target.value })} placeholder="Termín (napr. So 20. 12. · 15:00)"
+            disabled={disabled}
+            className="flex-[2] rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
+          <input value={f.capacity} onChange={(e) => setF({ ...f, capacity: e.target.value.replace(/[^0-9]/g, "") })} placeholder="Miest" inputMode="numeric"
+            disabled={disabled}
+            className="flex-1 rounded-xl px-3 py-2 text-sm border disabled:opacity-50" style={{ borderColor: C.line, background: C.bg }} />
+        </div>
       )}
       <div className="mt-1">
         <div className="text-[11px] font-semibold mb-1.5" style={{ color: C.soft }}>
@@ -4412,11 +4477,11 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
             price: parsePrice(f.price),
             unit: f.type === "booking" ? "miesto" : "ks",
             slot: f.slot || "Po dohode",
-            left: 10,
+            left: f.type === "booking" ? (parseInt(f.capacity, 10) || 0) : 10,
             badge: null,
             longDesc: f.longDesc.trim()
           });
-          setF({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", imgs: [] });
+          setF({ name: "", desc: "", longDesc: "", price: "", type: "product", slot: "", capacity: "10", imgs: [] });
         }}
         className="mt-1 py-2 rounded-full text-sm font-bold text-white disabled:opacity-40"
         style={{ background: C.accent }}
