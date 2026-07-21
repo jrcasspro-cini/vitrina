@@ -510,8 +510,9 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         .landing-page-root .industries { padding: 90px 0; background: var(--wash-mint); }
         .landing-page-root .ind-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 50px; }
         .landing-page-root .ind-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); text-align: left; }
-        .landing-page-root .ind-card .art { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; position: relative; }
+        .landing-page-root .ind-card .art { height: 150px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; position: relative; overflow: hidden; }
         .landing-page-root .ind-card .art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 30%, rgba(255,255,255,.06), transparent 70%); }
+        .landing-page-root .ind-card .art img { width: 100%; height: 100%; object-fit: cover; position: relative; z-index: 0; }
         .landing-page-root .ind-card .body { padding: 20px; }
         .landing-page-root .ind-card h3 { font-size: 1rem; margin-bottom: 8px; }
         .landing-page-root .ind-card p { color: var(--muted); font-size: .82rem; }
@@ -919,20 +920,20 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="ind-grid-4">
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(201,125,78,.25), rgba(107,142,90,.1))" }}>💍</div>
-              <div className="body"><h3>Šperky a doplnky</h3><p>Ručná práca, obmedzené kolekcie — predávaj priamo z Instagramu.</p></div>
+              <div className="art"><img src="/landing/torty.jpg" alt="Cukrárne a torty" loading="lazy" /></div>
+              <div className="body"><h3>Cukrárne a torty</h3><p>Torty na objednávku a čerstvé zákusky — zákazník si vyberie, dohodne termín vyzdvihnutia a zaplatí vopred cez QR.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(107,142,90,.2), rgba(201,125,78,.12))" }}>🎨</div>
-              <div className="body"><h3>Tréneri a lektori</h3><p>Nechajte účastníkov, aby si sami vybrali termín. Vy dostanete potvrdenú rezerváciu.</p></div>
+              <div className="art"><img src="/landing/licenie.jpg" alt="Vizážistky a kozmetičky" loading="lazy" /></div>
+              <div className="body"><h3>Vizážistky a kozmetičky</h3><p>Nechajte klientky, aby si sami vybrali termín na líčenie. Vy dostanete potvrdenú rezerváciu.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(194,152,91,.22), rgba(107,142,90,.1))" }}>🧵</div>
-              <div className="body"><h3>Ručná výroba</h3><p>Prijímajte hromadné aj drobné objednávky bez chaosu vo WhatsAppe.</p></div>
+              <div className="art"><img src="/landing/vence.jpg" alt="Ručná výroba" loading="lazy" /></div>
+              <div className="body"><h3>Ručná výroba</h3><p>Kvetinové väzby, vence a sezónne aranžmány — prijímajte hromadné aj drobné objednávky bez chaosu vo WhatsAppe.</p></div>
             </div>
             <div className="ind-card">
-              <div className="art" style={{ background: "linear-gradient(135deg, rgba(180,105,14,.18), rgba(107,142,90,.1))" }}>👜</div>
-              <div className="body"><h3>Móda a butiky</h3><p>Moderný zdieľateľný obchod, ktorý odráža vašu značku — bez zložitého e-commerce systému.</p></div>
+              <div className="art"><img src="/landing/kabelky.jpg" alt="Móda a butiky" loading="lazy" /></div>
+              <div className="body"><h3>Móda a butiky</h3><p>Moderný zdieľateľný obchod pre kabelky a doplnky, ktorý odráža vašu značku — bez zložitého e-commerce systému.</p></div>
             </div>
           </div>
         </div>
