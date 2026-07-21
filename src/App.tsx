@@ -74,18 +74,48 @@ function copyText(text: string, onSuccess: () => void) {
 // objednávkou do WhatsAppu + jednoduchá administrácia.
 
 // Soft Minimalism paleta — krémová/béžová + sage green akcent (podľa Gemini návrhu Option 1)
+//
+// accent/accentSoft/accentText čítajú CSS premenné (--vitrina-accent…) namiesto pevných hex
+// hodnôt. Vďaka tomu vie predajca na verejnej stránke svojho obchodu (pozri STORE_THEMES nižšie)
+// zmeniť tieto tri farby jednoducho tak, že na obalový <div> nastaví príslušné CSS premenné —
+// všade inde v appke (admin, landing page) sa použije záložná (fallback) hodnota za čiarkou,
+// takže sa nič inde vizuálne nezmení.
 const C = {
   bg: "#F5F0E8",        // teplá krémová (pozadie)
   card: "#FFFFFF",      // biela karta
   ink: "#2A2620",       // hlboká hnedá (namiesto čiernej — mäkšie)
   soft: "#6B655C",      // teplá šedá (podtitulky)
   line: "#E8DFD1",      // krémová obruba
-  accent: "#7A8471",    // sage green (namiesto fialovej — teplé, prírodné) — pre pozadia/okraje/ikony
-  accentSoft: "#E4E8DE", // svetlá sage (backgrounds, hovers)
-  accentText: "#647058", // tmavšia sage — pre TEXT na accent farbe (kontrast 4.2–5.3:1, čitateľné na mobile)
+  accent: "var(--vitrina-accent, #7A8471)",         // sage green — pre pozadia/okraje/ikony
+  accentSoft: "var(--vitrina-accent-soft, #E4E8DE)", // svetlá sage (backgrounds, hovers)
+  accentText: "var(--vitrina-accent-text, #647058)", // tmavšia sage — pre TEXT na accent farbe
   wa: "#25D366",         // WhatsApp green (nemeníme — je to brand)
   waDark: "#128C4B",
 };
+
+// Farebné témy pre verejnú stránku obchodu — predajca si v Nastaveniach vyberie jednu
+// z týchto vopred pripravených paliet (nie voľný výber ľubovoľnej farby, aby vždy
+// zostala dobrá čitateľnosť textu). Mení sa iba akcentová farba (tlačidlá, odznaky),
+// zvyšok appky (biele pozadie, tmavý text) ostáva rovnaký pre všetky témy.
+const STORE_THEMES: Record<string, { label: string; accent: string; accentSoft: string; accentText: string }> = {
+  sage:       { label: "Šalvia (predvolená)", accent: "#7A8471", accentSoft: "#E4E8DE", accentText: "#647058" },
+  terracotta: { label: "Terakota",            accent: "#C97D4E", accentSoft: "#F3E3D6", accentText: "#9C5A2E" },
+  modra:      { label: "Modrá",               accent: "#4E7DC9", accentSoft: "#DCE7F5", accentText: "#2E5A9C" },
+  ruzova:     { label: "Ružová",              accent: "#C94E82", accentSoft: "#F5DCE7", accentText: "#9C2E5F" },
+  fialova:    { label: "Fialová",             accent: "#8B5FBF", accentSoft: "#E9E0F5", accentText: "#5F3A8C" },
+  zlata:      { label: "Zlatá",               accent: "#B4890E", accentSoft: "#F5EBD6", accentText: "#8C6A1E" },
+  navy:       { label: "Tmavomodrá",          accent: "#1E3A5F", accentSoft: "#DCE3EC", accentText: "#1E3A5F" },
+};
+
+// CSS premenné, ktoré sa nastavia na obalový <div> verejnej stránky obchodu podľa store.theme.
+function getStoreThemeCssVars(themeId?: string): Record<string, string> {
+  const theme = STORE_THEMES[themeId || "sage"] || STORE_THEMES.sage;
+  return {
+    ["--vitrina-accent" as any]: theme.accent,
+    ["--vitrina-accent-soft" as any]: theme.accentSoft,
+    ["--vitrina-accent-text" as any]: theme.accentText,
+  };
+}
 
 interface StoreItem {
   id: string;
@@ -576,7 +606,8 @@ export default function Vitrina() {
           fakturaNazov: d.fakturaNazov || "",
           fakturaAdresa: d.fakturaAdresa || "",
           fakturaIco: d.fakturaIco || "",
-          fakturaDic: d.fakturaDic || ""
+          fakturaDic: d.fakturaDic || "",
+          theme: d.theme || "sage"
         });
       } else {
         setStoreExists(false);
@@ -602,7 +633,8 @@ export default function Vitrina() {
           fakturaNazov: "",
           fakturaAdresa: "",
           fakturaIco: "",
-          fakturaDic: ""
+          fakturaDic: "",
+          theme: "sage"
         });
       }
     }, (error) => {
@@ -1767,7 +1799,7 @@ export default function Vitrina() {
               </button>
             </main>
           ) : (
-            <main className="max-w-2xl lg:max-w-5xl mx-auto w-full px-4 lg:px-6 pb-40 pt-6">
+            <main className="max-w-2xl lg:max-w-5xl mx-auto w-full px-4 lg:px-6 pb-40 pt-6" style={getStoreThemeCssVars(store.theme) as any}>
               {!isStoreVisibleToCustomers && isOwner && (
                 <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-in slide-in-from-top-3">
                   <div>
@@ -2151,7 +2183,7 @@ export default function Vitrina() {
                 {/* ── QR Platba ak má obchod IBAN ── */}
                 {store.iban ? (
                   <div className="mt-4 rounded-2xl border overflow-hidden" style={{ borderColor: C.line, background: C.card, boxShadow: "0 1px 3px rgba(20,20,20,.05)" }}>
-                    <div className="px-4 pt-4 pb-4 flex flex-col items-center text-center" style={{ background: C.accentSoft + "45" }}>
+                    <div className="px-4 pt-4 pb-4 flex flex-col items-center text-center" style={{ background: C.accentSoft }}>
                       <span className="text-xs font-bold tracking-wide uppercase px-2.5 py-1 rounded-full mb-2 bg-white shadow-sm" style={{ color: C.accentText }}>
                         ⚡ Rýchla QR platba (Prevod)
                       </span>
@@ -2487,6 +2519,27 @@ export default function Vitrina() {
                 </div>
               </div>
 
+              <label className="text-xs font-semibold mt-2.5" style={{ color: C.soft }}>Farba obchodu</label>
+              <p className="text-[11px] -mt-1" style={{ color: C.soft }}>Prejaví sa na vašej verejnej stránke (tlačidlá, odznaky) — vy v administrácii ju neuvidíte.</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {Object.entries(STORE_THEMES).map(([id, t]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => updateStoreField("theme", id)}
+                    title={t.label}
+                    className="w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                    style={{
+                      background: t.accent,
+                      border: (store.theme || "sage") === id ? `3px solid ${C.ink}` : "3px solid transparent",
+                      boxShadow: "0 1px 3px rgba(20,20,20,.15)"
+                    }}
+                  >
+                    {(store.theme || "sage") === id && <span className="text-white text-xs font-bold">✓</span>}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex justify-between items-center mt-3">
                 <label className="text-xs font-semibold" style={{ color: C.soft }}>Popis obchodu</label>
                 <span className="text-[10px] font-bold text-slate-500">
@@ -2589,7 +2642,7 @@ export default function Vitrina() {
                   </div>
                 </div>
               ) : isTrialActive ? (
-                <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: C.accentSoft, border: `1px solid ${C.accent}55`, color: C.ink }}>
+                <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: C.accentSoft, border: `1px solid ${C.accent}`, color: C.ink }}>
                   <span className="text-lg leading-none">⏱️</span>
                   <div>
                     <span className="font-extrabold block">Skúšobná doba (10-dňový Trial)</span>
@@ -2676,7 +2729,7 @@ export default function Vitrina() {
                 const paymentReported = !!(store as any).paymentReported;
                 const fakturaOk = !!((store as any).fakturaNazov || "").trim() && !!((store as any).fakturaAdresa || "").trim();
                 return (
-                  <div className="mt-3 p-4 rounded-2xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft + "22" }}>
+                  <div className="mt-3 p-4 rounded-2xl border border-dashed flex flex-col items-center text-center" style={{ borderColor: C.accent, background: C.accentSoft }}>
                     <span className="text-xs font-bold tracking-wide uppercase px-2 py-0.5 rounded-full mb-2" style={{ background: C.accentSoft, color: C.accentText }}>
                       💳 Aktivujte plán {nazovPlanu} ({suma} €/mes)
                     </span>
@@ -3232,7 +3285,7 @@ export default function Vitrina() {
             setSelectedProductId(null);
           }}
           className="fixed bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-3 rounded-full text-white font-bold shadow-lg transition-transform hover:scale-[1.03] z-40"
-          style={{ background: C.accent }}
+          style={{ background: C.accent, ...(getStoreThemeCssVars(store.theme) as any) }}
         >
           🛒 {count} {count === 1 ? "položka" : count < 5 ? "položky" : "položiek"} · {eur(total)} → Pokladňa
         </button>
@@ -3810,7 +3863,7 @@ export default function Vitrina() {
                       type="submit"
                       disabled={withdrawalLoading}
                       className="flex-1 py-3 rounded-xl text-white text-xs font-bold shadow-md transition-transform hover:scale-[1.01] disabled:opacity-50"
-                      style={{ background: C.accent }}
+                      style={{ background: C.accent, ...(getStoreThemeCssVars(store.theme) as any) }}
                     >
                       {withdrawalLoading ? "Spracúva sa..." : "Odoslať odstúpenie"}
                     </button>
