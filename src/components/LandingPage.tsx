@@ -1055,6 +1055,11 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="price-row"><div className="pc">Platba QR kódom</div><div className="pc"><span className="check">✓</span></div><div className="pc"><span className="check">✓</span></div></div>
             <div className="price-row"><div className="pc">Prehľad objednávok</div><div className="pc"><span className="check">✓</span></div><div className="pc"><span className="check">✓</span></div></div>
             <div className="price-row"><div className="pc">Automatické notifikácie</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
+
+            <div className="price-row section-row"><div className="pc">AI a marketing</div></div>
+            <div className="price-row"><div className="pc">AI dofotenie produktu (ďalšie uhly/scény z 1 fotky)</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
+            <div className="price-row"><div className="pc">AI napísanie popisu produktu</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
+            <div className="price-row"><div className="pc">Generátor príspevkov na Instagram/FB</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
           </div>
           <p style={{ textAlign: "center", color: "var(--muted)", fontSize: ".85rem", marginTop: "26px" }}>Vitrína je tvoj výklad, nie sklad. Predávate viac ako 6 vecí naraz? Pre väčší sortiment odporúčame plnohodnotný e-shop.</p>
         </div>
