@@ -2092,7 +2092,7 @@ export default function Vitrina() {
                                 <button
                                   onClick={() => add(it.id, 1)}
                                   className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white transition-transform duration-100 active:scale-95 hover:opacity-90 shrink-0"
-                                  style={{ background: C.ink }}
+                                  style={{ background: C.accent }}
                                 >
                                   {it.type === "booking" ? "Rezervovať" : "Pridať"}
                                 </button>
