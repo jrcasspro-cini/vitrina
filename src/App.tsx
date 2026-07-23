@@ -81,7 +81,7 @@ function copyText(text: string, onSuccess: () => void) {
 // všade inde v appke (admin, landing page) sa použije záložná (fallback) hodnota za čiarkou,
 // takže sa nič inde vizuálne nezmení.
 const C = {
-  bg: "#F5F0E8",        // teplá krémová (pozadie)
+  bg: "var(--vitrina-bg, #F5F0E8)", // teplá krémová (pozadie) — tiež súčasť farebnej témy
   card: "#FFFFFF",      // biela karta
   ink: "#2A2620",       // hlboká hnedá (namiesto čiernej — mäkšie)
   soft: "#6B655C",      // teplá šedá (podtitulky)
@@ -95,22 +95,23 @@ const C = {
 
 // Farebné témy pre verejnú stránku obchodu — predajca si v Nastaveniach vyberie jednu
 // z týchto vopred pripravených paliet (nie voľný výber ľubovoľnej farby, aby vždy
-// zostala dobrá čitateľnosť textu). Mení sa iba akcentová farba (tlačidlá, odznaky),
-// zvyšok appky (biele pozadie, tmavý text) ostáva rovnaký pre všetky témy.
-const STORE_THEMES: Record<string, { label: string; accent: string; accentSoft: string; accentText: string }> = {
-  sage:       { label: "Šalvia (predvolená)", accent: "#7A8471", accentSoft: "#E4E8DE", accentText: "#647058" },
-  terracotta: { label: "Terakota",            accent: "#C97D4E", accentSoft: "#F3E3D6", accentText: "#9C5A2E" },
-  modra:      { label: "Modrá",               accent: "#4E7DC9", accentSoft: "#DCE7F5", accentText: "#2E5A9C" },
-  ruzova:     { label: "Ružová",              accent: "#C94E82", accentSoft: "#F5DCE7", accentText: "#9C2E5F" },
-  fialova:    { label: "Fialová",             accent: "#8B5FBF", accentSoft: "#E9E0F5", accentText: "#5F3A8C" },
-  zlata:      { label: "Zlatá",               accent: "#B4890E", accentSoft: "#F5EBD6", accentText: "#8C6A1E" },
-  navy:       { label: "Tmavomodrá",          accent: "#1E3A5F", accentSoft: "#DCE3EC", accentText: "#1E3A5F" },
+// zostala dobrá čitateľnosť textu). Mení sa akcentová farba aj jemné pozadie stránky,
+// karty produktov ostávajú biele a text tmavý pre všetky témy (čitateľnosť).
+const STORE_THEMES: Record<string, { label: string; accent: string; accentSoft: string; accentText: string; bg: string }> = {
+  sage:       { label: "Šalvia (predvolená)", accent: "#7A8471", accentSoft: "#E4E8DE", accentText: "#647058", bg: "#F5F0E8" },
+  terracotta: { label: "Terakota",            accent: "#C97D4E", accentSoft: "#F3E3D6", accentText: "#9C5A2E", bg: "#FBF2EA" },
+  modra:      { label: "Modrá",               accent: "#4E7DC9", accentSoft: "#DCE7F5", accentText: "#2E5A9C", bg: "#EEF3FA" },
+  ruzova:     { label: "Ružová",              accent: "#C94E82", accentSoft: "#F5DCE7", accentText: "#9C2E5F", bg: "#FBEEF3" },
+  fialova:    { label: "Fialová",             accent: "#8B5FBF", accentSoft: "#E9E0F5", accentText: "#5F3A8C", bg: "#F3EFFA" },
+  zlata:      { label: "Zlatá",               accent: "#B4890E", accentSoft: "#F5EBD6", accentText: "#8C6A1E", bg: "#FBF5E6" },
+  navy:       { label: "Tmavomodrá",          accent: "#1E3A5F", accentSoft: "#DCE3EC", accentText: "#1E3A5F", bg: "#EDF1F6" },
 };
 
 // CSS premenné, ktoré sa nastavia na obalový <div> verejnej stránky obchodu podľa store.theme.
 function getStoreThemeCssVars(themeId?: string): Record<string, string> {
   const theme = STORE_THEMES[themeId || "sage"] || STORE_THEMES.sage;
   return {
+    ["--vitrina-bg" as any]: theme.bg,
     ["--vitrina-accent" as any]: theme.accent,
     ["--vitrina-accent-soft" as any]: theme.accentSoft,
     ["--vitrina-accent-text" as any]: theme.accentText,
@@ -1484,7 +1485,17 @@ export default function Vitrina() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col" style={{ background: C.bg, color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
+    <div
+      className="min-h-screen w-full flex flex-col"
+      style={{
+        background: C.bg,
+        color: C.ink,
+        fontFamily: "'Instrument Sans', system-ui, sans-serif",
+        // Farebná téma obchodu (pozadie + akcenty) sa prejaví len keď sa pozerá na verejný
+        // "Obchod" — v "Nastaveniach" (admin) zostáva appka vždy v predvolenej appkovej farbe.
+        ...((!isOwner || view === "shop") ? getStoreThemeCssVars(store.theme) : {}),
+      }}
+    >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
         .disp { font-family: 'Sora', sans-serif; }
