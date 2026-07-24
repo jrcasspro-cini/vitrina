@@ -32,7 +32,22 @@ service cloud.firestore {
     match /items/{itemId} {
       allow read: if true;
       allow create: if isAdmin() || isStoreOwner(request.resource.data.storeId);
-      allow update, delete: if isAdmin() || isStoreOwner(resource.data.storeId);
+      allow delete: if isAdmin() || isStoreOwner(resource.data.storeId);
+      allow update: if isAdmin() || isStoreOwner(resource.data.storeId) || (
+        // Verejný (neprihlásený) zákazník smie pri rezervácii workshopu znížiť počet
+        // voľných miest — ALE len ako súčasť toho istého atomického zápisu (writeBatch),
+        // ktorý zároveň reálne vytvorí objednávku pre ten istý obchod. getAfter() overí
+        // stav PO celom batchi, takže nejde o osamotenú manipuláciu leftCapacity bez
+        // toho, aby vznikla zodpovedajúca objednávka. Nič iné (názov, cena, fotky…) sa
+        // takto zmeniť nedá — chránené len pre majiteľa obchodu / admina.
+        resource.data.type == 'booking' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leftCapacity', 'lastOrderId']) &&
+        request.resource.data.leftCapacity is int &&
+        request.resource.data.leftCapacity >= 0 &&
+        request.resource.data.leftCapacity <= resource.data.leftCapacity &&
+        request.resource.data.lastOrderId is string &&
+        getAfter(/databases/$(database)/documents/orders/$(request.resource.data.lastOrderId)).data.storeId == resource.data.storeId
+      );
     }
 
     match /orders/{orderId} {

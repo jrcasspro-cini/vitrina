@@ -1,6 +1,7 @@
 // AI generovanie popisu produktu (krátky + podrobný popis) z názvu/kľúčových slov
-// a voliteľne fotky produktu. Dostupné len na Rozšírenom pláne (gating je na
-// strane frontendu, tento endpoint len robí samotné volanie na Gemini API).
+// a voliteľne fotky produktu. Dostupné len na Rozšírenom pláne — gating je aj na
+// frontende (skryté tlačidlo), aj tu na serveri cez verifyExtendedPlanStore, aby
+// endpoint nešlo zneužiť priamym volaním mimo appky.
 //
 // Používa textový model (nie image model) — je to výrazne lacnejšie ako
 // generovanie fotiek. Vyžaduje ten istý GEMINI_API_KEY, čo je už nastavený
@@ -13,6 +14,30 @@ export const config = { runtime: "edge" };
 // (presne to sa stalo s "gemini-2.5-flash").
 const MODEL = "gemini-flash-latest";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+const FIREBASE_PROJECT_ID = "vitrina-zavio";
+
+// Tento endpoint stojí peniaze (Gemini API), preto musí byť dostupný len obchodom na
+// Rozšírenom pláne — v appke je to skryté za tlačidlom, ale to samo osebe nikoho
+// nezastaví od priameho volania tohto URL. Over si preto priamo cez verejne čitateľný
+// Firestore dokument obchodu, že storeId naozaj patrí platiacemu, neexpirovanému
+// Rozšírenému plánu, skôr než minieme Gemini kredit.
+async function verifyExtendedPlanStore(storeId: unknown): Promise<boolean> {
+  if (!storeId || typeof storeId !== "string") return false;
+  try {
+    const res = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/stores/${encodeURIComponent(storeId)}`
+    );
+    if (!res.ok) return false;
+    const doc: any = await res.json();
+    const plan = doc?.fields?.plan?.stringValue;
+    const planEndsAt = doc?.fields?.planEndsAt?.stringValue;
+    if (plan !== "extended" || !planEndsAt) return false;
+    return new Date(planEndsAt).getTime() > Date.now();
+  } catch {
+    return false;
+  }
+}
 
 export default async function handler(req: Request): Promise<Response> {
   if (req.method !== "POST") {
@@ -34,7 +59,7 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: "Neplatné telo požiadavky." }), { status: 400 });
   }
 
-  const { name, keywords, image, mimeType, category } = body || {};
+  const { name, keywords, image, mimeType, category, storeId } = body || {};
   const nameStr = typeof name === "string" ? name.trim() : "";
   const keywordsStr = typeof keywords === "string" ? keywords.trim() : "";
   const categoryStr = typeof category === "string" ? category.trim() : "";
@@ -43,6 +68,14 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response(
       JSON.stringify({ error: "Zadaj aspoň názov produktu alebo pár kľúčových slov." }),
       { status: 400 }
+    );
+  }
+
+  const allowed = await verifyExtendedPlanStore(storeId);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: "Táto funkcia je dostupná len obchodom na aktívnom Rozšírenom pláne." }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
     );
   }
 

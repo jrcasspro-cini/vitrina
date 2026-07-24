@@ -23,7 +23,8 @@ import {
   where,
   getDoc,
   updateDoc,
-  increment
+  increment,
+  writeBatch
 } from "firebase/firestore";
 import {
   signInWithEmailAndPassword,
@@ -1106,19 +1107,18 @@ export default function Vitrina() {
     };
 
     try {
-      await setDoc(doc(db, "orders", orderId), orderData);
+      // Objednávka a zníženie voľných miest idú v JEDNOM atomickom zápise (writeBatch) —
+      // Firestore pravidlá vďaka tomu vedia overiť, že zníženie kapacity je naviazané na
+      // skutočne vytvorenú objednávku (nie osamotená manipulácia bez objednávky).
+      const batch = writeBatch(db);
+      batch.set(doc(db, "orders", orderId), orderData);
 
-      // Pri rezerváciách (workshopy, termíny) reálne znížime počet voľných miest,
-      // aby odznak "X voľné" zodpovedal skutočnému stavu, nie len pevnému číslu z vytvorenia.
       const bookingRows = cartRows.filter((r) => r.type === "booking" && r.qty > 0);
       for (const r of bookingRows) {
-        try {
-          await updateDoc(doc(db, "items", r.id), { leftCapacity: increment(-r.qty) });
-        } catch (capErr) {
-          console.error("Error updating leftCapacity for item", r.id, capErr);
-        }
+        batch.update(doc(db, "items", r.id), { leftCapacity: increment(-r.qty), lastOrderId: orderId });
       }
 
+      await batch.commit();
       setCart({});
       setCheckout(false);
     } catch (error) {
@@ -2574,6 +2574,7 @@ export default function Vitrina() {
               disabled={hasReachedItemLimit}
               limitMessage={limitMessage}
               storePlan={store.plan}
+              storeId={selectedStoreHandle || ""}
               onAdd={async (it) => {
               try {
                 setDbError("");
@@ -4236,7 +4237,7 @@ function ProductGallery({ product }: { product: StoreItem }) {
 }
 
 // ── Formulár na pridanie položky ──
-function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: StoreItem) => void; disabled?: boolean; limitMessage?: string; storePlan?: string }) {
+function AddItem({ onAdd, disabled, limitMessage, storePlan, storeId }: { onAdd: (item: StoreItem) => void; disabled?: boolean; limitMessage?: string; storePlan?: string; storeId?: string }) {
   const [f, setF] = useState<{
     name: string;
     desc: string;
@@ -4278,7 +4279,7 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
       const res = await fetch("/api/generate-photos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64Data, mimeType, description: aiPrompt.trim() || undefined }),
+        body: JSON.stringify({ image: base64Data, mimeType, description: aiPrompt.trim() || undefined, storeId }),
       });
       const json = await res.json();
       if (!res.ok) {
@@ -4325,7 +4326,7 @@ function AddItem({ onAdd, disabled, limitMessage, storePlan }: { onAdd: (item: S
       const res = await fetch("/api/generate-description", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: f.name, keywords: aiKeywords, image, mimeType }),
+        body: JSON.stringify({ name: f.name, keywords: aiKeywords, image, mimeType, storeId }),
       });
       const json = await res.json();
       if (!res.ok) {

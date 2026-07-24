@@ -1,6 +1,7 @@
 // AI generovanie ďalších fotiek produktu z jednej nahratej fotky (funkcia dostupná
-// len pre predajcov na Rozšírenom pláne — gating je na strane frontendu, tento
-// endpoint len robí samotné volanie na Gemini API).
+// len pre predajcov na Rozšírenom pláne — gating je aj na frontende (skryté tlačidlo),
+// aj tu na serveri cez verifyExtendedPlanStore, aby endpoint nešlo zneužiť priamym
+// volaním mimo appky).
 //
 // Vstup: 1 fotka (base64 + mimeType). Endpoint zavolá Gemini image model
 // (gemini-2.5-flash-image, tzv. "Nano Banana") 3x s rôznymi promptmi na varianty
@@ -14,6 +15,30 @@ export const config = { runtime: "edge" };
 
 const MODEL = "gemini-2.5-flash-image";
 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+
+const FIREBASE_PROJECT_ID = "vitrina-zavio";
+
+// Tento endpoint stojí peniaze (Gemini API), preto musí byť dostupný len obchodom na
+// Rozšírenom pláne — v appke je to skryté za tlačidlom, ale to samo osebe nikoho
+// nezastaví od priameho volania tohto URL. Over si preto priamo cez verejne čitateľný
+// Firestore dokument obchodu, že storeId naozaj patrí platiacemu, neexpirovanému
+// Rozšírenému plánu, skôr než minieme Gemini kredit.
+async function verifyExtendedPlanStore(storeId: unknown): Promise<boolean> {
+  if (!storeId || typeof storeId !== "string") return false;
+  try {
+    const res = await fetch(
+      `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/stores/${encodeURIComponent(storeId)}`
+    );
+    if (!res.ok) return false;
+    const doc: any = await res.json();
+    const plan = doc?.fields?.plan?.stringValue;
+    const planEndsAt = doc?.fields?.planEndsAt?.stringValue;
+    if (plan !== "extended" || !planEndsAt) return false;
+    return new Date(planEndsAt).getTime() > Date.now();
+  } catch {
+    return false;
+  }
+}
 
 const DEFAULT_PROMPTS = [
   "Professional e-commerce product photography of the EXACT same product shown in the input image. Close-up angle, clean minimal light-grey studio background, soft studio lighting, sharp focus. Do not change the product itself, its shape, its label, logo, printed text or colors in any way — only change the camera angle, framing and background.",
@@ -102,12 +127,20 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: "Neplatné telo požiadavky." }), { status: 400 });
   }
 
-  const { image, mimeType, description } = body || {};
+  const { image, mimeType, description, storeId } = body || {};
   if (!image || typeof image !== "string" || !mimeType || typeof mimeType !== "string") {
     return new Response(JSON.stringify({ error: "Chýba obrázok (image) alebo mimeType." }), { status: 400 });
   }
   if (description !== undefined && (typeof description !== "string" || description.length > 300)) {
     return new Response(JSON.stringify({ error: "Popis scény je neplatný alebo príliš dlhý (max 300 znakov)." }), { status: 400 });
+  }
+
+  const allowed = await verifyExtendedPlanStore(storeId);
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: "Táto funkcia je dostupná len obchodom na aktívnom Rozšírenom pláne." }),
+      { status: 403, headers: { "Content-Type": "application/json" } }
+    );
   }
 
   const prompts = buildPrompts(description);
