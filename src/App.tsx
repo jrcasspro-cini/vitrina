@@ -3889,7 +3889,7 @@ export default function Vitrina() {
 
       {/* ── Modálne okno: Generátor propagačného príspevku (len Rozšírený plán) ── */}
       {postGenItem && (
-        <SocialPostModal item={postGenItem} storeName={store.name} onClose={() => setPostGenItem(null)} />
+        <SocialPostModal item={postGenItem} storeName={store.name} storeId={selectedStoreHandle || ""} onClose={() => setPostGenItem(null)} />
       )}
     </div>
   );
@@ -3915,11 +3915,51 @@ function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: n
   ctx.closePath();
 }
 
-function SocialPostModal({ item, storeName, onClose }: { item: any; storeName: string; onClose: () => void }) {
+function SocialPostModal({ item, storeName, storeId, onClose }: { item: any; storeName: string; storeId?: string; onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [headline, setHeadline] = useState("Novinka v ponuke!");
   const [theme, setTheme] = useState<keyof typeof POST_THEMES>("sage");
   const [showPrice, setShowPrice] = useState(true);
+
+  // ── AI text pre platenú reklamu (Facebook/Instagram Ads) — len Rozšírený plán ──
+  const [adCopyLoading, setAdCopyLoading] = useState(false);
+  const [adCopyError, setAdCopyError] = useState("");
+  const [adHeadline, setAdHeadline] = useState("");
+  const [adPrimaryText, setAdPrimaryText] = useState("");
+  const [copiedField, setCopiedField] = useState<"headline" | "primaryText" | null>(null);
+
+  const generateAdCopy = async () => {
+    setAdCopyLoading(true);
+    setAdCopyError("");
+    setAdHeadline("");
+    setAdPrimaryText("");
+    try {
+      const res = await fetch("/api/generate-ad-copy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: item.name, desc: item.desc || item.longDesc || "", price: item.price, storeName, storeId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const detail = Array.isArray(json?.details) && json.details.length > 0 ? ` (${json.details[0]})` : "";
+        throw new Error((json?.error || "Generovanie zlyhalo.") + detail);
+      }
+      setAdHeadline(json.headline || "");
+      setAdPrimaryText(json.primaryText || "");
+    } catch (err: any) {
+      console.error("AI ad copy generation error:", err);
+      setAdCopyError(err.message || "Generovanie zlyhalo. Skús to prosím znova.");
+    } finally {
+      setAdCopyLoading(false);
+    }
+  };
+
+  const copyField = (field: "headline" | "primaryText", text: string) => {
+    copyText(text, () => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -4085,6 +4125,47 @@ function SocialPostModal({ item, storeName, onClose }: { item: any; storeName: s
           >
             ⬇ Stiahnuť obrázok
           </button>
+
+          <div className="mt-2 pt-4 border-t" style={{ borderColor: "#E8DFD1" }}>
+            <p className="text-xs font-bold text-slate-700 mb-1">📣 Text pre platenú reklamu (Facebook/Instagram Ads)</p>
+            <p className="text-[11px] text-slate-500 mb-2.5">AI navrhne nadpis a hlavný text — skopíruješ ich priamo do Facebook Ads Manager pri vytváraní vlastnej reklamy. Reklamu nepúšťame ani nespravujeme za teba.</p>
+            <button
+              type="button"
+              onClick={generateAdCopy}
+              disabled={adCopyLoading}
+              className="w-full py-2.5 rounded-xl text-xs font-bold border hover:bg-slate-50 transition-colors disabled:opacity-60"
+              style={{ borderColor: "#E8DFD1", color: "#647058" }}
+            >
+              {adCopyLoading ? "✨ Píšem text reklamy…" : "✨ Vygenerovať text reklamy"}
+            </button>
+            {adCopyError && <p className="text-[11px] mt-1.5 text-red-600">{adCopyError}</p>}
+            {(adHeadline || adPrimaryText) && (
+              <div className="mt-3 flex flex-col gap-2.5">
+                {adHeadline && (
+                  <div className="p-3 rounded-xl" style={{ background: "#F5F0E8" }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Nadpis</span>
+                      <button type="button" onClick={() => copyField("headline", adHeadline)} className="text-[11px] font-bold" style={{ color: "#647058" }}>
+                        {copiedField === "headline" ? "✓ Skopírované" : "📋 Kopírovať"}
+                      </button>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-800">{adHeadline}</p>
+                  </div>
+                )}
+                {adPrimaryText && (
+                  <div className="p-3 rounded-xl" style={{ background: "#F5F0E8" }}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">Hlavný text</span>
+                      <button type="button" onClick={() => copyField("primaryText", adPrimaryText)} className="text-[11px] font-bold" style={{ color: "#647058" }}>
+                        {copiedField === "primaryText" ? "✓ Skopírované" : "📋 Kopírovať"}
+                      </button>
+                    </div>
+                    <p className="text-sm text-slate-800 whitespace-pre-wrap">{adPrimaryText}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
