@@ -196,7 +196,7 @@ function Podmienky({ f }: { f: CompanyInfo }) {
       <Section title="7. Obmedzenie zodpovednosti">
         <ul>
           <li>Vitrína je nástroj — poskytovateľ nezodpovedá za obsah publikovaný predajcami, za správnosť opisov produktov, ani za vyriešenie prípadných sporov medzi predajcom a jeho zákazníkom.</li>
-          <li>Poskytovateľ nezodpovedá za dočasnú nedostupnosť služby spôsobenú tretími stranami (Firebase, Netlify, poskytovatelia internetových služieb) alebo udalosťami vyššej moci.</li>
+          <li>Poskytovateľ nezodpovedá za dočasnú nedostupnosť služby spôsobenú tretími stranami (Firebase, Vercel, poskytovatelia internetových služieb) alebo udalosťami vyššej moci.</li>
           <li>Poskytovateľ neručí za škody vzniknuté rozhodnutiami predajcu na základe údajov v aplikácii.</li>
         </ul>
       </Section>
@@ -275,7 +275,7 @@ function OchranaUdajov({ f }: { f: CompanyInfo }) {
       <Section title="6. Tretie strany (sprostredkovatelia)">
         <ul>
           <li><b>Google Firebase</b> (Alphabet Inc., USA + EU regióny) — autentifikácia a Firestore databáza. DPA štandardné podmienky.</li>
-          <li><b>Netlify</b> (Netlify Inc., USA) — hosting aplikácie.</li>
+          <li><b>Vercel</b> (Vercel Inc., USA + EU regióny) — hosting aplikácie.</li>
           <li><b>Resend</b> (EU, Írsko) — odosielanie transakčných emailov (napr. koniec trialu).</li>
           <li><b>WhatsApp / Meta</b> — objednávky sú predávané cez WhatsApp správu; spracovanie správ podlieha podmienkam WhatsApp.</li>
         </ul>
