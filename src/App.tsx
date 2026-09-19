@@ -1004,20 +1004,28 @@ export default function Vitrina() {
     }
   };
 
-  // Predajca "nahlási platbu" — zapíšeme flag + timestamp, ty (admin) to schváliš v AdminPlatformy
+  // Predajca "nahlási platbu" — trust-first prístup:
+  // Plán sa aktivuje HNEĎ (+30 dní), zároveň zapíšeme paymentReported pre admin overenie.
+  // Ak by admin následne zistil, že platba nedorazila, môže obchod zablokovať v AdminPlatformy.
   const [reportingPayment, setReportingPayment] = useState(false);
   const reportPayment = async () => {
     if (!selectedStoreHandle || !store.plan) return;
     setReportingPayment(true);
     try {
       const now = new Date().toISOString();
+      // Ak už máš aktívny plán a predlžuješ, počítame od jeho konca; inak od teraz.
+      const currentEndsAtMs = store.planEndsAt ? new Date(store.planEndsAt).getTime() : 0;
+      const startFromMs = Math.max(currentEndsAtMs, Date.now());
+      const newPlanEndsAt = new Date(startFromMs + 30 * 24 * 60 * 60 * 1000).toISOString();
       await setDoc(doc(db, "stores", selectedStoreHandle), {
         paymentReported: true,
         paymentReportedAt: now,
         paymentReportedPlan: store.plan,
+        planEndsAt: newPlanEndsAt,
       }, { merge: true });
-      setStore({ ...store, paymentReported: true, paymentReportedAt: now });
-      // Notifikácia adminovi bude riešená cronom (check-trials.mjs) — nie priamo z klienta.
+      setStore({ ...store, paymentReported: true, paymentReportedAt: now, planEndsAt: newPlanEndsAt });
+      // Notifikácia adminovi je aj tak zapísaná — admin vidí paymentReported v AdminPlatformy
+      // a môže overiť platbu spätne. Ak by chýbala, obchod zablokuje manuálne.
     } catch (err: any) {
       console.error("Error reporting payment:", err);
       setDbError("Nahlásenie platby zlyhalo: " + err.message);
@@ -2746,7 +2754,7 @@ export default function Vitrina() {
                       💳 Aktivujte plán {nazovPlanu} ({suma} €/mes)
                     </span>
                     <p className="text-[11px] mb-3 max-w-sm" style={{ color: C.soft }}>
-                      Zaplaťte prevodom na náš účet. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite „Nahlásiť platbu" — obvykle aktivujeme <strong>do niekoľkých hodín</strong> (pracovné dni 8–20 h).
+                      Zaplaťte prevodom cez QR kód alebo IBAN nižšie. Váš stály variabilný symbol je <strong>{paymentVs}</strong> — používajte ho pri každej mesačnej platbe. Po prevode kliknite <strong>„Nahlásiť platbu"</strong> — plán sa aktivuje <strong>okamžite</strong> a obchod je ihneď online. Platbu potom v pokoji overíme.
                     </p>
 
                     {isTrialActive && trialDaysLeft > 3 && (
@@ -2804,9 +2812,9 @@ export default function Vitrina() {
                     </div>
 
                     {paymentReported ? (
-                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px]" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
-                        <div className="font-bold mb-1">⏳ Nahlásili ste platbu{(store as any).paymentReportedAt ? " dňa " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}.</div>
-                        <div className="font-medium">Overujeme platbu v banke a aktivujeme obvykle do niekoľkých hodín. Ak potrebujete okamžite, napíšte na <a href="mailto:info@zavio.sk" className="underline">info@zavio.sk</a>.</div>
+                      <div className="mt-4 w-full p-2.5 rounded-xl text-[11px]" style={{ background: "#D1FAE5", color: "#065F46", border: "1px solid #6EE7B7" }}>
+                        <div className="font-bold mb-1">✅ Plán {nazovPlanu} je aktivovaný{(store as any).paymentReportedAt ? " — nahlásené " + new Date((store as any).paymentReportedAt).toLocaleString("sk-SK") : ""}.</div>
+                        <div className="font-medium">Obchod je ihneď online a pripravený prijímať objednávky. Faktúru vám pošleme na email hneď po overení platby (obvykle do 24 h). V prípade otázok: <a href="mailto:info@zavio.sk" className="underline">info@zavio.sk</a>.</div>
                       </div>
                     ) : !fakturaOk ? (
                       <div className="mt-4 w-full p-2.5 rounded-xl text-[11px] text-left" style={{ background: "#FEF3C7", color: "#92400E", border: "1px solid #FDE68A" }}>
