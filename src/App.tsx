@@ -276,6 +276,112 @@ const getPastelBg = (it: StoreItem) => {
   return bgs[code % bgs.length];
 };
 
+// ── Demo obchod (statický, bez Firestore) ────────────────────────────────
+// Ukazuje potenciálnemu predajcovi ako Vitrína vyzerá v praxi.
+// URL: vitrina.zavio.sk/demo
+const DEMO_STORE_HANDLE = "demo";
+const DEMO_STORE_DATA = {
+  name: "Ukážkový obchod",
+  handle: DEMO_STORE_HANDLE,
+  city: "Prešov",
+  phone: "+421900000000",
+  messengerUsername: "",
+  contactEmail: "demo@vitrina.zavio.sk",
+  iban: "SK9265000000003652774646",
+  category: "Lokálny predajca",
+  trialEndsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+  plan: "extended",
+  planEndsAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+  paymentReported: true,
+  paymentReportedAt: new Date().toISOString(),
+  paymentReportedNote: "",
+  createdAt: null as any,
+  logo: "",
+  tagline: "Malé radosti pre každý deň ✨",
+  taglineFont: "handwrite",
+  taglineColor: "#7A2E2E",
+  taglineBg: "#FDF1E7",
+  description: "Ochutnávka toho, ako môže vyzerať tvoj obchod na Vitríne. Uprav farby, texty, produkty — všetko za pár minút.",
+  ownerId: "__demo__",
+  fakturaNazov: "",
+  fakturaAdresa: "",
+  fakturaIco: "",
+  fakturaDic: "",
+  theme: "sage",
+};
+const DEMO_ITEMS: StoreItem[] = [
+  {
+    id: "demo-1",
+    storeId: DEMO_STORE_HANDLE,
+    type: "product",
+    emoji: "🕯️",
+    name: "Sójová sviečka „Škorica & vanilka“",
+    desc: "Ručne liata, 40 hodín horenia",
+    longDesc: "Vyrobená z prírodného sójového vosku s prírodnými esenciami. Hreje aj vôňou, aj svetlom. Vhodná ako darček.",
+    price: 12.5,
+    unit: "ks",
+    badge: "Novinka",
+    img: null,
+    imgs: [],
+  },
+  {
+    id: "demo-2",
+    storeId: DEMO_STORE_HANDLE,
+    type: "product",
+    emoji: "🎂",
+    name: "Domáca torta na objednávku",
+    desc: "Malinová, čokoládová alebo carrot cake",
+    longDesc: "Robím ju čerstvo do 48 hodín od objednávky. Priemer 22 cm, cca 10 porcií. Napíš mi príchuť a dátum vyzdvihnutia.",
+    price: 32,
+    unit: "torta",
+    badge: null,
+    img: null,
+    imgs: [],
+  },
+  {
+    id: "demo-3",
+    storeId: DEMO_STORE_HANDLE,
+    type: "product",
+    emoji: "🌸",
+    name: "Kvetinový workshop",
+    desc: "Sobota 16.11. — 2 h tvorenia",
+    longDesc: "Naučíš sa uviazať sezónnu kytičku od základov. Materiál v cene, kávu prinesiem. Miesto: Prešov, kvetinárstvo Konvalinka.",
+    price: 45,
+    unit: "vstup",
+    badge: "Zostávajú 3 miesta",
+    img: null,
+    imgs: [],
+  },
+  {
+    id: "demo-4",
+    storeId: DEMO_STORE_HANDLE,
+    type: "product",
+    emoji: "💄",
+    name: "Prírodný balzam na pery",
+    desc: "Včelí vosk + kokosový olej",
+    longDesc: "Bez chémie, bez konzervantov. Uzatvorí trhliny za 2 dni. Vydrží 3-4 mesiace pri každodennom používaní.",
+    price: 6.9,
+    unit: "ks",
+    badge: null,
+    img: null,
+    imgs: [],
+  },
+  {
+    id: "demo-5",
+    storeId: DEMO_STORE_HANDLE,
+    type: "product",
+    emoji: "💎",
+    name: "Strieborné náušnice „Kvapka“",
+    desc: "Ag 925, hypoalergénne",
+    longDesc: "Ručne kované. Dodám v darčekovom balení. Hmotnosť páru 3,2 g.",
+    price: 28,
+    unit: "pár",
+    badge: null,
+    img: null,
+    imgs: [],
+  },
+];
+
 // ── Logo: výkladné okno so svetlom ──
 function Logo({ size = 30 }: { size?: number }) {
   return (
@@ -348,6 +454,7 @@ export default function Vitrina() {
   const [withdrawalSuccess, setWithdrawalSuccess] = useState<any | null>(null);
   const [adminOrders, setAdminOrders] = useState<any[]>([]);
   const [orderFilter, setOrderFilter] = useState<"week" | "month" | "all">("week");
+  const [analyticsRows, setAnalyticsRows] = useState<Array<{ date: string; views: number; orders: number; revenue: number }>>([]);
 
   const [store, setStore] = useState({
     name: "",
@@ -409,6 +516,56 @@ export default function Vitrina() {
     }
     return currentUser !== null && store.ownerId === currentUser.uid;
   }, [selectedStoreHandle, currentPath, currentUser, store.ownerId]);
+
+  // ── Analytics: pageview tracking ────────────────────────────────────
+  // Zapíše 1 view do stores/{handle}/analytics/{YYYY-MM-DD} pri prvej návšteve.
+  // Vyhne sa: nemapovaným storom, demo obchodu, návšteve vlastníka (isOwner),
+  // opakovaným pageview v jednej session (sessionStorage).
+  useEffect(() => {
+    if (!selectedStoreHandle || storeExists !== true) return;
+    if (selectedStoreHandle === DEMO_STORE_HANDLE) return;
+    if (isOwner) return; // predajca nevidí sám seba
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const sessionKey = `vitrina-view-${selectedStoreHandle}-${today}`;
+    try {
+      if (typeof sessionStorage !== "undefined" && sessionStorage.getItem(sessionKey)) return;
+    } catch { /* private mode */ }
+    (async () => {
+      try {
+        const ref = doc(db, "stores", selectedStoreHandle, "analytics", today);
+        await setDoc(ref, { views: increment(1), date: today }, { merge: true });
+        try { sessionStorage.setItem(sessionKey, "1"); } catch { /* noop */ }
+      } catch (e) {
+        // Analytics je best-effort; ak zlyhá, aplikáciu netreba lámať.
+        console.warn("pageview track failed:", e);
+      }
+    })();
+  }, [selectedStoreHandle, storeExists, isOwner]);
+
+  // ── Analytics: načítanie posledných 30 dní pre admin dashboard ──────
+  useEffect(() => {
+    if (!selectedStoreHandle || !isOwner) { setAnalyticsRows([]); return; }
+    if (selectedStoreHandle === DEMO_STORE_HANDLE) return;
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, "stores", selectedStoreHandle, "analytics"));
+        const rows: Array<{ date: string; views: number; orders: number; revenue: number }> = [];
+        snap.forEach((d) => {
+          const data = d.data() as any;
+          rows.push({
+            date: data.date || d.id,
+            views: Number(data.views) || 0,
+            orders: Number(data.orders) || 0,
+            revenue: Number(data.revenue) || 0,
+          });
+        });
+        rows.sort((a, b) => b.date.localeCompare(a.date));
+        setAnalyticsRows(rows.slice(0, 30));
+      } catch (e) {
+        console.warn("analytics load failed:", e);
+      }
+    })();
+  }, [selectedStoreHandle, isOwner, adminOrders.length]);
 
   const handleAuthSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -594,6 +751,12 @@ export default function Vitrina() {
       setStoreExists(null);
       return;
     }
+    // Špeciálny prípad: demo obchod je hardcoded, nečerpáme z Firestore
+    if (selectedStoreHandle === DEMO_STORE_HANDLE) {
+      setStoreExists(true);
+      setStore({ ...DEMO_STORE_DATA });
+      return;
+    }
     const unsub = onSnapshot(doc(db, "stores", selectedStoreHandle), async (docSnap) => {
       if (docSnap.exists()) {
         setStoreExists(true);
@@ -719,6 +882,7 @@ export default function Vitrina() {
   // Filter items for the selected store
   const items = useMemo(() => {
     if (!selectedStoreHandle) return [];
+    if (selectedStoreHandle === DEMO_STORE_HANDLE) return DEMO_ITEMS;
     return allItems.filter(it => it.storeId === selectedStoreHandle);
   }, [allItems, selectedStoreHandle]);
 
@@ -1027,8 +1191,69 @@ export default function Vitrina() {
     () => items.find((it) => it.id === selectedProductId) || null,
     [items, selectedProductId]
   );
-  const total = cartRows.reduce((s, r) => s + r.qty * r.price, 0);
+  const subtotal = cartRows.reduce((s, r) => s + r.qty * r.price, 0);
   const count = cartRows.reduce((s, r) => s + r.qty, 0);
+
+  // ── Doprava ────────────────────────────────────────────────────────────
+  // Predajca môže v Nastaveniach obchodu zapnúť:
+  //   shippingPickupEnabled — osobný odber (zdarma)
+  //   shippingCourierEnabled — kuriér (cena v shippingCourierPrice)
+  //   shippingFreeAbove — kuriér zdarma nad túto sumu (0 = vypnuté)
+  const [shippingMethod, setShippingMethod] = useState<"pickup" | "courier">("pickup");
+  const shippingPickupEnabled = (store as any).shippingPickupEnabled !== false; // default ON
+  const shippingCourierEnabled = !!(store as any).shippingCourierEnabled;
+  const shippingCourierPrice = Number((store as any).shippingCourierPrice) || 0;
+  const shippingFreeAbove = Number((store as any).shippingFreeAbove) || 0;
+  const shippingPrice = useMemo(() => {
+    if (shippingMethod === "pickup") return 0;
+    if (shippingMethod === "courier") {
+      if (shippingFreeAbove > 0 && subtotal >= shippingFreeAbove) return 0;
+      return shippingCourierPrice;
+    }
+    return 0;
+  }, [shippingMethod, subtotal, shippingCourierPrice, shippingFreeAbove]);
+  // Ak predajca vypne osobný odber, automaticky prehodíme na kuriér
+  useEffect(() => {
+    if (!shippingPickupEnabled && shippingCourierEnabled && shippingMethod === "pickup") {
+      setShippingMethod("courier");
+    }
+  }, [shippingPickupEnabled, shippingCourierEnabled, shippingMethod]);
+
+  // ── Zľavové kódy ──────────────────────────────────────────────────────
+  // Predajca nastaví v Admin > Nastavenia:
+  //   discountCode — 1 aktívny kód (napr. "BLACKFRIDAY")
+  //   discountType — "percent" | "amount"
+  //   discountValue — číslo (napr. 15 = -15% alebo -15 €)
+  const [discountInput, setDiscountInput] = useState("");
+  const [discountError, setDiscountError] = useState("");
+  const [appliedDiscount, setAppliedDiscount] = useState<{ code: string; amount: number } | null>(null);
+  const applyDiscount = () => {
+    const codeRaw = discountInput.trim().toUpperCase();
+    setDiscountError("");
+    if (!codeRaw) return;
+    const storeCode = ((store as any).discountCode || "").toString().trim().toUpperCase();
+    if (!storeCode || codeRaw !== storeCode) {
+      setDiscountError("Kód nie je platný.");
+      setAppliedDiscount(null);
+      return;
+    }
+    const type = ((store as any).discountType || "percent") as "percent" | "amount";
+    const value = Number((store as any).discountValue) || 0;
+    if (value <= 0) {
+      setDiscountError("Kód nie je platný.");
+      setAppliedDiscount(null);
+      return;
+    }
+    const amount = type === "percent"
+      ? Math.min(subtotal, Math.round((subtotal * value) * 10) / 1000 * 100 / 100) // percent zo subtotalu
+      : Math.min(subtotal, value);
+    const finalAmount = type === "percent" ? Math.round(subtotal * value) / 100 : Math.min(subtotal, value);
+    setAppliedDiscount({ code: codeRaw, amount: Number(finalAmount.toFixed(2)) });
+  };
+  const removeDiscount = () => { setAppliedDiscount(null); setDiscountInput(""); setDiscountError(""); };
+  const discountAmount = appliedDiscount?.amount || 0;
+
+  const total = Math.max(0, subtotal + shippingPrice - discountAmount);
 
   const add = (id: string, d: number) =>
     setCart((c) => {
@@ -1041,7 +1266,7 @@ export default function Vitrina() {
     });
 
   // Update active store field in Firestore
-  const updateStoreField = async (field: string, val: string) => {
+  const updateStoreField = async (field: string, val: string | number | boolean) => {
     if (!selectedStoreHandle) return;
 
     // Update local state first so inputs are responsive as user types
@@ -1049,7 +1274,7 @@ export default function Vitrina() {
     setStore(newStore);
 
     // Safety check: do not save empty strings to Firestore for required fields
-    if (["name", "phone", "city", "iban"].includes(field) && !val.trim()) {
+    if (["name", "phone", "city", "iban"].includes(field) && typeof val === "string" && !val.trim()) {
       return;
     }
 
@@ -1163,12 +1388,18 @@ export default function Vitrina() {
       storeId: selectedStoreHandle,
       variabilnySymbol: orderVs,
       items: orderItemsData,
+      subtotal: subtotal,
+      shippingMethod: shippingMethod,
+      shippingLabel: shippingMethod === "pickup" ? "Osobný odber" : "Kuriér",
+      shippingPrice: shippingPrice,
       total: total,
       customerName: cust.name,
       customerCity: cust.city,
       customerPhone: cust.phone || "",
       customerEmail: cust.email || "",
       customerTime: cust.time || "",
+      discountCode: appliedDiscount?.code || "",
+      discountAmount: appliedDiscount?.amount || 0,
       status: "Nová",
       createdAt: new Date()
     };
@@ -1185,12 +1416,72 @@ export default function Vitrina() {
         batch.update(doc(db, "items", r.id), { leftCapacity: increment(-r.qty), lastOrderId: orderId });
       }
 
+      // Analytics: inkrementuj objednávky + revenue v denných štatistikách
+      if (selectedStoreHandle !== DEMO_STORE_HANDLE) {
+        const today = new Date().toISOString().slice(0, 10);
+        batch.set(
+          doc(db, "stores", selectedStoreHandle, "analytics", today),
+          { orders: increment(1), revenue: increment(total), date: today },
+          { merge: true }
+        );
+      }
+
       await batch.commit();
       // Objednávka je uložená. Nechávame používateľa v checkout view (setCheckout(true))
       // ale zobrazíme mu "Ďakujeme za objednávku" obrazovku namiesto košíka.
       // Cart necháme zatiaľ neprázdny, aby si mohol prípadne overiť čo si objednal
       // (Thank You obrazovka mu ho aj tak neukazuje). Reset príde pri "Späť do obchodu".
       setOrderSubmitted(true);
+
+      // Fire-and-forget: WhatsApp push predajcovi (Twilio)
+      try {
+        if (store.phone) {
+          void fetch("/api/notify-whatsapp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              storePhone: store.phone,
+              storeName: store.name,
+              storeHandle: selectedStoreHandle,
+              variabilnySymbol: orderVs,
+              total,
+              customerName: cust.name,
+              customerCity: cust.city,
+              customerPhone: cust.phone || "",
+              itemCount: cartRows.reduce((s, r) => s + r.qty, 0),
+            }),
+          }).catch(() => {});
+        }
+      } catch { /* noop */ }
+
+      // Fire-and-forget: pošli email zákazníkovi + predajcovi cez Vercel endpoint.
+      // Aj keď zlyhá (napr. chýba RESEND_API_KEY), objednávka je už uložená.
+      try {
+        void fetch("/api/send-order-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            orderId,
+            storeName: store.name,
+            storeHandle: selectedStoreHandle,
+            storeContactEmail: (store as any).contactEmail || "",
+            storeIban: store.iban ? formatIban(store.iban) : "",
+            variabilnySymbol: orderVs,
+            items: orderItemsData,
+            subtotal,
+            shippingLabel: shippingMethod === "pickup" ? "Osobný odber" : "Kuriér",
+            shippingPrice,
+            discountCode: appliedDiscount?.code || "",
+            discountAmount: appliedDiscount?.amount || 0,
+            total,
+            customerName: cust.name,
+            customerCity: cust.city,
+            customerPhone: cust.phone || "",
+            customerEmail: cust.email || "",
+            customerTime: cust.time || "",
+          }),
+        }).catch(() => {});
+      } catch { /* noop */ }
     } catch (error) {
       console.error("Error saving order: ", error);
     }
@@ -2316,9 +2607,73 @@ export default function Vitrina() {
                         </div>
                       </div>
                     ))}
-                    <div className="flex items-center justify-between pt-3 mt-1 border-t font-extrabold text-sm text-slate-900" style={{ borderColor: C.line }}>
-                      <span>Celkom na úhradu:</span>
-                      <span className="text-base" style={{ color: C.accentText }}>{eur(total)}</span>
+                    {/* ── Doprava (radio výber, ak predajca zapol aspoň jednu možnosť) ── */}
+                    {(shippingPickupEnabled || shippingCourierEnabled) && (
+                      <div className="pt-3 mt-1 border-t flex flex-col gap-2" style={{ borderColor: C.line }}>
+                        <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: C.soft }}>Doprava</span>
+                        {shippingPickupEnabled && (
+                          <label className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border cursor-pointer" style={{ borderColor: shippingMethod === "pickup" ? C.accentText : C.line, background: shippingMethod === "pickup" ? C.accentSoft : C.card }}>
+                            <span className="flex items-center gap-2 text-xs font-semibold text-slate-800">
+                              <input type="radio" name="shippingMethod" checked={shippingMethod === "pickup"} onChange={() => setShippingMethod("pickup")} />
+                              🏠 Osobný odber
+                            </span>
+                            <span className="text-xs font-bold" style={{ color: C.accentText }}>Zdarma</span>
+                          </label>
+                        )}
+                        {shippingCourierEnabled && (
+                          <label className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border cursor-pointer" style={{ borderColor: shippingMethod === "courier" ? C.accentText : C.line, background: shippingMethod === "courier" ? C.accentSoft : C.card }}>
+                            <span className="flex items-center gap-2 text-xs font-semibold text-slate-800">
+                              <input type="radio" name="shippingMethod" checked={shippingMethod === "courier"} onChange={() => setShippingMethod("courier")} />
+                              📦 Kuriér
+                              {shippingFreeAbove > 0 && (
+                                <span className="text-[10px] font-normal text-slate-500">(zdarma nad {eur(shippingFreeAbove)})</span>
+                              )}
+                            </span>
+                            <span className="text-xs font-bold" style={{ color: C.accentText }}>
+                              {shippingPrice === 0 && shippingMethod === "courier" ? "Zdarma" : eur(shippingCourierPrice)}
+                            </span>
+                          </label>
+                        )}
+                      </div>
+                    )}
+                    {/* ── Zľavový kód ── */}
+                    <div className="pt-3 mt-1 border-t flex flex-col gap-1.5" style={{ borderColor: C.line }}>
+                      <span className="text-[11px] font-bold uppercase tracking-wide" style={{ color: C.soft }}>Zľavový kód</span>
+                      {appliedDiscount ? (
+                        <div className="flex items-center justify-between px-3 py-2 rounded-xl" style={{ background: "#E6FAF0", border: `1px solid #B7EBC9` }}>
+                          <span className="text-xs font-bold" style={{ color: "#0E7A3B" }}>✓ {appliedDiscount.code} — zľava {eur(appliedDiscount.amount)}</span>
+                          <button onClick={removeDiscount} className="text-[11px] font-semibold underline" style={{ color: "#0E7A3B" }}>Odstrániť</button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <input value={discountInput} onChange={(e) => { setDiscountInput(e.target.value); setDiscountError(""); }} placeholder="napr. VITAJTE10" className="flex-1 rounded-xl px-3 py-2 text-xs uppercase" style={{ border: `1px solid ${discountError ? "#DC2626" : C.line}`, background: C.bg }} />
+                          <button onClick={applyDiscount} className="px-3 py-2 rounded-xl text-xs font-bold" style={{ background: C.accentText, color: "#fff" }}>Použiť</button>
+                        </div>
+                      )}
+                      {discountError && <p className="text-[11px] text-red-600 font-semibold">⚠️ {discountError}</p>}
+                    </div>
+                    {/* ── Súhrn: medzisúčet + doprava + zľava + total ── */}
+                    <div className="pt-3 mt-1 border-t flex flex-col gap-1 text-xs" style={{ borderColor: C.line }}>
+                      <div className="flex items-center justify-between text-slate-600">
+                        <span>Medzisúčet:</span>
+                        <span>{eur(subtotal)}</span>
+                      </div>
+                      {(shippingPickupEnabled || shippingCourierEnabled) && (
+                        <div className="flex items-center justify-between text-slate-600">
+                          <span>Doprava ({shippingMethod === "pickup" ? "osobný odber" : "kuriér"}):</span>
+                          <span>{shippingPrice === 0 ? "Zdarma" : eur(shippingPrice)}</span>
+                        </div>
+                      )}
+                      {appliedDiscount && (
+                        <div className="flex items-center justify-between" style={{ color: "#0E7A3B" }}>
+                          <span>Zľava ({appliedDiscount.code}):</span>
+                          <span>− {eur(appliedDiscount.amount)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center justify-between pt-1.5 mt-0.5 border-t font-extrabold text-sm text-slate-900" style={{ borderColor: C.line }}>
+                        <span>Celkom na úhradu:</span>
+                        <span className="text-base" style={{ color: C.accentText }}>{eur(total)}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2837,6 +3192,95 @@ export default function Vitrina() {
                 className="w-full rounded-xl px-3 py-2 text-sm border resize-none focus:outline-none focus:ring-1 focus:ring-[#7A8471]"
                 style={{ borderColor: C.line, background: C.bg }}
               />
+
+              {/* ── DOPRAVA ─────────────────────────────────────────── */}
+              <div className="mt-5 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
+                <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>📦 Doprava</div>
+                <p className="text-[11px] mb-3" style={{ color: C.soft }}>Zákazník si v košíku vyberie z týchto možností. Aspoň jedna musí byť zapnutá.</p>
+
+                <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={(store as any).shippingPickupEnabled !== false}
+                    onChange={(e) => updateStoreField("shippingPickupEnabled", e.target.checked)}
+                  />
+                  <span className="text-xs font-semibold text-slate-800">🏠 Osobný odber (zdarma)</span>
+                </label>
+
+                <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={!!(store as any).shippingCourierEnabled}
+                    onChange={(e) => updateStoreField("shippingCourierEnabled", e.target.checked)}
+                  />
+                  <span className="text-xs font-semibold text-slate-800">📦 Kuriér</span>
+                </label>
+
+                {!!(store as any).shippingCourierEnabled && (
+                  <div className="grid grid-cols-2 gap-2 mt-2 pl-5">
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Cena kuriéra (€)</label>
+                      <input
+                        type="number" min="0" step="0.10"
+                        value={(store as any).shippingCourierPrice ?? ""}
+                        onChange={(e) => updateStoreField("shippingCourierPrice", Number(e.target.value) || 0)}
+                        placeholder="4.50"
+                        className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Zdarma nad (€, 0 = vypnuté)</label>
+                      <input
+                        type="number" min="0" step="1"
+                        value={(store as any).shippingFreeAbove ?? ""}
+                        onChange={(e) => updateStoreField("shippingFreeAbove", Number(e.target.value) || 0)}
+                        placeholder="50"
+                        className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── ZĽAVOVÝ KÓD ─────────────────────────────────────── */}
+              <div className="mt-3 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
+                <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>🎟️ Zľavový kód</div>
+                <p className="text-[11px] mb-3" style={{ color: C.soft }}>Aktívny 1 kód. Nechaj prázdne pre vypnutie. Zákazníci ho zadajú v košíku.</p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="col-span-2">
+                    <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Kód (napr. VITAJTE10)</label>
+                    <input
+                      type="text"
+                      value={(store as any).discountCode || ""}
+                      onChange={(e) => updateStoreField("discountCode", e.target.value.toUpperCase().slice(0, 20))}
+                      placeholder="VITAJTE10"
+                      className="w-full rounded-lg px-2 py-1.5 text-xs border font-mono uppercase" style={{ borderColor: C.line, background: "white" }}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Typ zľavy</label>
+                    <select
+                      value={(store as any).discountType || "percent"}
+                      onChange={(e) => updateStoreField("discountType", e.target.value)}
+                      className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                    >
+                      <option value="percent">% zľava</option>
+                      <option value="amount">€ zľava (fix)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Hodnota</label>
+                    <input
+                      type="number" min="0" step="1"
+                      value={(store as any).discountValue ?? ""}
+                      onChange={(e) => updateStoreField("discountValue", Number(e.target.value) || 0)}
+                      placeholder={(store as any).discountType === "amount" ? "5" : "10"}
+                      className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                    />
+                  </div>
+                </div>
+              </div>
             </section>
 
             <AddItem
@@ -3320,6 +3764,68 @@ export default function Vitrina() {
               ))}
               </div>
             </section>
+
+            {/* ── Sekcia Analytika ─────────────────────────────────── */}
+            {(() => {
+              const rows = analyticsRows;
+              const totalViews30 = rows.reduce((s, r) => s + r.views, 0);
+              const totalOrders30 = rows.reduce((s, r) => s + r.orders, 0);
+              const totalRevenue30 = rows.reduce((s, r) => s + r.revenue, 0);
+              const conv = totalViews30 > 0 ? (totalOrders30 / totalViews30) * 100 : 0;
+              const avgOrder = totalOrders30 > 0 ? totalRevenue30 / totalOrders30 : 0;
+              const today = new Date().toISOString().slice(0, 10);
+              const yest = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+              const rowToday = rows.find((r) => r.date === today);
+              const rowYest = rows.find((r) => r.date === yest);
+              const maxViews = Math.max(1, ...rows.slice(0, 30).map((r) => r.views));
+              return (
+                <section className="mt-6 flex flex-col gap-3 max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">
+                  <h2 className="disp text-xs font-extrabold uppercase tracking-wider text-slate-500">📊 Analytika (posledných 30 dní)</h2>
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    <div className="p-3 rounded-xl border" style={{ borderColor: C.line, background: C.card }}>
+                      <div className="text-[10px] font-bold uppercase" style={{ color: C.soft }}>Návštevy</div>
+                      <div className="text-xl font-extrabold text-slate-800 mt-0.5">{totalViews30}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">dnes: {rowToday?.views ?? 0} · včera: {rowYest?.views ?? 0}</div>
+                    </div>
+                    <div className="p-3 rounded-xl border" style={{ borderColor: C.line, background: C.card }}>
+                      <div className="text-[10px] font-bold uppercase" style={{ color: C.soft }}>Objednávky</div>
+                      <div className="text-xl font-extrabold text-slate-800 mt-0.5">{totalOrders30}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">dnes: {rowToday?.orders ?? 0} · včera: {rowYest?.orders ?? 0}</div>
+                    </div>
+                    <div className="p-3 rounded-xl border" style={{ borderColor: C.line, background: C.card }}>
+                      <div className="text-[10px] font-bold uppercase" style={{ color: C.soft }}>Konverzia</div>
+                      <div className="text-xl font-extrabold text-slate-800 mt-0.5">{conv.toFixed(1)}%</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">objednávky / návštevy</div>
+                    </div>
+                    <div className="p-3 rounded-xl border" style={{ borderColor: C.line, background: C.card }}>
+                      <div className="text-[10px] font-bold uppercase" style={{ color: C.soft }}>Ø hodnota obj.</div>
+                      <div className="text-xl font-extrabold text-slate-800 mt-0.5">{eur(avgOrder)}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">tržby: {eur(totalRevenue30)}</div>
+                    </div>
+                  </div>
+                  {rows.length > 0 ? (
+                    <div className="p-3 rounded-xl border" style={{ borderColor: C.line, background: C.card }}>
+                      <div className="text-[10px] font-bold uppercase mb-2" style={{ color: C.soft }}>Návštevy po dňoch</div>
+                      <div className="flex items-end gap-1 h-24">
+                        {rows.slice(0, 30).slice().reverse().map((r) => (
+                          <div key={r.date} className="flex-1 flex flex-col items-center gap-0.5" title={`${r.date}: ${r.views} návštev, ${r.orders} obj.`}>
+                            <div className="w-full rounded-t" style={{ background: C.accent, height: `${(r.views / maxViews) * 100}%`, minHeight: "2px" }} />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-between text-[9px] text-slate-400 mt-1">
+                        <span>{rows[rows.length - 1]?.date.slice(5) || ""}</span>
+                        <span>dnes</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl border text-center text-xs text-slate-500" style={{ borderColor: C.line, background: C.card }}>
+                      Zatiaľ žiadne dáta. Zdieľajte odkaz na svoj obchod a údaje sa začnú zbierať.
+                    </div>
+                  )}
+                </section>
+              );
+            })()}
 
             {/* ── Sekcia Objednávky v Administrácii ── */}
             <section className="mt-6 flex flex-col gap-3 max-w-md lg:max-w-none mx-auto lg:mx-0 w-full">

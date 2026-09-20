@@ -700,7 +700,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <p className="lead">Vystav do nej len to, čo práve teraz predávaš najlepšie — šperky, kozmetiku, workshopy či čokoľvek iné. Zákazník si vyberie, zaplatí QR kódom priamo z bankovej appky a objednávka príde rovno na tvoj WhatsApp.</p>
             <div className="cta-row">
               <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-primary">Prejsť na ovládací panel →</a>
-              <a href="#showcase" className="btn-ghost-outline">🏬 Zobraziť demo obchod</a>
+              <a href="/demo" className="btn-ghost-outline">🏬 Zobraziť demo obchod</a>
             </div>
             <div className="rating-row">
               <div className="rating-avatars">
@@ -1037,11 +1037,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             <div className="price-row"><div className="pc">Prehľad objednávok</div><div className="pc"><span className="check">✓</span></div><div className="pc"><span className="check">✓</span></div></div>
             <div className="price-row"><div className="pc">Automatické notifikácie</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
 
-            <div className="price-row section-row"><div className="pc">AI a marketing</div></div>
-            <div className="price-row"><div className="pc">AI dofotenie produktu (ďalšie uhly/scény z 1 fotky)</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
-            <div className="price-row"><div className="pc">AI napísanie popisu produktu</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
-            <div className="price-row"><div className="pc">Generátor príspevkov na Instagram/FB</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
-            <div className="price-row"><div className="pc">AI text pre platenú reklamu (FB/IG Ads)</div><div className="pc"><span className="dash">—</span></div><div className="pc"><span className="check">✓</span></div></div>
+            {/* AI a marketing — dočasne skryté, kým sa funkcie neimplementujú (poznámka: zapnúť späť keď bude live) */}
           </div>
           <p style={{ textAlign: "center", color: "var(--muted)", fontSize: ".85rem", marginTop: "26px" }}>Vitrína je tvoj výklad, nie sklad. Predávate viac ako 6 vecí naraz? Pre väčší sortiment odporúčame plnohodnotný e-shop.</p>
         </div>
