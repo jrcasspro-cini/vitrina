@@ -897,8 +897,6 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="wrap">
           <div className="sec-head text-left">
             <div className="eyebrow">Funkcie</div>
-            <h2>Všetko, čo malý obchod potrebuje — <span style={{ fontStyle: "italic", color: "var(--muted)" }}>nič, čo by nemal.</span></h2>
-            <p>Postavené na základe reálnych výsledkov: menej správ, rýchlejšie vybavenie, spokojnejší zákazníci. Žiadne ovládacie panely, ktoré by sa bolo treba učiť.</p>
           </div>
           <div className="fg-grid">
             <div className="fg-card"><div className="fg-icon">🛍️</div><h3>Predávajte produkty alebo služby</h3><p>Fotografie, varianty, ceny — jedna vitrína pre obe strany, bez zložitého e-shop systému.</p></div>
@@ -1013,7 +1011,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             </details>
             <details className="faq-item">
               <summary>Ako mi chodia objednávky?</summary>
-              <p>Zákazník klikne „Odoslať objednávku" a jeho WhatsApp sa otvorí s prednastavenou správou (produkty, cena, adresa, VS). Pošle ti ju a ty máš celú objednávku v chatu ako obyčajnú správu. Nič nový nemusíš inštalovať.</p>
+              <p>Zákazník klikne „Odoslať objednávku" a jeho WhatsApp sa otvorí s prednastavenou správou (produkty, cena, adresa, VS). Pošle ti ju a ty máš celú objednávku v chate ako obyčajnú správu. Nič nové nemusíš inštalovať — objednávky ti chodia aj priamo do aplikácie Vitrína.</p>
             </details>
           </div>
         </div>
