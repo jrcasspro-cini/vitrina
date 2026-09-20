@@ -166,6 +166,21 @@ const formatIban = (iban: string | undefined | null): string => {
   return clean.replace(/(.{4})/g, "$1 ").trim();
 };
 
+// Predvolené štýly písma pre slogan/hook — predajca si vyberie v Nastaveniach.
+// Používame Google Fonts (načítané v index.html) + system fonts.
+const TAGLINE_FONTS: { key: string; label: string; family: string; sample: string }[] = [
+  { key: "default",   label: "Základný (moderný)",    family: "'Inter', system-ui, sans-serif",              sample: "Aa" },
+  { key: "elegant",   label: "Elegantný (serif)",     family: "'Playfair Display', Georgia, serif",           sample: "Aa" },
+  { key: "handwrite", label: "Písaný (rukou)",        family: "'Caveat', 'Comic Sans MS', cursive",           sample: "Aa" },
+  { key: "display",   label: "Odvážny (display)",     family: "'Righteous', Impact, sans-serif",              sample: "Aa" },
+  { key: "script",    label: "Kaligrafický (script)", family: "'Great Vibes', 'Brush Script MT', cursive",    sample: "Aa" },
+];
+
+const taglineFontFamily = (key: string | undefined): string => {
+  const f = TAGLINE_FONTS.find((x) => x.key === key);
+  return f ? f.family : TAGLINE_FONTS[0].family;
+};
+
 // Vygeneruje a stiahne jednoduché PDF faktúry priamo v prehliadači (bez servera).
 // Vstup je "snapshot" dokumentu z kolekcie invoices — nič sa nedopočítava naživo.
 async function downloadInvoicePdf(inv: any) {
@@ -352,6 +367,9 @@ export default function Vitrina() {
     createdAt: null as any,
     logo: "",
     tagline: "",
+    taglineFont: "default",
+    taglineColor: "",
+    taglineBg: "",
     description: "",
     ownerId: ""
   });
@@ -613,6 +631,9 @@ export default function Vitrina() {
           createdAt: d.createdAt || null,
           logo: d.logo || "",
           tagline: d.tagline || "",
+          taglineFont: d.taglineFont || "default",
+          taglineColor: d.taglineColor || "",
+          taglineBg: d.taglineBg || "",
           description: d.description || "",
           ownerId: d.ownerId || "",
           fakturaNazov: d.fakturaNazov || "",
@@ -641,6 +662,9 @@ export default function Vitrina() {
           createdAt: null,
           logo: "",
           tagline: "",
+          taglineFont: "default",
+          taglineColor: "",
+          taglineBg: "",
           description: "",
           ownerId: "",
           fakturaNazov: "",
@@ -2030,20 +2054,35 @@ export default function Vitrina() {
                   </a>
                 </section>
 
-                {/* ── Hook / slogan obchodu ── */}
-                {(store as any).tagline && (store as any).tagline.trim() && (
-                  <div
-                    className="rounded-2xl p-5 md:p-6 mb-4 text-center shadow-xs border animate-in fade-in duration-300"
-                    style={{
-                      background: C.accentSoft,
-                      borderColor: C.accent,
-                    }}
-                  >
-                    <p className="disp text-lg md:text-xl font-extrabold leading-snug" style={{ color: C.accentText }}>
-                      {(store as any).tagline.trim()}
-                    </p>
-                  </div>
-                )}
+                {/* ── Hook / slogan obchodu — s customizovateľným fontom a farbami ── */}
+                {(store as any).tagline && (store as any).tagline.trim() && (() => {
+                  const tglFont = (store as any).taglineFont || "default";
+                  const tglColor = (store as any).taglineColor;
+                  const tglBg = (store as any).taglineBg;
+                  // Script fonty potrebujú väčšie písmo aby boli čitateľné
+                  const isScriptFont = tglFont === "script" || tglFont === "handwrite";
+                  return (
+                    <div
+                      className="rounded-2xl p-5 md:p-7 mb-4 text-center shadow-xs border animate-in fade-in duration-300"
+                      style={{
+                        background: tglBg || C.accentSoft,
+                        borderColor: tglBg || C.accent,
+                      }}
+                    >
+                      <p
+                        className="font-extrabold leading-snug"
+                        style={{
+                          fontFamily: taglineFontFamily(tglFont),
+                          color: tglColor || C.accentText,
+                          fontSize: isScriptFont ? "2.25rem" : "1.5rem",
+                          lineHeight: isScriptFont ? "1.15" : "1.35",
+                        }}
+                      >
+                        {(store as any).tagline.trim()}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 {/* ── Popis obchodu (o nás) ── */}
                 {store.description && store.description.trim() && (
@@ -2659,6 +2698,105 @@ export default function Vitrina() {
               <p className="text-[10px] mt-1" style={{ color: C.soft }}>
                 Zobrazí sa výrazne pod názvom obchodu — ako prvá vec, ktorú návštevník uvidí. Držte to krátke a jasné.
               </p>
+
+              {/* Vzhľad sloganu — font, farby (iba ak je slogan vyplnený) */}
+              {((store as any).tagline || "").trim() && (
+                <div className="mt-3 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
+                  <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>Vzhľad sloganu</div>
+
+                  {/* Font výber ako klikateľné karty s ukážkou */}
+                  <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Písmo</label>
+                  <div className="grid grid-cols-5 gap-1.5 mb-3">
+                    {TAGLINE_FONTS.map((f) => {
+                      const active = ((store as any).taglineFont || "default") === f.key;
+                      return (
+                        <button
+                          key={f.key}
+                          type="button"
+                          onClick={() => updateStoreField("taglineFont", f.key)}
+                          className="rounded-lg p-2 text-center transition-all"
+                          style={{
+                            border: `2px solid ${active ? C.accent : C.line}`,
+                            background: active ? C.accentSoft : "white",
+                          }}
+                          title={f.label}
+                        >
+                          <div className="text-lg font-bold" style={{ fontFamily: f.family, color: C.ink }}>{f.sample}</div>
+                          <div className="text-[8px] mt-0.5 leading-tight" style={{ color: C.soft }}>{f.label.split(" ")[0]}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Farby: text + pozadie */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Farba písma</label>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          type="color"
+                          value={(store as any).taglineColor || "#647058"}
+                          onChange={(e) => updateStoreField("taglineColor", e.target.value)}
+                          className="w-8 h-8 rounded-lg border cursor-pointer"
+                          style={{ borderColor: C.line }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateStoreField("taglineColor", "")}
+                          className="text-[10px] text-slate-500 hover:underline"
+                          title="Vrátiť na predvolené"
+                        >
+                          Predvolené
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Farba pozadia</label>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          type="color"
+                          value={(store as any).taglineBg || "#EDF0E8"}
+                          onChange={(e) => updateStoreField("taglineBg", e.target.value)}
+                          className="w-8 h-8 rounded-lg border cursor-pointer"
+                          style={{ borderColor: C.line }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateStoreField("taglineBg", "")}
+                          className="text-[10px] text-slate-500 hover:underline"
+                          title="Vrátiť na predvolené"
+                        >
+                          Predvolené
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Živý náhľad sloganu */}
+                  <div className="mt-3">
+                    <div className="text-[10px] font-semibold mb-1" style={{ color: C.soft }}>Náhľad</div>
+                    <div
+                      className="rounded-xl px-4 py-3 text-center border"
+                      style={{
+                        background: (store as any).taglineBg || C.accentSoft,
+                        borderColor: (store as any).taglineBg || C.accent,
+                      }}
+                    >
+                      <p
+                        className="font-extrabold leading-snug"
+                        style={{
+                          fontFamily: taglineFontFamily((store as any).taglineFont),
+                          color: (store as any).taglineColor || C.accentText,
+                          fontSize: (store as any).taglineFont === "script" ? "1.75rem" : "1.125rem",
+                          lineHeight: (store as any).taglineFont === "script" ? "1.2" : "1.4",
+                        }}
+                      >
+                        {(store as any).tagline}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex justify-between items-center mt-3">
                 <label className="text-xs font-semibold" style={{ color: C.soft }}>Popis obchodu (o nás)</label>
