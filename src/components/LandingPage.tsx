@@ -663,7 +663,6 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="nav-inner">
           <div className="logo"><span className="dot"></span>Vitrína<span className="sub">by zavio</span></div>
           <div className="nav-links">
-            <a href="#funkcie">Funkcie</a>
             <a href="#ako-to-funguje">Ako to funguje</a>
             <a href="#cena">Cenník</a>
             <a href="#pre-koho">Pre koho</a>
@@ -680,7 +679,6 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
         {mobileMenuOpen && (
           <div className="nav-mobile">
-            <a href="#funkcie" onClick={() => setMobileMenuOpen(false)}>Funkcie</a>
             <a href="#ako-to-funguje" onClick={() => setMobileMenuOpen(false)}>Ako to funguje</a>
             <a href="#cena" onClick={() => setMobileMenuOpen(false)}>Cenník</a>
             <a href="#pre-koho" onClick={() => setMobileMenuOpen(false)}>Pre koho</a>
@@ -892,22 +890,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section className="featgrid" id="funkcie">
-        <div className="wrap">
-          <div className="sec-head text-left">
-            <div className="eyebrow">Funkcie</div>
-          </div>
-          <div className="fg-grid">
-            <div className="fg-card"><div className="fg-icon">🛍️</div><h3>Predávajte produkty alebo služby</h3><p>Fotografie, varianty, ceny — jedna vitrína pre obe strany, bez zložitého e-shop systému.</p></div>
-            <div className="fg-card"><div className="fg-icon">📅</div><h3>Rezervácie, workshopy a rôzne služby</h3><p>Termín, kapacita a trvanie služby — zákazníci si vyberú termín, vy dostanete potvrdenú rezerváciu.</p></div>
-            <div className="fg-card"><div className="fg-icon">💬</div><h3>Predvyplnené objednávky cez WhatsApp</h3><p>Po dokončení objednávky sa otvorí WhatsApp s kompletne vyplnenou správou — meno, položky, adresa.</p></div>
-            <div className="fg-card"><div className="fg-icon">🔗</div><h3>Jeden čistý odkaz</h3><p>Nahraďte chaotické zvýraznenia a viacero odkazov jednou stránkou, ktorá sa postará o všetko.</p></div>
-            <div className="fg-card"><div className="fg-icon">📷</div><h3>Platba QR kódom</h3><p>Okamžitá platba priamo na váš účet do cca 10 sekúnd — žiadna platobná brána, žiadna provízia.</p></div>
-            <div className="fg-card"><div className="fg-icon">📱</div><h3>Zamerané na mobilné zariadenia</h3><p>Rýchle načítanie, bezpečné a navrhnuté presne pre spôsob, akým vaši zákazníci už nakupujú.</p></div>
-          </div>
-        </div>
-      </section>
+      {/* FEATURES — sekcia zrušená (texty nedávali zmysel) */}
 
       {/* INDUSTRIES */}
       <section className="industries">
@@ -1093,8 +1076,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
             </div>
             <div className="footer-col">
               <h4>Produkt</h4>
-              <a href="#funkcie">Funkcie</a>
-              <a href="#cena">Cenník</a>
+                <a href="#cena">Cenník</a>
               <a href="#ako-to-funguje">Ako to funguje</a>
               <a href="#pre-koho">Pre koho</a>
             </div>
