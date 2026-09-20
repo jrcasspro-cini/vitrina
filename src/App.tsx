@@ -794,13 +794,35 @@ export default function Vitrina() {
     return items.slice(0, maxItemsAllowed);
   }, [items, maxItemsAllowed, isOwner]);
 
-  // Pre-generate VS when checkout panel opens
+  // Pre-generate VS keď sa checkout otvorí.
+  // Formát: YY + 4-miestne poradové číslo v rámci obchodu (napr. 260001, 260002, ...).
+  // Poradie = (počet existujúcich objednávok v tomto obchode) + 1.
+  // Krajšie a lahšie zapamätateľné ako 10-miestne náhodné číslo.
   useEffect(() => {
-    if (checkout) {
-      const vs = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-      setOrderVs(vs);
-    }
-  }, [checkout]);
+    if (!checkout || !selectedStoreHandle) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const ordersQuery = query(
+          collection(db, "orders"),
+          where("storeId", "==", selectedStoreHandle)
+        );
+        const snap = await getDocs(ordersQuery);
+        const nextSeq = snap.size + 1;
+        const yy = String(new Date().getFullYear()).slice(-2); // "26"
+        const seqStr = String(nextSeq).padStart(4, "0");         // "0001"
+        const vs = yy + seqStr;                                  // "260001"
+        if (!cancelled) setOrderVs(vs);
+      } catch (err) {
+        console.error("Error generating VS from orders count:", err);
+        // Fallback: 6-miestne číslo z časovej pečiatky (aspoň pod formát 6 cifier)
+        const yy = String(new Date().getFullYear()).slice(-2);
+        const fallback = yy + String(Date.now() % 10000).padStart(4, "0");
+        if (!cancelled) setOrderVs(fallback);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [checkout, selectedStoreHandle]);
 
   // Listen to orders for the admin view
   useEffect(() => {
@@ -3454,7 +3476,61 @@ export default function Vitrina() {
                           <p className="font-bold text-slate-800 text-[11px] mb-0.5">👤 Zákazník:</p>
                           <p><strong>Meno:</strong> {ord.customerName || "—"}</p>
                           <p><strong>Adresa:</strong> {ord.customerCity || "—"}</p>
+                          {ord.customerPhone && (
+                            <p>
+                              <strong>Telefón:</strong>{" "}
+                              <a href={`tel:${ord.customerPhone}`} className="underline hover:text-[#647058] font-semibold">
+                                {ord.customerPhone}
+                              </a>
+                            </p>
+                          )}
+                          {ord.customerEmail && (
+                            <p>
+                              <strong>E-mail:</strong>{" "}
+                              <a href={`mailto:${ord.customerEmail}?subject=${encodeURIComponent("Vaša objednávka č. " + orderNumber + " · VS " + (ord.variabilnySymbol || ""))}`} className="underline hover:text-[#647058] font-semibold break-all">
+                                {ord.customerEmail}
+                              </a>
+                            </p>
+                          )}
                           {ord.customerTime && <p><strong>Čas doručenia:</strong> {ord.customerTime}</p>}
+
+                          {/* Rýchle kontaktné tlačidlá */}
+                          {(ord.customerPhone || ord.customerEmail) && (
+                            <div className="flex gap-1.5 mt-2 pt-2 border-t" style={{ borderColor: C.line }}>
+                              {ord.customerPhone && (
+                                <>
+                                  <a
+                                    href={`tel:${ord.customerPhone}`}
+                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg font-bold text-[10px] uppercase tracking-wider bg-white border text-slate-700 hover:bg-slate-100 transition-colors"
+                                    style={{ borderColor: C.line }}
+                                    title="Zavolať zákazníkovi"
+                                  >
+                                    📞 Volať
+                                  </a>
+                                  <a
+                                    href={`https://wa.me/${ord.customerPhone.replace(/[^\d+]/g, "").replace(/^\+/, "")}?text=${encodeURIComponent("Dobrý deň, ozývam sa Vám ohľadom Vašej objednávky č. " + orderNumber + " (VS " + (ord.variabilnySymbol || "") + ").")}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg font-bold text-[10px] uppercase tracking-wider text-white transition-colors"
+                                    style={{ background: "#25D366" }}
+                                    title="Napísať cez WhatsApp"
+                                  >
+                                    💬 WhatsApp
+                                  </a>
+                                </>
+                              )}
+                              {ord.customerEmail && (
+                                <a
+                                  href={`mailto:${ord.customerEmail}?subject=${encodeURIComponent("Vaša objednávka č. " + orderNumber + " · VS " + (ord.variabilnySymbol || ""))}`}
+                                  className="flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg font-bold text-[10px] uppercase tracking-wider bg-white border text-slate-700 hover:bg-slate-100 transition-colors"
+                                  style={{ borderColor: C.line }}
+                                  title="Napísať e-mail"
+                                >
+                                  ✉ E-mail
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         {/* ⚠️ DETAIL ODSTÚPENIA OD ZMLUVY */}
