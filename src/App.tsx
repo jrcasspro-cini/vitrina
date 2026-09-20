@@ -159,6 +159,13 @@ const CATEGORIES = [
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
+// Zobrazí IBAN po skupinách 4 znakov (SK56 8360 5207 0042 0643 7919) — čitateľnejšie
+const formatIban = (iban: string | undefined | null): string => {
+  if (!iban) return "";
+  const clean = iban.replace(/\s+/g, "").toUpperCase();
+  return clean.replace(/(.{4})/g, "$1 ").trim();
+};
+
 // Vygeneruje a stiahne jednoduché PDF faktúry priamo v prehliadači (bez servera).
 // Vstup je "snapshot" dokumentu z kolekcie invoices — nič sa nedopočítava naživo.
 async function downloadInvoicePdf(inv: any) {
@@ -344,6 +351,7 @@ export default function Vitrina() {
     paymentReportedNote: "",
     createdAt: null as any,
     logo: "",
+    tagline: "",
     description: "",
     ownerId: ""
   });
@@ -485,7 +493,8 @@ export default function Vitrina() {
     capacity: ""
   });
   const [checkout, setCheckout] = useState(false);
-  const [cust, setCust] = useState({ name: "", city: "", time: "", pay: "Prevod na účet" });
+  const [cust, setCust] = useState({ name: "", city: "", phone: "", email: "", time: "", pay: "Prevod na účet" });
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
   const [dbError, setDbError] = useState<string>("");
 
@@ -603,6 +612,7 @@ export default function Vitrina() {
           paymentReportedNote: d.paymentReportedNote || "",
           createdAt: d.createdAt || null,
           logo: d.logo || "",
+          tagline: d.tagline || "",
           description: d.description || "",
           ownerId: d.ownerId || "",
           fakturaNazov: d.fakturaNazov || "",
@@ -630,6 +640,7 @@ export default function Vitrina() {
           paymentReportedNote: "",
           createdAt: null,
           logo: "",
+          tagline: "",
           description: "",
           ownerId: "",
           fakturaNazov: "",
@@ -1109,6 +1120,8 @@ export default function Vitrina() {
       total: total,
       customerName: cust.name,
       customerCity: cust.city,
+      customerPhone: cust.phone || "",
+      customerEmail: cust.email || "",
       customerTime: cust.time || "",
       status: "Nová",
       createdAt: new Date()
@@ -1127,11 +1140,23 @@ export default function Vitrina() {
       }
 
       await batch.commit();
-      setCart({});
-      setCheckout(false);
+      // Objednávka je uložená. Nechávame používateľa v checkout view (setCheckout(true))
+      // ale zobrazíme mu "Ďakujeme za objednávku" obrazovku namiesto košíka.
+      // Cart necháme zatiaľ neprázdny, aby si mohol prípadne overiť čo si objednal
+      // (Thank You obrazovka mu ho aj tak neukazuje). Reset príde pri "Späť do obchodu".
+      setOrderSubmitted(true);
     } catch (error) {
       console.error("Error saving order: ", error);
     }
+  };
+
+  // Vráti zákazníka späť do obchodu po odoslaní objednávky.
+  // Vyčistí košík, formulár aj Thank You obrazovku.
+  const backToShopAfterOrder = () => {
+    setOrderSubmitted(false);
+    setCart({});
+    setCheckout(false);
+    setCust({ name: "", city: "", phone: "", email: "", time: "", pay: "Prevod na účet" });
   };
 
   // Slovak Payme QR Pay generator
@@ -2005,14 +2030,29 @@ export default function Vitrina() {
                   </a>
                 </section>
 
-                {/* ── Popis obchodu ── */}
+                {/* ── Hook / slogan obchodu ── */}
+                {(store as any).tagline && (store as any).tagline.trim() && (
+                  <div
+                    className="rounded-2xl p-5 md:p-6 mb-4 text-center shadow-xs border animate-in fade-in duration-300"
+                    style={{
+                      background: C.accentSoft,
+                      borderColor: C.accent,
+                    }}
+                  >
+                    <p className="disp text-lg md:text-xl font-extrabold leading-snug" style={{ color: C.accentText }}>
+                      {(store as any).tagline.trim()}
+                    </p>
+                  </div>
+                )}
+
+                {/* ── Popis obchodu (o nás) ── */}
                 {store.description && store.description.trim() && (
-                  <div 
+                  <div
                     className="rounded-2xl p-4 md:p-5 mb-6 text-sm text-left leading-relaxed shadow-xs font-medium border animate-in fade-in duration-300"
-                    style={{ 
-                      background: C.card, 
+                    style={{
+                      background: C.card,
                       borderColor: C.line,
-                      color: C.ink 
+                      color: C.ink
                     }}
                   >
                     <p className="whitespace-pre-wrap">{store.description.trim()}</p>
@@ -2126,8 +2166,39 @@ export default function Vitrina() {
               </>
             )}
 
+            {/* ── Thank You obrazovka po odoslaní objednávky ── */}
+            {checkout && orderSubmitted && (
+              <section className="mt-6 rounded-2xl p-6 lg:p-10 lg:max-w-2xl lg:mx-auto text-center flex flex-col items-center" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                <div className="w-20 h-20 rounded-full flex items-center justify-center text-4xl mb-4" style={{ background: "#D1FAE5" }}>
+                  ✅
+                </div>
+                <h2 className="disp font-extrabold text-xl text-slate-900 mb-2">Ďakujeme za objednávku!</h2>
+                <p className="text-sm mb-1 max-w-md" style={{ color: C.soft }}>
+                  Vaša objednávka bola úspešne odoslaná predajcovi cez WhatsApp / SMS / e-mail.
+                </p>
+                <p className="text-xs mb-6 max-w-md" style={{ color: C.soft }}>
+                  Predajca sa vám čoskoro ozve s potvrdením a platobnými pokynmi.
+                  {cust.email && <> Kópia potvrdenia príde aj na <strong>{cust.email}</strong>.</>}
+                </p>
+
+                <div className="w-full max-w-sm p-4 rounded-2xl border mb-6" style={{ borderColor: C.line, background: C.bg }}>
+                  <div className="text-[10px] uppercase font-bold tracking-wider mb-1" style={{ color: C.soft }}>Číslo objednávky</div>
+                  <div className="font-mono font-bold text-lg text-slate-900">{orderVs}</div>
+                  <div className="text-[10px] mt-1" style={{ color: C.soft }}>Uložte si toto číslo — pomôže pri kontaktovaní predajcu.</div>
+                </div>
+
+                <button
+                  onClick={backToShopAfterOrder}
+                  className="px-6 py-3 rounded-2xl font-bold text-white text-sm shadow-sm hover:shadow-md transition-all"
+                  style={{ background: C.accent }}
+                >
+                  ← Späť do obchodu
+                </button>
+              </section>
+            )}
+
             {/* ── Checkout ── */}
-            {checkout && count > 0 && (
+            {checkout && count > 0 && !orderSubmitted && (
               <section className="mt-6 rounded-2xl p-4 lg:p-6 lg:max-w-4xl lg:mx-auto" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                 <div className="lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
                 <div>
@@ -2192,6 +2263,10 @@ export default function Vitrina() {
                     className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${checkoutError && !cust.name.trim() ? "#DC2626" : C.line}`, background: C.bg }} />
                   <input value={cust.city} onChange={(e) => { setCust({ ...cust, city: e.target.value }); if (checkoutError) setCheckoutError(""); }} placeholder="Mesto / adresa doručenia *"
                     className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${checkoutError && !cust.city.trim() ? "#DC2626" : C.line}`, background: C.bg }} />
+                  <input type="tel" value={cust.phone} onChange={(e) => setCust({ ...cust, phone: e.target.value })} placeholder="Telefón (napr. +421 900 123 456)"
+                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}`, background: C.bg }} />
+                  <input type="email" value={cust.email} onChange={(e) => setCust({ ...cust, email: e.target.value })} placeholder="E-mail (na potvrdenie objednávky)"
+                    className="w-full rounded-xl px-3 py-2 text-sm" style={{ border: `1px solid ${C.line}`, background: C.bg }} />
                   {checkoutError && (
                     <p className="text-xs font-semibold text-red-600 -mt-0.5">⚠️ {checkoutError}</p>
                   )}
@@ -2220,7 +2295,7 @@ export default function Vitrina() {
                       <div>
                         <span className="font-semibold block mb-1" style={{ color: C.soft }}>IBAN príjemcu:</span>
                         <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border text-xs font-mono" style={{ borderColor: C.line }}>
-                          <span className="truncate">{store.iban}</span>
+                          <span className="truncate">{formatIban(store.iban)}</span>
                           <button
                             onClick={() => {
                               if (navigator.clipboard) {
@@ -2560,7 +2635,28 @@ export default function Vitrina() {
               </div>
 
               <div className="flex justify-between items-center mt-3">
-                <label className="text-xs font-semibold" style={{ color: C.soft }}>Popis obchodu</label>
+                <label className="text-xs font-semibold" style={{ color: C.soft }}>Slogan / hook (krátka veta na upútanie)</label>
+                <span className="text-[10px] font-bold text-slate-500">
+                  {((store as any).tagline || "").length}/80 znakov
+                </span>
+              </div>
+              <input
+                type="text"
+                value={(store as any).tagline || ""}
+                onChange={(e) => {
+                  const val = e.target.value.slice(0, 80);
+                  updateStoreField("tagline", val);
+                }}
+                placeholder="Napr. Ručne robené s láskou · Domáce dobroty pre vášho psa · Farby, ktoré vás pohladia"
+                className="w-full rounded-xl px-3 py-2 text-sm border focus:outline-none focus:ring-1 focus:ring-[#7A8471]"
+                style={{ borderColor: C.line, background: C.bg }}
+              />
+              <p className="text-[10px] mt-1" style={{ color: C.soft }}>
+                Zobrazí sa výrazne pod názvom obchodu — ako prvá vec, ktorú návštevník uvidí. Držte to krátke a jasné.
+              </p>
+
+              <div className="flex justify-between items-center mt-3">
+                <label className="text-xs font-semibold" style={{ color: C.soft }}>Popis obchodu (o nás)</label>
                 <span className="text-[10px] font-bold text-slate-500">
                   {((store as any).description || "").length}/400 znakov
                 </span>
@@ -2572,7 +2668,7 @@ export default function Vitrina() {
                   updateStoreField("description", val);
                 }}
                 rows={3}
-                placeholder="Napr. Sme malá rodinná dielňa na severe Slovenska. Vyrábame ručne liate sviečky zo sójového vosku s tými najkrajšími vôňami..."
+                placeholder="Napr. Sme malá rodinná dielňa. Vyrábame ručne liate sviečky zo sójového vosku..."
                 className="w-full rounded-xl px-3 py-2 text-sm border resize-none focus:outline-none focus:ring-1 focus:ring-[#7A8471]"
                 style={{ borderColor: C.line, background: C.bg }}
               />
@@ -2780,7 +2876,7 @@ export default function Vitrina() {
                       <div>
                         <span className="font-semibold block" style={{ color: C.soft }}>IBAN príjemcu (Vitrína):</span>
                         <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-lg border text-xs font-mono">
-                          <span className="truncate">{company.iban || "(nedoplnené)"}</span>
+                          <span className="truncate">{company.iban ? formatIban(company.iban) : "(nedoplnené)"}</span>
                           {company.iban && (
                             <button
                               onClick={() => { navigator.clipboard?.writeText(cistyIban); }}
