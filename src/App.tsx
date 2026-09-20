@@ -394,6 +394,52 @@ function Logo({ size = 30 }: { size?: number }) {
   );
 }
 
+// ── PriceInput: číselné pole ktoré nechá používateľa v pokoji písať ─────
+// Problém pôvodného <input type="number"> bol dvojaký:
+//   1) Firestore listener prišiel s Number(hodnota) a pretlačil miestny stav
+//      počas písania — kurzor skočil a číslice zmizli.
+//   2) Slovenská lokalizácia používa ',' ako desatinný oddeľovač, HTML5
+//      number input to buď odmietne alebo neuloží.
+// Riešenie: lokálny textový state, akceptuje ',' aj '.', ukladá až na blur.
+function PriceInput({ initial, placeholder, onSave }: { initial: number | string | undefined | null; placeholder?: string; onSave: (n: number) => void }) {
+  const [text, setText] = useState<string>(() => {
+    if (initial === null || initial === undefined || initial === "") return "";
+    return String(initial).replace(".", ",");
+  });
+  // Ak sa initial zmení zvonku (napr. iným kliknutím) a používateľ práve nepíše,
+  // znovu synchronizuj — ale iba ak sa hodnota reálne líši od aktuálneho textu.
+  useEffect(() => {
+    const currentNum = Number(text.replace(",", ".")) || 0;
+    const initNum = Number(initial) || 0;
+    if (currentNum !== initNum && document.activeElement?.tagName !== "INPUT") {
+      setText(initial === null || initial === undefined || initial === "" ? "" : String(initial).replace(".", ","));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initial]);
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      value={text}
+      onChange={(e) => {
+        // Povoľ číslice, čiarku a bodku
+        const clean = e.target.value.replace(/[^\d.,]/g, "").replace(/[,.]/g, (m, _i, s) => s.indexOf(m) === s.lastIndexOf(m) ? m : "");
+        setText(clean);
+      }}
+      onBlur={() => {
+        const n = Number(text.replace(",", ".")) || 0;
+        onSave(n);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      placeholder={placeholder}
+      className="w-full rounded-lg px-2 py-1.5 text-xs border"
+      style={{ borderColor: "#E7EBE1", background: "white" }}
+    />
+  );
+}
+
 // ── StoreLogo: univerzálna predvolená ikonka alebo vlastné logo obchodu ──
 function StoreLogo({ logo, name, className = "w-16 h-16 rounded-2xl text-3xl" }: { logo?: string, name?: string, className?: string }) {
   const imgSrc = logo || defaultLogo;
@@ -3220,22 +3266,18 @@ export default function Vitrina() {
                   <div className="grid grid-cols-2 gap-2 mt-2 pl-5">
                     <div>
                       <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Cena kuriéra (€)</label>
-                      <input
-                        type="number" min="0" step="0.10"
-                        value={(store as any).shippingCourierPrice ?? ""}
-                        onChange={(e) => updateStoreField("shippingCourierPrice", Number(e.target.value) || 0)}
+                      <PriceInput
+                        initial={(store as any).shippingCourierPrice}
                         placeholder="4.50"
-                        className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                        onSave={(n) => updateStoreField("shippingCourierPrice", n)}
                       />
                     </div>
                     <div>
                       <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Zdarma nad (€, 0 = vypnuté)</label>
-                      <input
-                        type="number" min="0" step="1"
-                        value={(store as any).shippingFreeAbove ?? ""}
-                        onChange={(e) => updateStoreField("shippingFreeAbove", Number(e.target.value) || 0)}
+                      <PriceInput
+                        initial={(store as any).shippingFreeAbove}
                         placeholder="50"
-                        className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                        onSave={(n) => updateStoreField("shippingFreeAbove", n)}
                       />
                     </div>
                   </div>
@@ -3271,12 +3313,10 @@ export default function Vitrina() {
                   </div>
                   <div>
                     <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Hodnota</label>
-                    <input
-                      type="number" min="0" step="1"
-                      value={(store as any).discountValue ?? ""}
-                      onChange={(e) => updateStoreField("discountValue", Number(e.target.value) || 0)}
+                    <PriceInput
+                      initial={(store as any).discountValue}
                       placeholder={(store as any).discountType === "amount" ? "5" : "10"}
-                      className="w-full rounded-lg px-2 py-1.5 text-xs border" style={{ borderColor: C.line, background: "white" }}
+                      onSave={(n) => updateStoreField("discountValue", n)}
                     />
                   </div>
                 </div>
@@ -3861,6 +3901,22 @@ export default function Vitrina() {
                 </div>
               )}
 
+              {/* ── Sumár stavu objednávok (rýchly prehľad) ─────────── */}
+              {adminOrders.length > 0 && (() => {
+                const nova = adminOrders.filter(o => (o.status || "Nová") === "Nová").length;
+                const zaplat = adminOrders.filter(o => o.status === "Zaplatená").length;
+                const odosl = adminOrders.filter(o => o.status === "Odoslaná").length;
+                const vybav = adminOrders.filter(o => o.status === "Vybavená").length;
+                return (
+                  <div className="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                    <span className="px-2.5 py-1 rounded-full border-2" style={{ background: "#FEE2E2", color: "#991B1B", borderColor: "#FCA5A5" }}>🔴 Čaká na platbu: {nova}</span>
+                    <span className="px-2.5 py-1 rounded-full border-2" style={{ background: "#DBEAFE", color: "#1E40AF", borderColor: "#93C5FD" }}>🔵 Zaplatené: {zaplat}</span>
+                    <span className="px-2.5 py-1 rounded-full border-2" style={{ background: "#DCFCE7", color: "#166534", borderColor: "#86EFAC" }}>🟢 Odoslané: {odosl}</span>
+                    <span className="px-2.5 py-1 rounded-full border-2" style={{ background: "#D1FAE5", color: "#065F46", borderColor: "#6EE7B7" }}>✅ Vybavené: {vybav}</span>
+                  </div>
+                );
+              })()}
+
               {adminOrders.length === 0 ? (
                 <div className="text-center py-8 rounded-2xl border border-dashed p-4" style={{ borderColor: C.line, background: C.card }}>
                   <p className="text-xs font-medium" style={{ color: C.soft }}>Zatiaľ tu nie sú žiadne objednávky.</p>
@@ -3889,25 +3945,50 @@ export default function Vitrina() {
                     const orderDate = ord.createdAt?.toDate ? ord.createdAt.toDate().toLocaleString("sk-SK") : new Date(ord.createdAt || 0).toLocaleString("sk-SK");
                     const orderNumber = adminOrders.length - adminOrders.indexOf(ord);
 
+                    // ── Farebný stav objednávky ─────────────────────────
+                    // Nová (čaká na platbu)     → 🔴 červená
+                    // Zaplatená                   → 🔵 modrá
+                    // Odoslaná (vypravené kuriérom)→ 🟢 zelená
+                    // Vybavená (potvrdené doručenie) → ✅ tmavozelená
+                    // Zrušená / Odstúpené        → ⚪ šedá
+                    // Žiadosť o odstúpenie       → 🟠 oranžová (upozornenie)
+                    const status = ord.status || "Nová";
+                    const statusColors: Record<string, { bg: string; text: string; border: string; dot: string; bar: string; emoji: string }> = {
+                      "Nová": { bg: "#FEE2E2", text: "#991B1B", border: "#FCA5A5", dot: "#DC2626", bar: "#DC2626", emoji: "🔴" },
+                      "Zaplatená": { bg: "#DBEAFE", text: "#1E40AF", border: "#93C5FD", dot: "#2563EB", bar: "#2563EB", emoji: "🔵" },
+                      "Odoslaná": { bg: "#DCFCE7", text: "#166534", border: "#86EFAC", dot: "#16A34A", bar: "#16A34A", emoji: "🟢" },
+                      "Vybavená": { bg: "#D1FAE5", text: "#065F46", border: "#6EE7B7", dot: "#059669", bar: "#059669", emoji: "✅" },
+                      "Žiadosť o odstúpenie": { bg: "#FED7AA", text: "#9A3412", border: "#FDBA74", dot: "#EA580C", bar: "#EA580C", emoji: "⚠️" },
+                      "Odstúpené - vrátené peniaze": { bg: "#E5E7EB", text: "#374151", border: "#D1D5DB", dot: "#6B7280", bar: "#9CA3AF", emoji: "↩️" },
+                      "Zrušená": { bg: "#E5E7EB", text: "#374151", border: "#D1D5DB", dot: "#6B7280", bar: "#9CA3AF", emoji: "✖️" },
+                    };
+                    const sc = statusColors[status] || statusColors["Nová"];
+
                     return (
-                      <div 
-                        key={ord.id} 
-                        className={`p-4 rounded-2xl border flex flex-col gap-3 transition-all ${
-                          hasWithdrawal 
-                            ? "bg-red-50/40 border-red-200" 
-                            : "bg-white"
-                        }`}
-                        style={{ 
-                          borderColor: hasWithdrawal ? undefined : C.line,
-                          background: hasWithdrawal ? undefined : C.card 
+                      <div
+                        key={ord.id}
+                        className="p-4 rounded-2xl border flex flex-col gap-3 transition-all relative overflow-hidden"
+                        style={{
+                          borderColor: sc.border,
+                          background: hasWithdrawal ? "#FFF7ED" : C.card,
+                          borderLeftWidth: "5px",
+                          borderLeftColor: sc.bar,
                         }}
                       >
                         {/* Hlavička objednávky */}
                         <div className="flex items-start justify-between gap-2 border-b pb-2.5" style={{ borderColor: C.line }}>
                           <div>
-                            <span className="text-xs font-extrabold text-slate-900 block">
-                              Objednávka č. {orderNumber}
-                            </span>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              {/* Farebný bodík statusu — hneď viditeľný */}
+                              <span
+                                className="inline-block rounded-full flex-shrink-0"
+                                style={{ background: sc.dot, width: "12px", height: "12px", boxShadow: `0 0 0 2px ${sc.bg}` }}
+                                title={status}
+                              />
+                              <span className="text-xs font-extrabold text-slate-900">
+                                Objednávka č. {orderNumber}
+                              </span>
+                            </div>
                             <span className="font-mono text-[10px] text-slate-400 block mt-0.5">
                               ID: {ord.id}
                             </span>
@@ -3921,7 +4002,7 @@ export default function Vitrina() {
                             </span>
                           </div>
                           
-                          {/* Výber statusu */}
+                          {/* Výber statusu — farby sa menia podľa aktuálneho stavu */}
                           <div className="flex flex-col items-end gap-1.5">
                             <select
                               value={ord.status || "Nová"}
@@ -3937,22 +4018,16 @@ export default function Vitrina() {
                                   setDbError("Nepodarilo sa zmeniť stav objednávky: " + err.message);
                                 }
                               }}
-                              className={`text-[11px] font-bold px-2 py-1 rounded-lg border focus:outline-none ${
-                                hasWithdrawal 
-                                  ? "bg-red-100 text-red-800 border-red-300" 
-                                  : ord.status === "Vybavená"
-                                    ? "bg-green-50 text-green-800 border-green-200"
-                                    : ord.status === "Zrušená" || ord.status === "Odstúpené - vrátené peniaze"
-                                      ? "bg-slate-100 text-slate-600 border-slate-200"
-                                      : "bg-[#EDF0E8] text-[#4F5843] border-[#C7D0BC]"
-                              }`}
+                              className="text-[11px] font-bold px-2.5 py-1.5 rounded-lg border-2 focus:outline-none cursor-pointer"
+                              style={{ background: sc.bg, color: sc.text, borderColor: sc.border }}
                             >
-                              <option value="Nová">Nová</option>
-                              <option value="Zaplatená">Zaplatená</option>
-                              <option value="Vybavená">Vybavená</option>
-                              <option value="Žiadosť o odstúpenie">Žiadosť o odstúpenie ⚠️</option>
-                              <option value="Odstúpené - vrátené peniaze">Odstúpené (vrátené peniaze)</option>
-                              <option value="Zrušená">Zrušená</option>
+                              <option value="Nová">🔴 Nová — čaká na platbu</option>
+                              <option value="Zaplatená">🔵 Zaplatená</option>
+                              <option value="Odoslaná">🟢 Odoslaná</option>
+                              <option value="Vybavená">✅ Vybavená (doručené)</option>
+                              <option value="Žiadosť o odstúpenie">⚠️ Žiadosť o odstúpenie</option>
+                              <option value="Odstúpené - vrátené peniaze">↩️ Odstúpené (vrátené peniaze)</option>
+                              <option value="Zrušená">✖️ Zrušená</option>
                             </select>
                           </div>
                         </div>
