@@ -2173,18 +2173,23 @@ export default function Vitrina() {
                   ✅
                 </div>
                 <h2 className="disp font-extrabold text-xl text-slate-900 mb-2">Ďakujeme za objednávku!</h2>
-                <p className="text-sm mb-1 max-w-md" style={{ color: C.soft }}>
-                  Vaša objednávka bola úspešne odoslaná predajcovi cez WhatsApp / SMS / e-mail.
-                </p>
-                <p className="text-xs mb-6 max-w-md" style={{ color: C.soft }}>
-                  Predajca sa vám čoskoro ozve s potvrdením a platobnými pokynmi.
-                  {cust.email && <> Kópia potvrdenia príde aj na <strong>{cust.email}</strong>.</>}
+                <p className="text-sm mb-4 max-w-md" style={{ color: C.soft }}>
+                  Vaša objednávka bola úspešne odoslaná predajcovi.
                 </p>
 
+                <div className="w-full max-w-sm p-4 rounded-2xl border mb-4 text-left" style={{ borderColor: C.accent, background: C.accentSoft }}>
+                  <div className="text-[10px] uppercase font-bold tracking-wider mb-2 text-center" style={{ color: C.accentText }}>Čo bude ďalej?</div>
+                  <ol className="text-xs space-y-1.5 pl-4 list-decimal" style={{ color: C.ink }}>
+                    <li><strong>Zaplaťte prevodom</strong> — QR kód alebo IBAN je aj v odoslanej správe. Použite variabilný symbol <strong>{orderVs}</strong>.</li>
+                    <li><strong>Predajca overí platbu</strong> — na účte sa objaví do 10 sekúnd (SEPA Instant) alebo do 1 pracovného dňa.</li>
+                    <li><strong>Dostanete potvrdenie</strong> — cez WhatsApp {cust.email && <>alebo e-mail <strong>{cust.email}</strong></>}.</li>
+                  </ol>
+                </div>
+
                 <div className="w-full max-w-sm p-4 rounded-2xl border mb-6" style={{ borderColor: C.line, background: C.bg }}>
-                  <div className="text-[10px] uppercase font-bold tracking-wider mb-1" style={{ color: C.soft }}>Číslo objednávky</div>
+                  <div className="text-[10px] uppercase font-bold tracking-wider mb-1" style={{ color: C.soft }}>Číslo objednávky / variabilný symbol</div>
                   <div className="font-mono font-bold text-lg text-slate-900">{orderVs}</div>
-                  <div className="text-[10px] mt-1" style={{ color: C.soft }}>Uložte si toto číslo — pomôže pri kontaktovaní predajcu.</div>
+                  <div className="text-[10px] mt-1" style={{ color: C.soft }}>Uveďte ho pri platbe — pomôže predajcovi rýchlo priradiť platbu k objednávke.</div>
                 </div>
 
                 <button
