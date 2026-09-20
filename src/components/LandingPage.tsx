@@ -716,7 +716,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
               </div>
             </div>
             <div className="trust-row">
-              <span>10 dní zdarma</span>
+              <span>5 dní zdarma</span>
               <span>Nastavenie za 5 minút</span>
               <span>Bez kreditnej karty</span>
             </div>
@@ -779,7 +779,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           <div className="sec-head text-left">
             <div className="eyebrow">Prečo predávať cez Vitrínu</div>
             <h2>Jeden obchod pre všetko, čo predávate — <span className="grad-text" style={{ fontStyle: "italic" }}>produkty, workshopy, rezervácie.</span></h2>
-            <p>Šperky alebo kozmetika, kulinárske kurzy alebo prehliadky štúdií — jeden odkaz nahrádza nekonečné dohadovanie v správach. Zákazníci si vyberú, vy dostanete objednávku alebo rezerváciu v jednej prehľadnej správe.</p>
+            <p>Šperky alebo kozmetika, kulinárske kurzy alebo rôzne služby — jeden odkaz nahrádza nekonečné dohadovanie v správach. Zákazníci si vyberú, vy dostanete objednávku alebo rezerváciu v jednej prehľadnej správe.</p>
           </div>
           <div className="showcase-grid">
             <div className="sc-card">
@@ -902,7 +902,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           </div>
           <div className="fg-grid">
             <div className="fg-card"><div className="fg-icon">🛍️</div><h3>Predávajte produkty alebo služby</h3><p>Fotografie, varianty, ceny — jedna vitrína pre obe strany, bez zložitého e-shop systému.</p></div>
-            <div className="fg-card"><div className="fg-icon">📅</div><h3>Rezervácie, workshopy a prehliadky</h3><p>Termín, kapacita a trvanie služby — zákazníci si vyberú termín, vy dostanete potvrdenú rezerváciu.</p></div>
+            <div className="fg-card"><div className="fg-icon">📅</div><h3>Rezervácie, workshopy a rôzne služby</h3><p>Termín, kapacita a trvanie služby — zákazníci si vyberú termín, vy dostanete potvrdenú rezerváciu.</p></div>
             <div className="fg-card"><div className="fg-icon">💬</div><h3>Predvyplnené objednávky cez WhatsApp</h3><p>Po dokončení objednávky sa otvorí WhatsApp s kompletne vyplnenou správou — meno, položky, adresa.</p></div>
             <div className="fg-card"><div className="fg-icon">🔗</div><h3>Jeden čistý odkaz</h3><p>Nahraďte chaotické zvýraznenia a viacero odkazov jednou stránkou, ktorá sa postará o všetko.</p></div>
             <div className="fg-card"><div className="fg-icon">📷</div><h3>Platba QR kódom</h3><p>Okamžitá platba priamo na váš účet do cca 10 sekúnd — žiadna platobná brána, žiadna provízia.</p></div>
@@ -944,7 +944,7 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         <div className="wrap">
           <div className="sec-head text-left">
             <div className="eyebrow">Pre koho je Vitrína</div>
-            <h2>Malý predajca? Vitrína je pre teba.</h2>
+            <h2>Si malý predajca? Vitrína je pre teba.</h2>
             <p>Nepotrebuješ e-shop za tisíce eur ani skladový systém. Ak predávaš cez Instagram, Facebook alebo priamo cez WhatsApp — Vitrína ti dá poriadok a QR platbu, aby si nestrácala čas prepisovaním objednávok.</p>
           </div>
           <div className="test-grid">
@@ -1025,22 +1025,22 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           <div className="sec-head center">
             <div className="eyebrow">Cenník</div>
             <h2>Jednoduché a transparentné ceny</h2>
-            <p>10 dní na vyskúšanie zadarmo, so všetkými funkciami. Potom si vyberieš, koľko vecí naraz chceš mať vystavených vo výklade.</p>
+            <p>5 dní na vyskúšanie zadarmo, so všetkými funkciami. Potom si vyberieš, koľko vecí naraz chceš mať vystavených vo výklade.</p>
           </div>
-          <div className="save-note">✓ 10 dní zdarma, žiadna kreditná karta</div>
+          <div className="save-note">✓ 5 dní zdarma, žiadna kreditná karta</div>
           <div className="price-table">
             <div className="price-cols header">
               <div className="pc" style={{ textAlign: "left", display: "flex", alignItems: "flex-end" }}><span style={{ color: "var(--muted)", fontSize: ".8rem" }}>Porovnanie plánov</span></div>
               <div className="pc">
                 <div className="plan-name">Štandard</div>
                 <div className="plan-price">8 €<span className="plan-per">/mes.</span></div>
-                <a href="/app" onClick={(e) => handleNav(e, "/app")} className="plan-cta">Vyskúšať 10 dní zdarma</a>
+                <a href="/app" onClick={(e) => handleNav(e, "/app")} className="plan-cta">Vyskúšať 5 dní zdarma</a>
               </div>
               <div className="pc highlight">
                 <div className="plan-badge">OBĽÚBENÉ</div>
                 <div className="plan-name">Rozšírený</div>
                 <div className="plan-price">10 €<span className="plan-per">/mes.</span></div>
-                <a href="/app" onClick={(e) => handleNav(e, "/app")} className="plan-cta solid">Vyskúšať 10 dní zdarma</a>
+                <a href="/app" onClick={(e) => handleNav(e, "/app")} className="plan-cta solid">Vyskúšať 5 dní zdarma</a>
               </div>
             </div>
 
@@ -1072,13 +1072,13 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
           <div className="final-box">
             <div className="eyebrow" style={{ marginBottom: "16px", display: "block" }}>Pripravený, keď budete pripravení</div>
             <h2>Váš obchod. <span className="accent-italic">Spustený do 5 minút.</span></h2>
-            <p>Produkty, workshopy, rezervácie, prehliadky — o všetko sa postará jeden obchod a každá pokladňa sa otvorí s predvyplneným WhatsAppom. Žiadne poplatky za nastavenie, žiadna karta, žiadne viazanosti.</p>
+            <p>Produkty, workshopy, rezervácie, rôzne služby — o všetko sa postará jeden obchod a každá pokladňa sa otvorí s predvyplneným WhatsAppom. Žiadne poplatky za nastavenie, žiadna karta, žiadne viazanosti.</p>
             <div className="final-cta-row">
               <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-primary">Prejsť na ovládací panel →</a>
               <a href="/app" onClick={(e) => handleNav(e, "/app")} className="btn-secondary">Prihlásiť sa</a>
             </div>
             <div className="final-trust">
-              <span>10 dní zdarma na vyskúšanie</span><span>·</span><span>Nie je potrebná žiadna kreditná karta</span><span>·</span><span>Zrušiť kedykoľvek</span>
+              <span>5 dní zdarma na vyskúšanie</span><span>·</span><span>Nie je potrebná žiadna kreditná karta</span><span>·</span><span>Zrušiť kedykoľvek</span>
             </div>
           </div>
         </div>

@@ -605,7 +605,7 @@ export default function Vitrina() {
           const createdMs = d.createdAt 
             ? (d.createdAt.seconds ? d.createdAt.seconds * 1000 : new Date(d.createdAt).getTime())
             : Date.now();
-          trialEndsAt = new Date(createdMs + 10 * 24 * 60 * 60 * 1000).toISOString();
+          trialEndsAt = new Date(createdMs + 5 * 24 * 60 * 60 * 1000).toISOString();
           try {
             await setDoc(doc(db, "stores", selectedStoreHandle), { trialEndsAt }, { merge: true });
           } catch (e) {
@@ -1271,7 +1271,7 @@ export default function Vitrina() {
         iban: newStore.iban.trim().toUpperCase(),
         category: newStore.category.trim() || "Sviečky a darčeky",
         createdAt: new Date(),
-        trialEndsAt: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
+        trialEndsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
         plan: "",
         logo: "",
         ownerId: currentUser?.uid || ""
@@ -2926,7 +2926,7 @@ export default function Vitrina() {
                 <div className="p-3.5 rounded-xl text-xs flex items-start gap-2.5" style={{ background: C.accentSoft, border: `1px solid ${C.accent}`, color: C.ink }}>
                   <span className="text-lg leading-none">⏱️</span>
                   <div>
-                    <span className="font-extrabold block">Skúšobná doba (10-dňový Trial)</span>
+                    <span className="font-extrabold block">Skúšobná doba (5-dňový Trial)</span>
                     <span className="block mt-0.5 font-medium opacity-90">
                       Zostáva vám <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "deň" : trialDaysLeft < 5 ? "dni" : "dní"}</strong>. Môžete mať vystavených až 6 aktívnych produktov súčasne.
                     </span>

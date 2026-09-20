@@ -167,7 +167,7 @@ function Podmienky({ f }: { f: CompanyInfo }) {
 
       <Section title="4. Predplatné a platby">
         <ul>
-          <li>Skúšobná doba: 10 dní zadarmo od registrácie obchodu, s limitom 6 aktívnych produktov.</li>
+          <li>Skúšobná doba: 5 dní zadarmo od registrácie obchodu, s limitom 6 aktívnych produktov.</li>
           <li>Plán <b>Standard</b>: 8 €/mes, limit 2 aktívne produkty.</li>
           <li>Plán <b>Rozšírený</b>: 10 €/mes, limit 6 aktívnych produktov.</li>
           <li>Ceny sú uvedené bez DPH*. * Ak je poskytovateľ platcom DPH, k cene sa pripočíta príslušná sadzba DPH.</li>
