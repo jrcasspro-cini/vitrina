@@ -849,8 +849,17 @@ export default function Vitrina() {
           fakturaAdresa: d.fakturaAdresa || "",
           fakturaIco: d.fakturaIco || "",
           fakturaDic: d.fakturaDic || "",
-          theme: d.theme || "sage"
-        });
+          theme: d.theme || "sage",
+          // Doprava (predajca nastaví v Nastaveniach)
+          shippingPickupEnabled: d.shippingPickupEnabled !== false, // default: ZAPNUTÉ
+          shippingCourierEnabled: !!d.shippingCourierEnabled,
+          shippingCourierPrice: Number(d.shippingCourierPrice) || 0,
+          shippingFreeAbove: Number(d.shippingFreeAbove) || 0,
+          // Zľavový kód
+          discountCode: d.discountCode || "",
+          discountType: d.discountType || "percent",
+          discountValue: Number(d.discountValue) || 0,
+        } as any);
       } else {
         setStoreExists(false);
         setStore({
@@ -880,8 +889,15 @@ export default function Vitrina() {
           fakturaAdresa: "",
           fakturaIco: "",
           fakturaDic: "",
-          theme: "sage"
-        });
+          theme: "sage",
+          shippingPickupEnabled: true,
+          shippingCourierEnabled: false,
+          shippingCourierPrice: 0,
+          shippingFreeAbove: 0,
+          discountCode: "",
+          discountType: "percent",
+          discountValue: 0,
+        } as any);
       }
     }, (error) => {
       console.error("Store detail listener error:", error);
