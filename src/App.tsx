@@ -2688,7 +2688,12 @@ export default function Vitrina() {
                               <input type="radio" name="shippingMethod" checked={shippingMethod === "courier"} onChange={() => setShippingMethod("courier")} />
                               📦 Kuriér
                               {shippingFreeAbove > 0 && (
-                                <span className="text-[10px] font-normal text-slate-500">(zdarma nad {eur(shippingFreeAbove)})</span>
+                                <span
+                                  className="text-[11px] font-extrabold px-2 py-0.5 rounded-full"
+                                  style={{ background: "#DCFCE7", color: "#166534", border: "1px solid #86EFAC" }}
+                                >
+                                  🎁 zdarma nad {eur(shippingFreeAbove)}
+                                </span>
                               )}
                             </span>
                             <span className="text-xs font-bold" style={{ color: C.accentText }}>
