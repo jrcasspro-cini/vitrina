@@ -47,12 +47,16 @@ export function useCompany(): CompanyInfo {
     const unsub = onSnapshot(doc(db, "config", "company"), (snap) => {
       if (snap.exists()) {
         const d = snap.data() as Partial<CompanyInfo>;
+        // Pre IČ DPH: ak je Firestore hodnota prázdna, ukážeme
+        // „Nie sme platcami DPH" — pekný default namiesto „(nedoplnené)".
+        // Ak sa neskôr firma stane platcom, jednoducho vyplní pole v super admin.
+        const icDphRaw = (d.ic_dph || "").trim();
         setCompany({
           nazov: d.nazov || EMPTY.nazov,
           adresa: d.adresa || EMPTY.adresa,
           ico: d.ico || EMPTY.ico,
           dic: d.dic || EMPTY.dic,
-          ic_dph: d.ic_dph || EMPTY.ic_dph,
+          ic_dph: icDphRaw || "Nie sme platcami DPH",
           register: d.register || EMPTY.register,
           datum_ucinnosti: d.datum_ucinnosti || EMPTY.datum_ucinnosti,
           kontakt: d.kontakt || EMPTY.kontakt,

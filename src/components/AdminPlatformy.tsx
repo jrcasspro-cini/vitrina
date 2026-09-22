@@ -688,7 +688,8 @@ export default function AdminPlatformy({ onNavigate }: AdminPlatformyProps) {
                                 rel="noopener noreferrer"
                                 className="font-mono text-[10px] text-indigo-600 hover:underline inline-flex items-center gap-0.5"
                               >
-                                /{store.handle} ↗
+                                <span>/{store.handle}</span>
+                                <span style={{ userSelect: "none" }} aria-hidden="true">↗</span>
                               </a>
                               
                               {store.ownerId ? (

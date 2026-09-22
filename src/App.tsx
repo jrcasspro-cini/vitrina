@@ -2425,7 +2425,8 @@ export default function Vitrina() {
                     className="text-sm font-bold mt-2.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm"
                     style={{ background: "#1E3A5F", color: "#fff" }}
                   >
-                    {currentHost}/{selectedStoreHandle} ↗
+                    <span>{currentHost}/{selectedStoreHandle}</span>
+                    <span style={{ userSelect: "none" }} aria-hidden="true">↗</span>
                   </a>
                 </section>
 

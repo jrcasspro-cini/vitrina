@@ -81,12 +81,12 @@ export default function CompanySettings() {
 
   const fields: { key: keyof CompanyForm; label: string; placeholder: string; help?: string; wide?: boolean }[] = [
     { key: "nazov", label: "Názov firmy", placeholder: "napr. Zavio s.r.o. alebo Jozef Rolík – živnosť", wide: true },
-    { key: "adresa", label: "Sídlo / adresa", placeholder: "napr. Hlavná 123, 080 01 Prešov", wide: true },
+    { key: "adresa", label: "Sídlo / adresa", placeholder: "napr. Hlavná 123, 082 21 Veľký Šariš (s dĺžňami — Prešovská, Šariš, atď.)", wide: true },
     { key: "ico", label: "IČO", placeholder: "napr. 12345678" },
     { key: "dic", label: "DIČ", placeholder: "napr. 2023456789" },
-    { key: "ic_dph", label: "IČ DPH (ak platca)", placeholder: "napr. SK2023456789", help: "Ak nie si platcom DPH, nechaj prázdne." },
-    { key: "register", label: "Register", placeholder: "napr. Živnostenský register OÚ Prešov", wide: true },
-    { key: "datum_ucinnosti", label: "Dátum účinnosti", placeholder: "napr. 13. júl 2026", help: "Deň keď podmienky nadobúdajú platnosť." },
+    { key: "ic_dph", label: "IČ DPH (ak platca)", placeholder: "napr. SK2023456789", help: "Ak nie si platcom DPH, nechaj prázdne — systém automaticky ukáže „Nie sme platcami DPH“." },
+    { key: "register", label: "Register", placeholder: "napr. Živnostenský register OÚ Prešov (s dĺžňami!)", wide: true },
+    { key: "datum_ucinnosti", label: "Dátum účinnosti", placeholder: "napr. 22. september 2026", help: "Deň keď podmienky nadobúdajú platnosť — obvykle dnešný dátum." },
     { key: "kontakt", label: "Kontaktný email", placeholder: "info@zavio.sk" },
     { key: "iban", label: "IBAN (nepovinné)", placeholder: "napr. SK00 0000 0000 0000 0000 0000", help: "Pre budúce prepojenie s platbami.", wide: true },
   ];
