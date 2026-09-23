@@ -134,6 +134,11 @@ interface StoreItem {
   slot?: string;
   left?: number;
   longDesc?: string;
+  // Stav dostupnosti (F feature):
+  //   "in_stock"   — dostupné (default)
+  //   "sold_out"   — vypredané (nedá sa pridať do košíka)
+  //   "coming_soon" — príde čoskoro (nedá sa pridať do košíka)
+  availability?: "in_stock" | "sold_out" | "coming_soon";
 }
 
 const MAX_PRODUCT_PHOTOS = 4;
@@ -930,7 +935,10 @@ export default function Vitrina() {
           left: d.leftCapacity ?? 0,
           badge: d.badge || null,
           emoji: d.emoji || (d.type === "booking" ? "📅" : "🛍️"),
-          longDesc: d.longDesc || ""
+          longDesc: d.longDesc || "",
+          availability: (d.availability === "sold_out" || d.availability === "coming_soon")
+            ? d.availability
+            : "in_stock",
         };
       });
       setAllItems(loaded);
@@ -2349,7 +2357,23 @@ export default function Vitrina() {
                       </div>
                     </div>
 
-                    {selectedProduct.type === "booking" && selectedProduct.left !== undefined && selectedProduct.left <= 0 && (cart[selectedProduct.id] ?? 0) === 0 ? (
+                    {selectedProduct.availability === "sold_out" ? (
+                      <button
+                        disabled
+                        className="w-full sm:flex-1 py-3.5 px-6 rounded-full font-extrabold text-sm flex items-center justify-center cursor-not-allowed"
+                        style={{ background: "#FEE2E2", color: "#991B1B", border: "2px solid #FCA5A5" }}
+                      >
+                        🔴 Vypredané
+                      </button>
+                    ) : selectedProduct.availability === "coming_soon" ? (
+                      <button
+                        disabled
+                        className="w-full sm:flex-1 py-3.5 px-6 rounded-full font-extrabold text-sm flex items-center justify-center cursor-not-allowed"
+                        style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #FDE68A" }}
+                      >
+                        🟡 Bude čoskoro
+                      </button>
+                    ) : selectedProduct.type === "booking" && selectedProduct.left !== undefined && selectedProduct.left <= 0 && (cart[selectedProduct.id] ?? 0) === 0 ? (
                       <button
                         disabled
                         className="w-full sm:flex-1 py-3.5 px-6 rounded-full font-extrabold text-sm flex items-center justify-center opacity-50 cursor-not-allowed"
@@ -2502,12 +2526,22 @@ export default function Vitrina() {
                             
                             {/* Odznaky priamo na fotke v ľavom hornom rohu */}
                             <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 items-start z-10">
+                              {it.availability === "sold_out" && (
+                                <span className="text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-full font-extrabold shadow-md" style={{ background: "#DC2626", color: "#fff" }}>
+                                  🔴 Vypredané
+                                </span>
+                              )}
+                              {it.availability === "coming_soon" && (
+                                <span className="text-[11px] uppercase tracking-wider px-3 py-1.5 rounded-full font-extrabold shadow-md" style={{ background: "#F59E0B", color: "#fff" }}>
+                                  🟡 Bude čoskoro
+                                </span>
+                              )}
                               {it.badge && (
                                 <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: C.accentSoft, color: C.accentText }}>
                                   {it.badge}
                                 </span>
                               )}
-                              {it.type === "booking" && it.left !== undefined && (
+                              {it.type === "booking" && it.left !== undefined && it.availability !== "sold_out" && it.availability !== "coming_soon" && (
                                 it.left <= 0 ? (
                                   <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-full font-bold shadow-sm" style={{ background: "#FEE2E2", color: "#B91C1C" }}>
                                     Vypredané
@@ -2519,6 +2553,10 @@ export default function Vitrina() {
                                 )
                               )}
                             </div>
+                            {/* Grayscale overlay ak je vypredané/čoskoro — vizuálne "zablokované" */}
+                            {(it.availability === "sold_out" || it.availability === "coming_soon") && (
+                              <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(255,255,255,0.35)", backdropFilter: "grayscale(70%)" }} />
+                            )}
                           </div>
 
                           <div className="p-4 flex-1 flex flex-col justify-between">
@@ -2548,7 +2586,23 @@ export default function Vitrina() {
                               >
                                 Viac info →
                               </button>
-                              {cart[it.id] ? (
+                              {it.availability === "sold_out" ? (
+                                <button
+                                  disabled
+                                  className="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 cursor-not-allowed"
+                                  style={{ background: "#FEE2E2", color: "#991B1B", border: "1px solid #FCA5A5" }}
+                                >
+                                  🔴 Vypredané
+                                </button>
+                              ) : it.availability === "coming_soon" ? (
+                                <button
+                                  disabled
+                                  className="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 cursor-not-allowed"
+                                  style={{ background: "#FEF3C7", color: "#78350F", border: "1px solid #FDE68A" }}
+                                >
+                                  🟡 Bude čoskoro
+                                </button>
+                              ) : cart[it.id] ? (
                                 <div className="flex items-center gap-1 rounded-full p-0.5 border shrink-0" style={{ borderColor: C.line, background: C.bg }}>
                                   <button onClick={() => add(it.id, -1)} className="w-7 h-7 flex items-center justify-center text-sm font-bold rounded-full hover:bg-slate-100 transition-colors" style={{ color: C.soft }}>−</button>
                                   <span className="text-xs font-bold w-4 text-center">{cart[it.id]}</span>
@@ -3709,6 +3763,36 @@ export default function Vitrina() {
                           }}
                         />
                       </label>
+                      {/* Rýchly toggle dostupnosti — uloží sa okamžite pri zmene */}
+                      <select
+                        value={it.availability || "in_stock"}
+                        onChange={async (e) => {
+                          try {
+                            setDbError("");
+                            await setDoc(doc(db, "items", it.id), { availability: e.target.value }, { merge: true });
+                          } catch (err: any) {
+                            console.error("Error updating availability:", err);
+                            setDbError("Nepodarilo sa zmeniť dostupnosť: " + err.message);
+                          }
+                        }}
+                        className="text-[11px] font-bold px-2 py-1 rounded-lg border cursor-pointer"
+                        style={{
+                          background: it.availability === "sold_out" ? "#FEE2E2"
+                            : it.availability === "coming_soon" ? "#FEF3C7"
+                            : "#DCFCE7",
+                          color: it.availability === "sold_out" ? "#991B1B"
+                            : it.availability === "coming_soon" ? "#78350F"
+                            : "#166534",
+                          borderColor: it.availability === "sold_out" ? "#FCA5A5"
+                            : it.availability === "coming_soon" ? "#FDE68A"
+                            : "#86EFAC",
+                        }}
+                        title="Zmeň dostupnosť produktu"
+                      >
+                        <option value="in_stock">🟢 Dostupné</option>
+                        <option value="sold_out">🔴 Vypredané</option>
+                        <option value="coming_soon">🟡 Bude čoskoro</option>
+                      </select>
                       <button onClick={async () => {
                         try {
                           setDbError("");
