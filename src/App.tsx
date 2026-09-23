@@ -2132,63 +2132,74 @@ export default function Vitrina() {
             </button>
           </div>
           ) : (
-          // ── UŽ MÁ OBCHOD: farebný, plnokrvný card s CTA a náhľadom ──
-          <div className="my-auto py-4">
+          // ── UŽ MÁ OBCHOD: veľká, prémiová karta s pastelovým gradientom ──
+          <div className="my-auto py-2">
             {userStores.map((st) => {
-              // Farebná téma podľa obchodu (fallback: sage)
-              const themeKey = ((st as any).theme || "sage") as keyof typeof STORE_THEMES;
-              const t = STORE_THEMES[themeKey] || STORE_THEMES.sage;
               const publicUrl = `${currentHost}/${st.handle}`;
+              // Prémiový gradient nezávislý od témy obchodu — pastel purple → coral/pink
+              const GRADIENT = "linear-gradient(135deg, #667EEA 0%, #764BA2 50%, #F093FB 100%)";
+              const GRADIENT_SOFT = "linear-gradient(135deg, #F5F3FF 0%, #FDF2FA 100%)";
               return (
-                <div key={st.id} className="rounded-3xl overflow-hidden shadow-lg" style={{ background: t.bg, border: `1px solid ${t.accentSoft}` }}>
-                  {/* Farebný hero pás */}
-                  <div className="p-6 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${t.accent} 0%, ${t.accentText} 100%)` }}>
-                    <StoreLogo logo={st.logo} name={st.name} className="w-16 h-16 rounded-2xl shrink-0 shadow-md ring-2 ring-white/50" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[10px] uppercase tracking-wider font-bold mb-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>Môj obchod</div>
-                      <h2 className="disp text-xl font-extrabold truncate text-white leading-tight">{st.name || "Bez názvu"}</h2>
-                      <p className="text-xs text-white/80 truncate mt-0.5">
-                        {(st.category || st.industry || "Lokálny predajca")} · {st.city}
-                      </p>
+                <div key={st.id} className="rounded-[28px] overflow-hidden shadow-2xl" style={{ background: GRADIENT_SOFT, border: "1px solid #E9D5FF" }}>
+                  {/* Veľký farebný hero — vyplňuje výrazný priestor */}
+                  <div className="p-8 pb-10 relative overflow-hidden" style={{ background: GRADIENT }}>
+                    {/* Dekoratívne kruhy v pozadí */}
+                    <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full" style={{ background: "rgba(255,255,255,0.1)" }} />
+                    <div className="absolute -bottom-20 -left-20 w-52 h-52 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }} />
+
+                    <div className="relative flex flex-col items-center text-center gap-3">
+                      <StoreLogo logo={st.logo} name={st.name} className="w-24 h-24 rounded-[24px] shrink-0 shadow-2xl ring-4 ring-white/40" />
+                      <div className="text-[10px] uppercase tracking-[0.2em] font-black" style={{ color: "rgba(255,255,255,0.9)" }}>⚡ Môj obchod</div>
+                      <h2 className="disp text-3xl font-black text-white leading-tight px-2 break-words">{st.name || "Bez názvu"}</h2>
+                      <div className="flex items-center gap-2 text-white/90 text-sm font-semibold">
+                        <span>{(st.category || st.industry || "Predajca")}</span>
+                        <span className="opacity-60">·</span>
+                        <span>{st.city}</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* URL kopírovacie tlačidlo */}
-                  <div className="px-5 py-3 flex items-center gap-2 border-b" style={{ background: "rgba(255,255,255,0.5)", borderColor: t.accentSoft }}>
-                    <span className="text-[10px] uppercase font-bold shrink-0" style={{ color: t.accentText }}>🔗 Odkaz:</span>
-                    <span className="text-xs font-mono font-semibold truncate flex-1" style={{ color: t.accentText }}>{publicUrl}</span>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (navigator.clipboard) {
-                          navigator.clipboard.writeText(`https://${publicUrl}`);
-                          setCopiedLink(true);
-                          setTimeout(() => setCopiedLink(false), 2000);
-                        }
-                      }}
-                      className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shrink-0 hover:opacity-90 transition-opacity"
-                      style={{ background: t.accent, color: "#fff" }}
-                    >
-                      {copiedLink ? "✓ Hotovo" : "Kopírovať"}
-                    </button>
-                  </div>
+                  {/* Bielý stredový panel s URL a akciami */}
+                  <div className="p-6 flex flex-col gap-4" style={{ background: "#fff", marginTop: "-16px", borderTopLeftRadius: "28px", borderTopRightRadius: "28px" }}>
 
-                  {/* Hlavné CTA — Vstúpiť */}
-                  <div className="p-5 flex flex-col gap-2">
+                    {/* URL riadok */}
+                    <div className="rounded-2xl p-3 flex items-center gap-2" style={{ background: "#F5F3FF", border: "1.5px solid #E9D5FF" }}>
+                      <span className="text-lg shrink-0">🔗</span>
+                      <span className="text-xs font-mono font-bold truncate flex-1" style={{ color: "#5F3DC4" }}>{publicUrl}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (navigator.clipboard) {
+                            navigator.clipboard.writeText(`https://${publicUrl}`);
+                            setCopiedLink(true);
+                            setTimeout(() => setCopiedLink(false), 2000);
+                          }
+                        }}
+                        className="text-[11px] font-extrabold uppercase px-3 py-1.5 rounded-xl shrink-0 hover:opacity-90 transition-all shadow-sm"
+                        style={{ background: GRADIENT, color: "#fff" }}
+                      >
+                        {copiedLink ? "✓ HOTOVO" : "KOPÍROVAŤ"}
+                      </button>
+                    </div>
+
+                    {/* Hlavné CTA — obrovské tlačidlo */}
                     <button
                       onClick={() => selectStore(st.handle)}
-                      className="w-full py-4 rounded-2xl font-extrabold text-base text-white shadow-md transition-transform hover:scale-[1.01] flex items-center justify-center gap-2"
-                      style={{ background: t.accent }}
+                      className="w-full py-5 rounded-2xl font-black text-lg text-white shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
+                      style={{ background: GRADIENT, boxShadow: "0 12px 30px rgba(118, 75, 162, 0.4)" }}
                     >
-                      ⚡ Vstúpiť do môjho obchodu →
+                      <span>⚡ Vstúpiť do obchodu</span>
+                      <span className="text-2xl">→</span>
                     </button>
-                    <div className="grid grid-cols-2 gap-2">
+
+                    {/* Podprvé tlačidlá */}
+                    <div className="grid grid-cols-2 gap-3">
                       <a
                         href={`https://${publicUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="py-2.5 rounded-xl font-bold text-xs text-center transition-colors"
-                        style={{ background: "#fff", color: t.accentText, border: `1.5px solid ${t.accentSoft}` }}
+                        className="py-3.5 rounded-2xl font-extrabold text-xs text-center transition-all hover:scale-[1.02] flex items-center justify-center gap-1.5"
+                        style={{ background: "#F5F3FF", color: "#5F3DC4", border: "1.5px solid #E9D5FF" }}
                       >
                         🏬 Verejný náhľad
                       </a>
@@ -2197,17 +2208,17 @@ export default function Vitrina() {
                           e.stopPropagation();
                           setStoreToDelete(st);
                         }}
-                        className="py-2.5 rounded-xl font-bold text-xs transition-colors text-red-600 hover:bg-red-50"
-                        style={{ background: "#fff", border: `1.5px solid #FCA5A5` }}
+                        className="py-3.5 rounded-2xl font-extrabold text-xs transition-all hover:scale-[1.02] flex items-center justify-center gap-1.5"
+                        style={{ background: "#FEF2F2", color: "#DC2626", border: "1.5px solid #FECACA" }}
                       >
-                        🗑️ Vymazať obchod
+                        🗑️ Vymazať
                       </button>
                     </div>
                   </div>
                 </div>
               );
             })}
-            <p className="text-[11px] text-slate-500 mt-4 leading-relaxed text-center px-4">
+            <p className="text-[11px] text-slate-500 mt-5 leading-relaxed text-center px-4">
               🔒 Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte nový účet s iným emailom.
             </p>
           </div>
