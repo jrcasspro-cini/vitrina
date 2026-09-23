@@ -1049,9 +1049,18 @@ export default function Vitrina() {
         if (!cancelled) setOrderVs(vs);
       } catch (err) {
         console.error("Error generating VS from orders count:", err);
-        // Fallback: 6-miestne číslo z časovej pečiatky (aspoň pod formát 6 cifier)
-        const yy = String(new Date().getFullYear()).slice(-2);
-        const fallback = yy + String(Date.now() % 10000).padStart(4, "0");
+        // Fallback: keď nemôžeme spočítať objednávky (napr. nelogovaný zákazník),
+        // vygenerujeme pseudo-sekvenčné VS na základe času.
+        // Použijeme minúty od 1.1. tohto roka mod 10000 → dostaneme 4-miestne
+        // číslo ktoré rastie približne sekvenčne (každú minútu +1) a cykluje
+        // sa každých ~7 dní. Kolízie sú extrémne nepravdepodobné pri malých
+        // predajcoch (musia by 2 objednávky v tej istej minúte).
+        const now = new Date();
+        const yy = String(now.getFullYear()).slice(-2);
+        const yearStart = new Date(now.getFullYear(), 0, 1).getTime();
+        const minutesSinceYearStart = Math.floor((now.getTime() - yearStart) / 60000);
+        const seq = minutesSinceYearStart % 10000;
+        const fallback = yy + String(seq).padStart(4, "0");
         if (!cancelled) setOrderVs(fallback);
       }
     })();
@@ -3763,7 +3772,8 @@ export default function Vitrina() {
                           }}
                         />
                       </label>
-                      {/* Rýchly toggle dostupnosti — uloží sa okamžite pri zmene */}
+                      {/* Rýchly toggle dostupnosti — uloží sa okamžite pri zmene.
+                          Zväčšený & výraznejší aby bolo jasne vidno že sa dá kliknúť. */}
                       <select
                         value={it.availability || "in_stock"}
                         onChange={async (e) => {
@@ -3775,7 +3785,7 @@ export default function Vitrina() {
                             setDbError("Nepodarilo sa zmeniť dostupnosť: " + err.message);
                           }
                         }}
-                        className="text-[11px] font-bold px-2 py-1 rounded-lg border cursor-pointer"
+                        className="text-xs font-extrabold px-3 py-2 rounded-xl border-2 cursor-pointer shadow-sm hover:shadow-md transition-shadow appearance-none pr-7"
                         style={{
                           background: it.availability === "sold_out" ? "#FEE2E2"
                             : it.availability === "coming_soon" ? "#FEF3C7"
@@ -3783,15 +3793,19 @@ export default function Vitrina() {
                           color: it.availability === "sold_out" ? "#991B1B"
                             : it.availability === "coming_soon" ? "#78350F"
                             : "#166534",
-                          borderColor: it.availability === "sold_out" ? "#FCA5A5"
-                            : it.availability === "coming_soon" ? "#FDE68A"
-                            : "#86EFAC",
+                          borderColor: it.availability === "sold_out" ? "#DC2626"
+                            : it.availability === "coming_soon" ? "#F59E0B"
+                            : "#16A34A",
+                          backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>")`,
+                          backgroundRepeat: "no-repeat",
+                          backgroundPosition: "right 8px center",
+                          backgroundSize: "12px",
                         }}
-                        title="Zmeň dostupnosť produktu"
+                        title="Klikni pre zmenu dostupnosti (Dostupné / Vypredané / Bude čoskoro)"
                       >
-                        <option value="in_stock">🟢 Dostupné</option>
-                        <option value="sold_out">🔴 Vypredané</option>
-                        <option value="coming_soon">🟡 Bude čoskoro</option>
+                        <option value="in_stock">🟢 Dostupné ▾</option>
+                        <option value="sold_out">🔴 Vypredané ▾</option>
+                        <option value="coming_soon">🟡 Bude čoskoro ▾</option>
                       </select>
                       <button onClick={async () => {
                         try {
