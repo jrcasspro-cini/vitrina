@@ -752,39 +752,53 @@ export default function Vitrina() {
   const [trialModalDismissed, setTrialModalDismissed] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
 
-  // Náhodné produkty s fotkami z celej platformy — zobrazíme ich rozmazane
-  // v pozadí login/portál stránky, aby platforma pôsobila „živo".
+  // Produkty s fotkami tohoto predajcu — zobrazíme ich rozmazane v pozadí
+  // portálu, aby platforma pôsobila „živo" a osobne.
+  //
+  // Login stránka (nelogovaný) používa všetky produkty (aby ukázala aktivitu).
+  // Portál (logovaný predajca) používa iba jeho vlastné produkty.
   const [loginBgImages, setLoginBgImages] = useState<string[]>([]);
   useEffect(() => {
-    // Načítame na login (currentUser=null + /app|/vytvorit) alebo na portáli
-    // (prihlásený + žiadny konkrétny obchod nie je vybraný).
     const onLogin = currentUser === null && (currentPath === "/app" || currentPath === "/vytvorit");
     const onPortal = currentUser !== null && !selectedStoreHandle && currentPath !== "/admin-platformy" && !LEGAL_PATHS[currentPath];
     if (!onLogin && !onPortal) return;
-    if (loginBgImages.length > 0) return; // už načítané
     (async () => {
       try {
         const snap = await getDocs(collection(db, "items"));
+        const myHandles = onPortal ? new Set(userStores.map((s: any) => s.handle || s.id)) : null;
         const urls: string[] = [];
         snap.forEach((docSnap) => {
           const d = docSnap.data() as any;
+          // Ak sme na portáli, filtrujeme iba vlastné produkty predajcu
+          if (myHandles && !myHandles.has(d.storeId)) return;
           const imgs: string[] = Array.isArray(d.imgUrls) ? d.imgUrls.filter((u: any) => typeof u === "string" && u) : [];
           const legacy = typeof d.imgUrl === "string" && d.imgUrl ? [d.imgUrl] : [];
           const combined = [...imgs, ...legacy];
           if (combined.length > 0) urls.push(combined[0]);
         });
-        // Zamiešame a vezmeme max 16
-        for (let i = urls.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [urls[i], urls[j]] = [urls[j], urls[i]];
+        // Ak má predajca iba pár produktov, doplníme opakovaním aby koláž
+        // pokryla celú plochu.
+        const target = 16;
+        let final = urls;
+        if (urls.length > 0 && urls.length < target) {
+          final = [];
+          for (let i = 0; i < target; i++) {
+            final.push(urls[i % urls.length]);
+          }
         }
-        setLoginBgImages(urls.slice(0, 16));
+        // Zamiešame
+        for (let i = final.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [final[i], final[j]] = [final[j], final[i]];
+        }
+        setLoginBgImages(final.slice(0, target));
       } catch (e) {
-        // Best effort — ak zlyhá, pozadie bude iba čisté farby
+        // Best effort
         console.warn("bg fetch failed", e);
       }
     })();
-  }, [currentUser, currentPath, selectedStoreHandle, loginBgImages.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser, currentPath, selectedStoreHandle, userStores.length]);
 
   // 1. Sync list of stores and seed if empty
   useEffect(() => {
@@ -1758,14 +1772,14 @@ export default function Vitrina() {
     const AUTH_LINK = "#5F3DC4";
     return (
       <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #FDF2FA 100%)", color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
-        {/* ── POZADIE: náhodné produkty predajcov, rozmazane, ako živá dekorácia ── */}
+        {/* ── POZADIE: rozmazané produkty predajcov, ako živá dekorácia ── */}
         {loginBgImages.length > 0 && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-40" style={{ filter: "blur(6px) saturate(1.1)" }}>
+            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-75" style={{ filter: "blur(4px) saturate(1.15)" }}>
               {loginBgImages.map((url, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl overflow-hidden shadow-lg aspect-square"
+                  className="rounded-2xl overflow-hidden shadow-xl aspect-square"
                   style={{
                     // Mierne rôzne rotácie & scale — organický kolážový vzhľad
                     transform: `rotate(${(i % 5 - 2) * 2}deg) scale(${0.92 + (i % 3) * 0.06})`,
@@ -1775,8 +1789,6 @@ export default function Vitrina() {
                 </div>
               ))}
             </div>
-            {/* Cez vrch mliečna vrstva, aby pozadie neprekrylo formulár */}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(245,243,255,0.75) 0%, rgba(253,242,250,0.75) 100%)" }} />
           </div>
         )}
         {/* Dekoratívne pozadie — jemné farebné bubliny (nad koláž) */}
@@ -2134,14 +2146,14 @@ export default function Vitrina() {
       ) : !selectedStoreHandle ? (
         /* ==================== PORTÁL OBCHODOV (HUB) ==================== */
         <main className="max-w-md mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-between relative z-10">
-          {/* ── POZADIE: náhodné produkty z Vitríny, rozmazane ── */}
+          {/* ── POZADIE: rozmazané produkty tohoto predajcu ── */}
           {loginBgImages.length > 0 && (
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
-              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-35" style={{ filter: "blur(7px) saturate(1.1)" }}>
+              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-80" style={{ filter: "blur(4px) saturate(1.15)" }}>
                 {loginBgImages.map((url, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl overflow-hidden shadow-lg aspect-square"
+                    className="rounded-2xl overflow-hidden shadow-xl aspect-square"
                     style={{
                       transform: `rotate(${(i % 5 - 2) * 2}deg) scale(${0.9 + (i % 3) * 0.06})`,
                     }}
@@ -2150,11 +2162,9 @@ export default function Vitrina() {
                   </div>
                 ))}
               </div>
-              {/* Mliečna pastelová vrstva, aby pozadie neprekrylo formulár */}
-              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(245,243,255,0.82) 0%, rgba(253,242,250,0.82) 100%)" }} />
               {/* Farebné bubliny nad koláž pre hĺbku */}
-              <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.28) 0%, transparent 70%)" }} />
-              <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.28) 0%, transparent 70%)" }} />
+              <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.35) 0%, transparent 70%)" }} />
+              <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.35) 0%, transparent 70%)" }} />
             </div>
           )}
           {/* Admin (jrcasspro@gmail.com) bez obchodu → uvítacia obrazovka superadmina, nie stránka predajcu */}
