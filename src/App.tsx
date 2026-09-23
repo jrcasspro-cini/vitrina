@@ -752,6 +752,39 @@ export default function Vitrina() {
   const [trialModalDismissed, setTrialModalDismissed] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
 
+  // Náhodné produkty s fotkami z celej platformy — zobrazíme ich rozmazane
+  // v pozadí login/register/reset stránky, aby platforma pôsobila „živo".
+  const [loginBgImages, setLoginBgImages] = useState<string[]>([]);
+  useEffect(() => {
+    // Načítame len keď je používateľ NA login/register/reset obrazovke
+    // (aby sme šetrili Firestore reads pre bežnú premávku).
+    if (currentUser !== null) return;
+    if (currentPath !== "/app" && currentPath !== "/vytvorit") return;
+    if (loginBgImages.length > 0) return; // už načítané
+    (async () => {
+      try {
+        const snap = await getDocs(collection(db, "items"));
+        const urls: string[] = [];
+        snap.forEach((docSnap) => {
+          const d = docSnap.data() as any;
+          const imgs: string[] = Array.isArray(d.imgUrls) ? d.imgUrls.filter((u: any) => typeof u === "string" && u) : [];
+          const legacy = typeof d.imgUrl === "string" && d.imgUrl ? [d.imgUrl] : [];
+          const combined = [...imgs, ...legacy];
+          if (combined.length > 0) urls.push(combined[0]);
+        });
+        // Zamiešame a vezmeme max 16
+        for (let i = urls.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [urls[i], urls[j]] = [urls[j], urls[i]];
+        }
+        setLoginBgImages(urls.slice(0, 16));
+      } catch (e) {
+        // Best effort — ak zlyhá, pozadie bude iba čisté farby
+        console.warn("login bg fetch failed", e);
+      }
+    })();
+  }, [currentUser, currentPath, loginBgImages.length]);
+
   // 1. Sync list of stores and seed if empty
   useEffect(() => {
     let active = true;
@@ -1724,9 +1757,30 @@ export default function Vitrina() {
     const AUTH_LINK = "#5F3DC4";
     return (
       <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #FDF2FA 100%)", color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
-        {/* Dekoratívne pozadie — jemné farebné bubliny */}
-        <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.15) 0%, transparent 70%)" }} />
-        <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.15) 0%, transparent 70%)" }} />
+        {/* ── POZADIE: náhodné produkty predajcov, rozmazane, ako živá dekorácia ── */}
+        {loginBgImages.length > 0 && (
+          <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-40" style={{ filter: "blur(6px) saturate(1.1)" }}>
+              {loginBgImages.map((url, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl overflow-hidden shadow-lg aspect-square"
+                  style={{
+                    // Mierne rôzne rotácie & scale — organický kolážový vzhľad
+                    transform: `rotate(${(i % 5 - 2) * 2}deg) scale(${0.92 + (i % 3) * 0.06})`,
+                  }}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </div>
+              ))}
+            </div>
+            {/* Cez vrch mliečna vrstva, aby pozadie neprekrylo formulár */}
+            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, rgba(245,243,255,0.75) 0%, rgba(253,242,250,0.75) 100%)" }} />
+          </div>
+        )}
+        {/* Dekoratívne pozadie — jemné farebné bubliny (nad koláž) */}
+        <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.25) 0%, transparent 70%)" }} />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.25) 0%, transparent 70%)" }} />
 
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
