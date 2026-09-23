@@ -2106,86 +2106,112 @@ export default function Vitrina() {
                 Vytvoriť si testovací obchod
               </button>
             </div>
-          ) : (
+          ) : userStores.length === 0 ? (
+          // ── ONBOARDING: ešte nemá obchod, veľký hero + CTA ──
           <div className="text-center my-auto py-6">
             <img
               src={defaultLogo}
               alt="Vitrína logo"
-              className="w-20 h-20 mx-auto rounded-3xl object-cover bg-white shadow-sm mb-4 border border-slate-100"
+              className="w-24 h-24 mx-auto rounded-3xl object-cover bg-white shadow-lg mb-5 border border-slate-100"
               referrerPolicy="no-referrer"
             />
-            <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">
-              {userStores.length === 0 ? "Vlastná Vitrína" : "Váš obchod"}
-            </h1>
+            <h1 className="disp text-3xl font-extrabold tracking-tight mb-2">Vlastná Vitrína</h1>
             <p className="text-sm px-2 mb-8 leading-relaxed" style={{ color: C.soft }}>
-              {userStores.length === 0
-                ? "Založ si moderné výkladné okno za pár sekúnd, vystav produkty a prijímaj platby priamo cez WhatsApp s Payme QR platbami!"
-                : "Váš obchod je vytvorený. Pokračujte v úprave produktov alebo si pozrite ako vyzerá zákaznícka stránka."}
+              Založ si moderné výkladné okno za pár sekúnd, vystav produkty a prijímaj platby priamo cez WhatsApp s Payme QR platbami!
             </p>
-
-            {/* Tlačidlo Vytvoriť — LEN ak ešte nemá žiadny obchod (pravidlo: 1 účet = 1 obchod) */}
-            {userStores.length === 0 && (
-              <button
-                onClick={() => {
-                  setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
-                  setHandleManuallyEdited(false);
-                  navigateTo("/vytvorit");
-                }}
-                className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
-                style={{ background: C.accent }}
-              >
-                ✨ Vytvoriť vlastný obchod
-              </button>
-            )}
+            <button
+              onClick={() => {
+                setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
+                setHandleManuallyEdited(false);
+                navigateTo("/vytvorit");
+              }}
+              className="w-full py-4 rounded-2xl text-white font-bold text-base shadow-lg transition-transform hover:scale-[1.01]"
+              style={{ background: C.accent }}
+            >
+              ✨ Vytvoriť vlastný obchod
+            </button>
           </div>
-          )}
-
-          {/* Zoznam existujúcich obchodov — mením "Moje Vitríny (N)" na "Môj obchod" (1 účet = 1 obchod) */}
-          <div className="mt-8 border-t pt-6" style={{ borderColor: C.line }}>
-            {userStores.length > 0 && (
-              <h2 className="disp text-sm font-extrabold uppercase tracking-wider mb-3" style={{ color: C.soft }}>
-                {userStores.length === 1 ? "⚡ Môj obchod" : `⚡ Moje obchody (${userStores.length})`}
-              </h2>
-            )}
-            <div className="flex flex-col gap-2.5">
-              {userStores.length === 0 ? null : (
-                userStores.map((st) => (
-                <div
-                  key={st.id}
-                  onClick={() => selectStore(st.handle)}
-                  className="p-3.5 rounded-2xl flex items-center gap-3 cursor-pointer transition-all hover:translate-x-0.5"
-                  style={{ background: C.card, border: `1px solid ${C.line}` }}
-                >
-                  <StoreLogo logo={st.logo} name={st.name} className="w-10 h-10 rounded-xl text-xl shrink-0" />
-                  <div className="min-w-0 flex-1 pr-2">
-                    <h3 className="font-bold text-sm truncate">{st.name || "Bez názvu obchodu"}</h3>
-                    <p className="text-xs truncate" style={{ color: C.soft }}>
-                      {(st.category || st.industry || "Lokálny predajca")} · {st.city} · {st.phone}
-                    </p>
+          ) : (
+          // ── UŽ MÁ OBCHOD: farebný, plnokrvný card s CTA a náhľadom ──
+          <div className="my-auto py-4">
+            {userStores.map((st) => {
+              // Farebná téma podľa obchodu (fallback: sage)
+              const themeKey = ((st as any).theme || "sage") as keyof typeof STORE_THEMES;
+              const t = STORE_THEMES[themeKey] || STORE_THEMES.sage;
+              const publicUrl = `${currentHost}/${st.handle}`;
+              return (
+                <div key={st.id} className="rounded-3xl overflow-hidden shadow-lg" style={{ background: t.bg, border: `1px solid ${t.accentSoft}` }}>
+                  {/* Farebný hero pás */}
+                  <div className="p-6 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${t.accent} 0%, ${t.accentText} 100%)` }}>
+                    <StoreLogo logo={st.logo} name={st.name} className="w-16 h-16 rounded-2xl shrink-0 shadow-md ring-2 ring-white/50" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] uppercase tracking-wider font-bold mb-0.5" style={{ color: "rgba(255,255,255,0.75)" }}>Môj obchod</div>
+                      <h2 className="disp text-xl font-extrabold truncate text-white leading-tight">{st.name || "Bez názvu"}</h2>
+                      <p className="text-xs text-white/80 truncate mt-0.5">
+                        {(st.category || st.industry || "Lokálny predajca")} · {st.city}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+
+                  {/* URL kopírovacie tlačidlo */}
+                  <div className="px-5 py-3 flex items-center gap-2 border-b" style={{ background: "rgba(255,255,255,0.5)", borderColor: t.accentSoft }}>
+                    <span className="text-[10px] uppercase font-bold shrink-0" style={{ color: t.accentText }}>🔗 Odkaz:</span>
+                    <span className="text-xs font-mono font-semibold truncate flex-1" style={{ color: t.accentText }}>{publicUrl}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setStoreToDelete(st);
+                        if (navigator.clipboard) {
+                          navigator.clipboard.writeText(`https://${publicUrl}`);
+                          setCopiedLink(true);
+                          setTimeout(() => setCopiedLink(false), 2000);
+                        }
                       }}
-                      className="text-xs font-bold px-2.5 py-1.5 rounded-xl text-red-500 hover:bg-red-50 transition-colors"
+                      className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shrink-0 hover:opacity-90 transition-opacity"
+                      style={{ background: t.accent, color: "#fff" }}
                     >
-                      Vymazať 🗑️
+                      {copiedLink ? "✓ Hotovo" : "Kopírovať"}
                     </button>
-                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: C.accentSoft, color: C.accentText }}>
-                      Vstúpiť →
-                    </span>
+                  </div>
+
+                  {/* Hlavné CTA — Vstúpiť */}
+                  <div className="p-5 flex flex-col gap-2">
+                    <button
+                      onClick={() => selectStore(st.handle)}
+                      className="w-full py-4 rounded-2xl font-extrabold text-base text-white shadow-md transition-transform hover:scale-[1.01] flex items-center justify-center gap-2"
+                      style={{ background: t.accent }}
+                    >
+                      ⚡ Vstúpiť do môjho obchodu →
+                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <a
+                        href={`https://${publicUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="py-2.5 rounded-xl font-bold text-xs text-center transition-colors"
+                        style={{ background: "#fff", color: t.accentText, border: `1.5px solid ${t.accentSoft}` }}
+                      >
+                        🏬 Verejný náhľad
+                      </a>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setStoreToDelete(st);
+                        }}
+                        className="py-2.5 rounded-xl font-bold text-xs transition-colors text-red-600 hover:bg-red-50"
+                        style={{ background: "#fff", border: `1.5px solid #FCA5A5` }}
+                      >
+                        🗑️ Vymazať obchod
+                      </button>
+                    </div>
                   </div>
                 </div>
-              )))}
-            </div>
-            {userStores.length >= 1 && (
-              <p className="text-[11px] text-slate-500 mt-4 leading-relaxed text-center px-4">
-                🔒 Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte nový účet s iným emailom.
-              </p>
-            )}
+              );
+            })}
+            <p className="text-[11px] text-slate-500 mt-4 leading-relaxed text-center px-4">
+              🔒 Jeden účet = jeden obchod. Ak chcete predávať v úplne inej kategórii, vytvorte nový účet s iným emailom.
+            </p>
           </div>
+          )}
 
           <div className="text-center mt-8 pb-2">
             <button
