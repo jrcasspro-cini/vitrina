@@ -1718,16 +1718,24 @@ export default function Vitrina() {
   }
 
   if (currentUser === null && (currentPath === "/app" || currentPath === "/vytvorit")) {
+    // Prémiová paleta zhodná s hub-om obchodu — moderný purple → pink gradient
+    const AUTH_GRADIENT = "linear-gradient(135deg, #667EEA 0%, #764BA2 50%, #F093FB 100%)";
+    const AUTH_ACCENT = "#764BA2";
+    const AUTH_LINK = "#5F3DC4";
     return (
-      <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300" style={{ background: C.bg, color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
+      <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #FDF2FA 100%)", color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
+        {/* Dekoratívne pozadie — jemné farebné bubliny */}
+        <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.15) 0%, transparent 70%)" }} />
+        <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.15) 0%, transparent 70%)" }} />
+
         <style>{`
           @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Instrument+Sans:wght@400;500;600&display=swap');
           .disp { font-family: 'Sora', sans-serif; }
           input { outline: none; }
-          input:focus { border-color: ${C.accent} !important; }
+          input:focus { border-color: ${AUTH_ACCENT} !important; box-shadow: 0 0 0 3px rgba(118,75,162,0.15); }
         `}</style>
-        
-        <div className="max-w-md w-full bg-white rounded-3xl p-8 border shadow-xl flex flex-col gap-6" style={{ borderColor: C.line }}>
+
+        <div className="max-w-md w-full bg-white rounded-3xl p-8 border shadow-2xl flex flex-col gap-6 relative" style={{ borderColor: "#E9D5FF" }}>
           <div className="text-center flex flex-col items-center gap-2">
             <Logo size={42} />
             <h1 className="disp text-2xl font-extrabold tracking-tight mt-2">
@@ -1773,8 +1781,8 @@ export default function Vitrina() {
               <button
                 type="submit"
                 disabled={authSubmitting}
-                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
-                style={{ background: C.accent }}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
+                style={{ background: AUTH_GRADIENT, boxShadow: "0 8px 20px rgba(118,75,162,0.35)" }}
               >
                 {authSubmitting ? "Odosielam..." : "Odoslať odkaz na obnovu"}
               </button>
@@ -1811,7 +1819,7 @@ export default function Vitrina() {
                       type="button"
                       onClick={() => { setResetMode(true); setAuthError(""); setAuthSuccess(""); }}
                       className="text-[10px] font-bold"
-                      style={{ color: C.accentText }}
+                      style={{ color: AUTH_LINK }}
                     >
                       Zabudli ste heslo?
                     </button>
@@ -1879,12 +1887,12 @@ export default function Vitrina() {
               <button
                 type="submit"
                 disabled={authSubmitting}
-                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-md transition-all hover:scale-[1.01] flex items-center justify-center gap-2 mt-2"
-                style={{ background: C.accent }}
+                className="w-full py-3.5 rounded-xl text-white font-bold text-sm shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 mt-2"
+                style={{ background: AUTH_GRADIENT, boxShadow: "0 8px 20px rgba(118,75,162,0.35)" }}
               >
                 {authSubmitting
                   ? (isRegisterMode ? "Vytváram účet..." : "Prihlasujem...")
-                  : (isRegisterMode ? "Zaregistrovať sa" : "Prihlásiť sa")
+                  : (isRegisterMode ? "🚀 Zaregistrovať sa" : "⚡ Prihlásiť sa")
                 }
               </button>
 
@@ -1914,7 +1922,7 @@ export default function Vitrina() {
                 type="button"
                 onClick={() => { setIsRegisterMode(!isRegisterMode); setAuthError(""); setAuthSuccess(""); }}
                 className="text-xs font-bold transition-colors text-center mt-2 hover:opacity-100"
-                style={{ color: C.accentText }}
+                style={{ color: AUTH_LINK }}
               >
                 {isRegisterMode ? "Už máte účet? Prihláste sa" : "Nemáte účet? Zaregistrujte sa"}
               </button>
