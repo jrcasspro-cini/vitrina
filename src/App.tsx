@@ -2812,8 +2812,8 @@ export default function Vitrina() {
 
                           <div className="p-4 flex-1 flex flex-col justify-between">
                             <div>
-                              <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#647058] transition-colors">{it.name}</h3>
-                              <p className="text-xs mt-1 line-clamp-2" style={{ color: C.soft }}>{it.desc}</p>
+                              <h3 className="font-bold text-sm leading-snug line-clamp-2 group-hover:text-[#647058] transition-colors" style={{ minHeight: "2.6em" }}>{it.name}</h3>
+                              <p className="text-xs mt-1 line-clamp-2" style={{ color: C.soft, minHeight: "2.4em" }}>{it.desc || " "}</p>
                               {it.type === "booking" && it.slot && (
                                 <p className="text-[11px] mt-1.5 font-semibold flex items-center gap-1" style={{ color: C.accentText }}>
                                   <span>📅</span> {it.slot}
