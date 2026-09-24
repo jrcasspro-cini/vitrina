@@ -2752,8 +2752,6 @@ export default function Vitrina() {
                           <div
                             className="relative w-full aspect-[4/3] overflow-hidden shrink-0"
                             style={{
-                              // Vnútorný oddeľovač medzi fotkou a spodným textom
-                              borderBottom: `3px solid ${C.ink}`,
                               // Ak má predajca nastavené vlastné pozadie, použijeme ho
                               // (studio look). Inak neutrálne šedé.
                               background: it.bgColor || "#F1F5F9",
