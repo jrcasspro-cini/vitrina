@@ -182,15 +182,27 @@ const formatIban = (iban: string | undefined | null): string => {
 // Predvolené štýly písma pre slogan/hook — predajca si vyberie v Nastaveniach.
 // Používame Google Fonts (načítané v index.html) + system fonts.
 const TAGLINE_FONTS: { key: string; label: string; family: string; sample: string }[] = [
-  { key: "default",   label: "Základný (moderný)",    family: "'Inter', system-ui, sans-serif",              sample: "Aa" },
-  { key: "elegant",   label: "Elegantný (serif)",     family: "'Playfair Display', Georgia, serif",           sample: "Aa" },
-  { key: "handwrite", label: "Písaný (rukou)",        family: "'Caveat', 'Comic Sans MS', cursive",           sample: "Aa" },
-  { key: "display",   label: "Odvážny (display)",     family: "'Righteous', Impact, sans-serif",              sample: "Aa" },
-  { key: "script",    label: "Kaligrafický (script)", family: "'Great Vibes', 'Brush Script MT', cursive",    sample: "Aa" },
-  { key: "retro",     label: "Retro (art deco)",      family: "'Abril Fatface', 'Georgia', serif",            sample: "Aa" },
-  { key: "typewriter",label: "Písací stroj",          family: "'Special Elite', 'Courier New', monospace",    sample: "Aa" },
-  { key: "modern",    label: "Moderný (geometrický)", family: "'Bebas Neue', 'Arial Narrow', sans-serif",     sample: "Aa" },
-  { key: "playful",   label: "Hravý (comic)",         family: "'Fredoka', 'Comic Sans MS', cursive",          sample: "Aa" },
+  // ── Klasické, čitateľné ──
+  { key: "default",    label: "Inter (moderný)",       family: "'Inter', system-ui, sans-serif",               sample: "Aa" },
+  { key: "montserrat", label: "Montserrat",             family: "'Montserrat', 'Arial', sans-serif",            sample: "Aa" },
+  { key: "poppins",    label: "Poppins",                family: "'Poppins', 'Arial', sans-serif",               sample: "Aa" },
+  { key: "elegant",    label: "Playfair (serif)",       family: "'Playfair Display', Georgia, serif",           sample: "Aa" },
+  { key: "modern",     label: "Bebas Neue",             family: "'Bebas Neue', 'Arial Narrow', sans-serif",     sample: "Aa" },
+  { key: "anton",      label: "Anton (výrazný)",        family: "'Anton', 'Arial Narrow', sans-serif",          sample: "Aa" },
+  { key: "typewriter", label: "Písací stroj",           family: "'Special Elite', 'Courier New', monospace",    sample: "Aa" },
+  // ── Písané / kaligrafické ──
+  { key: "handwrite",  label: "Písaný (rukou)",         family: "'Caveat', 'Comic Sans MS', cursive",           sample: "Aa" },
+  { key: "script",     label: "Kaligrafický",           family: "'Great Vibes', 'Brush Script MT', cursive",    sample: "Aa" },
+  { key: "playful",    label: "Hravý (Fredoka)",        family: "'Fredoka', 'Comic Sans MS', cursive",          sample: "Aa" },
+  // ── Odvážne / display ──
+  { key: "display",    label: "Righteous",              family: "'Righteous', Impact, sans-serif",              sample: "Aa" },
+  { key: "retro",      label: "Retro (Abril)",          family: "'Abril Fatface', 'Georgia', serif",            sample: "Aa" },
+  // ── V pohybe / špeciálne efekty ──
+  { key: "bungee3d",   label: "3D blok (Bungee Shade)", family: "'Bungee Shade', Impact, sans-serif",           sample: "Aa" },
+  { key: "wetpaint",   label: "Mokrá farba",            family: "'Rubik Wet Paint', 'Impact', sans-serif",      sample: "Aa" },
+  { key: "kablammo",   label: "Kablammo (dynamic)",     family: "'Kablammo', 'Impact', sans-serif",             sample: "Aa" },
+  { key: "monoton",    label: "Monoton (neón)",         family: "'Monoton', 'Impact', sans-serif",              sample: "Aa" },
+  { key: "shrikhand",  label: "Shrikhand (zošikmený)",  family: "'Shrikhand', 'Impact', sans-serif",            sample: "Aa" },
 ];
 
 // Preddefinované veľkosti sloganu — predajca si vyberie v Nastaveniach.
@@ -3412,9 +3424,9 @@ export default function Vitrina() {
                 <div className="mt-3 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
                   <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>Vzhľad sloganu</div>
 
-                  {/* Font výber ako klikateľné karty s ukážkou */}
+                  {/* Font výber ako klikateľné karty s ukážkou — 6 stĺpcov pre 17 fontov */}
                   <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Písmo</label>
-                  <div className="grid grid-cols-5 gap-1.5 mb-3">
+                  <div className="grid grid-cols-6 gap-1.5 mb-3">
                     {TAGLINE_FONTS.map((f) => {
                       const active = ((store as any).taglineFont || "default") === f.key;
                       return (
