@@ -2739,12 +2739,21 @@ export default function Vitrina() {
                     </div>
                   ) : (
                     visibleItems.map((it) => (
-                      <article key={it.id} className="rounded-2xl flex flex-col h-full overflow-hidden" style={{ background: C.card, border: `1px solid ${C.line}` }}>
+                      <article
+                        key={it.id}
+                        className="rounded-3xl flex flex-col h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                        style={{
+                          background: C.card,
+                          // Hrubší rám okolo celej karty — vyzerá ako fotorámik
+                          border: `4px solid ${C.ink}`,
+                        }}
+                      >
                         <div onClick={() => setSelectedProductId(it.id)} className="cursor-pointer group flex-1 flex flex-col">
                           <div
-                            className="relative w-full aspect-[4/3] overflow-hidden border-b shrink-0"
+                            className="relative w-full aspect-[4/3] overflow-hidden shrink-0"
                             style={{
-                              borderColor: C.line,
+                              // Vnútorný oddeľovač medzi fotkou a spodným textom
+                              borderBottom: `3px solid ${C.ink}`,
                               // Ak má predajca nastavené vlastné pozadie, použijeme ho
                               // (studio look). Inak neutrálne šedé.
                               background: it.bgColor || "#F1F5F9",
