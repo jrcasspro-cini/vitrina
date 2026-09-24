@@ -99,13 +99,21 @@ const C = {
 // zostala dobrá čitateľnosť textu). Mení sa akcentová farba aj jemné pozadie stránky,
 // karty produktov ostávajú biele a text tmavý pre všetky témy (čitateľnosť).
 const STORE_THEMES: Record<string, { label: string; accent: string; accentSoft: string; accentText: string; bg: string }> = {
-  sage:       { label: "Šalvia (predvolená)", accent: "#7A8471", accentSoft: "#E4E8DE", accentText: "#647058", bg: "#F5F0E8" },
-  terracotta: { label: "Terakota",            accent: "#C97D4E", accentSoft: "#F3E3D6", accentText: "#9C5A2E", bg: "#FBF2EA" },
-  modra:      { label: "Modrá",               accent: "#4E7DC9", accentSoft: "#DCE7F5", accentText: "#2E5A9C", bg: "#EEF3FA" },
-  ruzova:     { label: "Ružová",              accent: "#C94E82", accentSoft: "#F5DCE7", accentText: "#9C2E5F", bg: "#FBEEF3" },
-  fialova:    { label: "Fialová",             accent: "#8B5FBF", accentSoft: "#E9E0F5", accentText: "#5F3A8C", bg: "#F3EFFA" },
-  zlata:      { label: "Zlatá",               accent: "#B4890E", accentSoft: "#F5EBD6", accentText: "#8C6A1E", bg: "#FBF5E6" },
-  navy:       { label: "Tmavomodrá",          accent: "#1E3A5F", accentSoft: "#DCE3EC", accentText: "#1E3A5F", bg: "#EDF1F6" },
+  // Základné — výraznejšie, saturovanejšie
+  sage:       { label: "Šalvia",         accent: "#5F7A50", accentSoft: "#D8E4CE", accentText: "#3D5232", bg: "#F5F0E8" },
+  terracotta: { label: "Terakota",       accent: "#D45A1F", accentSoft: "#FBD9C4", accentText: "#7A2E0A", bg: "#FDEDDC" },
+  modra:      { label: "Modrá",          accent: "#0EA5E9", accentSoft: "#BAE6FD", accentText: "#075985", bg: "#E0F2FE" },
+  ruzova:     { label: "Ružová",         accent: "#EC4899", accentSoft: "#FBCFE8", accentText: "#9D174D", bg: "#FCE7F3" },
+  fialova:    { label: "Fialová",        accent: "#8B5CF6", accentSoft: "#DDD6FE", accentText: "#5B21B6", bg: "#EDE9FE" },
+  zlata:      { label: "Zlatá",          accent: "#F59E0B", accentSoft: "#FDE68A", accentText: "#78350F", bg: "#FEF3C7" },
+  navy:       { label: "Tmavomodrá",     accent: "#1E3A5F", accentSoft: "#C7D2FE", accentText: "#1E1B4B", bg: "#E0E7FF" },
+  // Nové výrazné témy
+  smaragd:    { label: "Smaragdová",     accent: "#10B981", accentSoft: "#A7F3D0", accentText: "#065F46", bg: "#D1FAE5" },
+  rubin:      { label: "Rubínová",       accent: "#DC2626", accentSoft: "#FECACA", accentText: "#7F1D1D", bg: "#FEE2E2" },
+  cierna:     { label: "Uhlová (dark)",  accent: "#171717", accentSoft: "#D4D4D4", accentText: "#171717", bg: "#F5F5F5" },
+  neon:       { label: "Neónová limetka",accent: "#84CC16", accentSoft: "#D9F99D", accentText: "#365314", bg: "#ECFCCB" },
+  koralova:   { label: "Koralová",       accent: "#F43F5E", accentSoft: "#FECDD3", accentText: "#881337", bg: "#FFE4E6" },
+  tyrkys:     { label: "Tyrkysová",      accent: "#06B6D4", accentSoft: "#A5F3FC", accentText: "#164E63", bg: "#CFFAFE" },
 };
 
 // CSS premenné, ktoré sa nastavia na obalový <div> verejnej stránky obchodu podľa store.theme.
@@ -179,6 +187,18 @@ const TAGLINE_FONTS: { key: string; label: string; family: string; sample: strin
   { key: "handwrite", label: "Písaný (rukou)",        family: "'Caveat', 'Comic Sans MS', cursive",           sample: "Aa" },
   { key: "display",   label: "Odvážny (display)",     family: "'Righteous', Impact, sans-serif",              sample: "Aa" },
   { key: "script",    label: "Kaligrafický (script)", family: "'Great Vibes', 'Brush Script MT', cursive",    sample: "Aa" },
+  { key: "retro",     label: "Retro (art deco)",      family: "'Abril Fatface', 'Georgia', serif",            sample: "Aa" },
+  { key: "typewriter",label: "Písací stroj",          family: "'Special Elite', 'Courier New', monospace",    sample: "Aa" },
+  { key: "modern",    label: "Moderný (geometrický)", family: "'Bebas Neue', 'Arial Narrow', sans-serif",     sample: "Aa" },
+  { key: "playful",   label: "Hravý (comic)",         family: "'Fredoka', 'Comic Sans MS', cursive",          sample: "Aa" },
+];
+
+// Preddefinované veľkosti sloganu — predajca si vyberie v Nastaveniach.
+const TAGLINE_SIZES: { key: string; label: string; textSize: number; scriptSize: number; lineHeight: number }[] = [
+  { key: "sm",  label: "Malé",     textSize: 1.0,  scriptSize: 1.5,  lineHeight: 1.3 },
+  { key: "md",  label: "Stredné",  textSize: 1.4,  scriptSize: 2.0,  lineHeight: 1.25 },
+  { key: "lg",  label: "Veľké",    textSize: 1.9,  scriptSize: 2.6,  lineHeight: 1.2 },
+  { key: "xl",  label: "Obrovské", textSize: 2.5,  scriptSize: 3.4,  lineHeight: 1.1 },
 ];
 
 const taglineFontFamily = (key: string | undefined): string => {
@@ -893,6 +913,7 @@ export default function Vitrina() {
           logo: d.logo || "",
           tagline: d.tagline || "",
           taglineFont: d.taglineFont || "default",
+          taglineSize: d.taglineSize || "md",
           taglineColor: d.taglineColor || "",
           taglineBg: d.taglineBg || "",
           description: d.description || "",
@@ -2637,13 +2658,18 @@ export default function Vitrina() {
                   </a>
                 </section>
 
-                {/* ── Hook / slogan obchodu — s customizovateľným fontom a farbami ── */}
+                {/* ── Hook / slogan obchodu — s customizovateľným fontom, farbami a veľkosťou ── */}
                 {(store as any).tagline && (store as any).tagline.trim() && (() => {
                   const tglFont = (store as any).taglineFont || "default";
                   const tglColor = (store as any).taglineColor;
                   const tglBg = (store as any).taglineBg;
+                  const tglSize = (store as any).taglineSize || "md";
+                  const sz = TAGLINE_SIZES.find(x => x.key === tglSize) || TAGLINE_SIZES[1];
                   // Script fonty potrebujú väčšie písmo aby boli čitateľné
                   const isScriptFont = tglFont === "script" || tglFont === "handwrite";
+                  // Na verejnej stránke robíme font ešte o 20% väčší než v náhľade
+                  const scale = 1.2;
+                  const finalSize = (isScriptFont ? sz.scriptSize : sz.textSize) * scale;
                   return (
                     <div
                       className="rounded-2xl p-5 md:p-7 mb-4 text-center shadow-xs border animate-in fade-in duration-300"
@@ -2657,8 +2683,8 @@ export default function Vitrina() {
                         style={{
                           fontFamily: taglineFontFamily(tglFont),
                           color: tglColor || C.accentText,
-                          fontSize: isScriptFont ? "2.25rem" : "1.5rem",
-                          lineHeight: isScriptFont ? "1.15" : "1.35",
+                          fontSize: `${finalSize}rem`,
+                          lineHeight: sz.lineHeight,
                         }}
                       >
                         {(store as any).tagline.trim()}
@@ -3410,6 +3436,31 @@ export default function Vitrina() {
                     })}
                   </div>
 
+                  {/* Veľkosť sloganu */}
+                  <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Veľkosť</label>
+                  <div className="grid grid-cols-4 gap-1.5 mb-3">
+                    {TAGLINE_SIZES.map((s) => {
+                      const active = ((store as any).taglineSize || "md") === s.key;
+                      return (
+                        <button
+                          key={s.key}
+                          type="button"
+                          onClick={() => updateStoreField("taglineSize", s.key)}
+                          className="rounded-lg py-2 text-center transition-all font-extrabold"
+                          style={{
+                            border: `2px solid ${active ? C.accent : C.line}`,
+                            background: active ? C.accentSoft : "white",
+                            fontSize: `${0.6 + s.textSize * 0.15}rem`,
+                            color: C.ink,
+                          }}
+                          title={s.label}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   {/* Farby: text + pozadie */}
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -3469,8 +3520,15 @@ export default function Vitrina() {
                         style={{
                           fontFamily: taglineFontFamily((store as any).taglineFont),
                           color: (store as any).taglineColor || C.accentText,
-                          fontSize: (store as any).taglineFont === "script" ? "1.75rem" : "1.125rem",
-                          lineHeight: (store as any).taglineFont === "script" ? "1.2" : "1.4",
+                          fontSize: (() => {
+                            const sz = TAGLINE_SIZES.find(x => x.key === ((store as any).taglineSize || "md")) || TAGLINE_SIZES[1];
+                            const isScript = (store as any).taglineFont === "script" || (store as any).taglineFont === "handwrite";
+                            return `${isScript ? sz.scriptSize : sz.textSize}rem`;
+                          })(),
+                          lineHeight: (() => {
+                            const sz = TAGLINE_SIZES.find(x => x.key === ((store as any).taglineSize || "md")) || TAGLINE_SIZES[1];
+                            return sz.lineHeight;
+                          })(),
                         }}
                       >
                         {(store as any).tagline}
