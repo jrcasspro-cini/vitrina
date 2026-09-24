@@ -1363,8 +1363,10 @@ export default function Vitrina() {
   //   shippingPickupEnabled — osobný odber (zdarma)
   //   shippingCourierEnabled — kuriér (cena v shippingCourierPrice)
   //   shippingFreeAbove — kuriér zdarma nad túto sumu (0 = vypnuté)
-  const [shippingMethod, setShippingMethod] = useState<"pickup" | "courier">("pickup");
-  const shippingPickupEnabled = (store as any).shippingPickupEnabled !== false; // default ON
+  const [shippingMethod, setShippingMethod] = useState<"pickup" | "courier">("courier");
+  // Osobný odber je globálne vypnutý — predajca ho v Nastaveniach nemôže zapnúť.
+  // Zákazník má vždy len kuriéra (fyzický tovar nikto nechce ísť vyzdvihnúť).
+  const shippingPickupEnabled = false;
   const shippingCourierEnabled = !!(store as any).shippingCourierEnabled;
   const shippingCourierPrice = Number((store as any).shippingCourierPrice) || 0;
   const shippingFreeAbove = Number((store as any).shippingFreeAbove) || 0;
@@ -3601,16 +3603,7 @@ export default function Vitrina() {
               {/* ── DOPRAVA ─────────────────────────────────────────── */}
               <div className="mt-5 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
                 <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>📦 Doprava</div>
-                <p className="text-[11px] mb-3" style={{ color: C.soft }}>Zákazník si v košíku vyberie z týchto možností. Aspoň jedna musí byť zapnutá.</p>
-
-                <label className="flex items-center gap-2 mb-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={(store as any).shippingPickupEnabled !== false}
-                    onChange={(e) => updateStoreField("shippingPickupEnabled", e.target.checked)}
-                  />
-                  <span className="text-xs font-semibold text-slate-800">🏠 Osobný odber (zdarma)</span>
-                </label>
+                <p className="text-[11px] mb-3" style={{ color: C.soft }}>Zapni kuriéra a nastav cenu doručenia. Zákazník ju uvidí v košíku.</p>
 
                 <label className="flex items-center gap-2 mb-2 cursor-pointer">
                   <input
