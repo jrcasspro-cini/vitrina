@@ -776,9 +776,8 @@ export default function Vitrina() {
           const combined = [...imgs, ...legacy];
           if (combined.length > 0) urls.push(combined[0]);
         });
-        // Ak má predajca iba pár produktov, doplníme opakovaním aby koláž
-        // pokryla celú plochu.
-        const target = 16;
+        // Menej ich (voľne rozhádzaných) — 6-8 produktov stačí.
+        const target = 8;
         let final = urls;
         if (urls.length > 0 && urls.length < target) {
           final = [];
@@ -1772,23 +1771,42 @@ export default function Vitrina() {
     const AUTH_LINK = "#5F3DC4";
     return (
       <div className="min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 animate-in fade-in duration-300 relative overflow-hidden" style={{ background: "linear-gradient(135deg, #F5F3FF 0%, #FDF2FA 100%)", color: C.ink, fontFamily: "'Instrument Sans', system-ui, sans-serif" }}>
-        {/* ── POZADIE: rozmazané produkty predajcov, ako živá dekorácia ── */}
+        {/* ── POZADIE: voľne rozhádzané produkty, bez rámikov ── */}
         {loginBgImages.length > 0 && (
           <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-75" style={{ filter: "blur(4px) saturate(1.15)" }}>
-              {loginBgImages.map((url, i) => (
-                <div
+            {loginBgImages.map((url, i) => {
+              const positions = [
+                { top: "6%",  left: "4%",  size: 180, rot: -8 },
+                { top: "12%", left: "72%", size: 220, rot: 12 },
+                { top: "38%", left: "82%", size: 160, rot: -5 },
+                { top: "68%", left: "6%",  size: 200, rot: 8 },
+                { top: "78%", left: "70%", size: 180, rot: -12 },
+                { top: "45%", left: "2%",  size: 150, rot: 15 },
+                { top: "2%",  left: "40%", size: 140, rot: -3 },
+                { top: "82%", left: "38%", size: 170, rot: 6 },
+              ];
+              const p = positions[i % positions.length];
+              return (
+                <img
                   key={i}
-                  className="rounded-2xl overflow-hidden shadow-xl aspect-square"
+                  src={url}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                  className="absolute object-cover"
                   style={{
-                    // Mierne rôzne rotácie & scale — organický kolážový vzhľad
-                    transform: `rotate(${(i % 5 - 2) * 2}deg) scale(${0.92 + (i % 3) * 0.06})`,
+                    top: p.top,
+                    left: p.left,
+                    width: `${p.size}px`,
+                    height: `${p.size}px`,
+                    transform: `rotate(${p.rot}deg)`,
+                    filter: "blur(3px) saturate(1.1)",
+                    opacity: 0.7,
+                    WebkitMaskImage: "radial-gradient(circle, black 55%, transparent 100%)",
+                    maskImage: "radial-gradient(circle, black 55%, transparent 100%)",
                   }}
-                >
-                  <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                </div>
-              ))}
-            </div>
+                />
+              );
+            })}
           </div>
         )}
         {/* Dekoratívne pozadie — jemné farebné bubliny (nad koláž) */}
@@ -2146,23 +2164,46 @@ export default function Vitrina() {
       ) : !selectedStoreHandle ? (
         /* ==================== PORTÁL OBCHODOV (HUB) ==================== */
         <main className="max-w-md mx-auto w-full px-4 py-8 flex-1 flex flex-col justify-between relative z-10">
-          {/* ── POZADIE: rozmazané produkty tohoto predajcu ── */}
+          {/* ── POZADIE: voľne rozhádzané produkty tohoto predajcu, bez rámikov ── */}
           {loginBgImages.length > 0 && (
             <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
-              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 p-3 h-full w-full opacity-80" style={{ filter: "blur(4px) saturate(1.15)" }}>
-                {loginBgImages.map((url, i) => (
-                  <div
+              {loginBgImages.map((url, i) => {
+                // Pseudo-náhodné (deterministické) pozície pre 8 obrázkov
+                // — použijeme index ako seed, aby to nepreblikávalo pri re-renderi.
+                const positions = [
+                  { top: "6%",  left: "4%",  size: 180, rot: -8 },
+                  { top: "12%", left: "72%", size: 220, rot: 12 },
+                  { top: "38%", left: "82%", size: 160, rot: -5 },
+                  { top: "68%", left: "6%",  size: 200, rot: 8 },
+                  { top: "78%", left: "70%", size: 180, rot: -12 },
+                  { top: "45%", left: "2%",  size: 150, rot: 15 },
+                  { top: "2%",  left: "40%", size: 140, rot: -3 },
+                  { top: "82%", left: "38%", size: 170, rot: 6 },
+                ];
+                const p = positions[i % positions.length];
+                return (
+                  <img
                     key={i}
-                    className="rounded-2xl overflow-hidden shadow-xl aspect-square"
+                    src={url}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="absolute object-cover"
                     style={{
-                      transform: `rotate(${(i % 5 - 2) * 2}deg) scale(${0.9 + (i % 3) * 0.06})`,
+                      top: p.top,
+                      left: p.left,
+                      width: `${p.size}px`,
+                      height: `${p.size}px`,
+                      transform: `rotate(${p.rot}deg)`,
+                      filter: "blur(3px) saturate(1.1)",
+                      opacity: 0.7,
+                      // Jemné okrúhle vytmavenie k okrajom cez mask
+                      WebkitMaskImage: "radial-gradient(circle, black 55%, transparent 100%)",
+                      maskImage: "radial-gradient(circle, black 55%, transparent 100%)",
                     }}
-                  >
-                    <img src={url} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  </div>
-                ))}
-              </div>
-              {/* Farebné bubliny nad koláž pre hĺbku */}
+                  />
+                );
+              })}
+              {/* Farebné bubliny pre hĺbku */}
               <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(118,75,162,0.35) 0%, transparent 70%)" }} />
               <div className="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, rgba(240,147,251,0.35) 0%, transparent 70%)" }} />
             </div>
