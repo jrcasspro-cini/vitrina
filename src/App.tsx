@@ -147,6 +147,10 @@ interface StoreItem {
   //   "sold_out"   — vypredané (nedá sa pridať do košíka)
   //   "coming_soon" — príde čoskoro (nedá sa pridať do košíka)
   availability?: "in_stock" | "sold_out" | "coming_soon";
+  // Farebné pozadie karty produktu (studio look ako profi foto):
+  // Ak je nastavené, karta má farebné pozadie za fotkou. Ideálne pre PNG
+  // s priehľadným pozadím alebo pre fotky s neutrálnym pozadím.
+  bgColor?: string;
 }
 
 const MAX_PRODUCT_PHOTOS = 4;
@@ -1019,6 +1023,7 @@ export default function Vitrina() {
           availability: (d.availability === "sold_out" || d.availability === "coming_soon")
             ? d.availability
             : "in_stock",
+          bgColor: typeof d.bgColor === "string" && d.bgColor.trim() ? d.bgColor : undefined,
         };
       });
       setAllItems(loaded);
@@ -2736,11 +2741,29 @@ export default function Vitrina() {
                     visibleItems.map((it) => (
                       <article key={it.id} className="rounded-2xl flex flex-col h-full overflow-hidden" style={{ background: C.card, border: `1px solid ${C.line}` }}>
                         <div onClick={() => setSelectedProductId(it.id)} className="cursor-pointer group flex-1 flex flex-col">
-                          <div className="relative w-full aspect-[4/3] overflow-hidden bg-slate-100 border-b shrink-0" style={{ borderColor: C.line }}>
+                          <div
+                            className="relative w-full aspect-[4/3] overflow-hidden border-b shrink-0"
+                            style={{
+                              borderColor: C.line,
+                              // Ak má predajca nastavené vlastné pozadie, použijeme ho
+                              // (studio look). Inak neutrálne šedé.
+                              background: it.bgColor || "#F1F5F9",
+                            }}
+                          >
                             {it.img ? (
-                              <img src={it.img} alt={it.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                              <img
+                                src={it.img}
+                                alt={it.name}
+                                className="w-full h-full transition-transform duration-300 group-hover:scale-105"
+                                // Ak má vlastné farebné pozadie, produkt vidíme celý (contain).
+                                // Bez vlastného pozadia zaplní kartu (cover).
+                                style={{
+                                  objectFit: it.bgColor ? "contain" : "cover",
+                                  padding: it.bgColor ? "10px" : "0",
+                                }}
+                              />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-105" style={{ background: getPastelBg(it) }}>
+                              <div className="w-full h-full flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-105" style={{ background: it.bgColor || getPastelBg(it) }}>
                                 {it.emoji || "🎁"}
                               </div>
                             )}
@@ -4015,6 +4038,42 @@ export default function Vitrina() {
                             e.target.value = "";
                           }}
                         />
+                      </label>
+                      {/* Farba pozadia karty produktu — studio look */}
+                      <label className="text-xs font-semibold cursor-pointer flex items-center gap-1" style={{ color: C.soft }} title="Farba pozadia karty produktu">
+                        🎨
+                        <input
+                          type="color"
+                          value={it.bgColor || "#F1F5F9"}
+                          onChange={async (e) => {
+                            try {
+                              setDbError("");
+                              await setDoc(doc(db, "items", it.id), { bgColor: e.target.value }, { merge: true });
+                            } catch (err: any) {
+                              console.error("Error updating bgColor:", err);
+                              setDbError("Nepodarilo sa uložiť farbu: " + err.message);
+                            }
+                          }}
+                          className="w-6 h-6 rounded cursor-pointer border"
+                          style={{ borderColor: C.line }}
+                        />
+                        {it.bgColor && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                setDbError("");
+                                await setDoc(doc(db, "items", it.id), { bgColor: "" }, { merge: true });
+                              } catch (err: any) {
+                                console.error("Error clearing bgColor:", err);
+                              }
+                            }}
+                            className="text-[10px] text-slate-500 hover:underline ml-0.5"
+                            title="Vrátiť na predvolené"
+                          >
+                            ×
+                          </button>
+                        )}
                       </label>
                       {/* Rýchly toggle dostupnosti — uloží sa okamžite pri zmene.
                           Zväčšený & výraznejší aby bolo jasne vidno že sa dá kliknúť. */}
@@ -5532,8 +5591,8 @@ function ProductGallery({ product }: { product: StoreItem }) {
 
   if (count === 0) {
     return (
-      <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden bg-slate-100 border mb-4" style={{ borderColor: C.line }}>
-        <div className="w-full h-full flex items-center justify-center text-8xl" style={{ background: getPastelBg(product) }}>
+      <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden border mb-4" style={{ borderColor: C.line, background: product.bgColor || "#F1F5F9" }}>
+        <div className="w-full h-full flex items-center justify-center text-8xl" style={{ background: product.bgColor || getPastelBg(product) }}>
           {product.emoji || "🎁"}
         </div>
       </div>
@@ -5544,8 +5603,19 @@ function ProductGallery({ product }: { product: StoreItem }) {
 
   return (
     <div className="mb-4">
-      <div className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden bg-slate-100 border" style={{ borderColor: C.line }}>
-        <img src={photos[idx]} alt={`${product.name} ${idx + 1}/${count}`} className="w-full h-full object-cover" />
+      <div
+        className="relative w-full aspect-square sm:aspect-[3/2] rounded-3xl overflow-hidden border"
+        style={{ borderColor: C.line, background: product.bgColor || "#F1F5F9" }}
+      >
+        <img
+          src={photos[idx]}
+          alt={`${product.name} ${idx + 1}/${count}`}
+          className="w-full h-full"
+          style={{
+            objectFit: product.bgColor ? "contain" : "cover",
+            padding: product.bgColor ? "20px" : "0",
+          }}
+        />
 
         {count > 1 && (
           <>
