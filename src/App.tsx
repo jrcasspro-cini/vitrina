@@ -4932,7 +4932,7 @@ export default function Vitrina() {
       )}
       {wizardOpen && userStores.length === 0 && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transition-all">
+          <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transition-all" style={{ maxHeight: "92vh" }}>
             
             {/* Header (skryté v kroku 5 — úspešná obrazovka má vlastný nadpis nižšie, aby sa text neduplikoval) */}
             {wizardStep <= 5 && (
@@ -5374,7 +5374,7 @@ export default function Vitrina() {
             </div>
 
             {/* Footer s tlačidlami */}
-            {wizardStep <= 4 && (
+            {wizardStep <= 5 && (
               <div className="p-5 border-t flex flex-col gap-4 bg-slate-50" style={{ borderColor: C.line }}>
                 {/* 3 Trust badges */}
                 <div className="flex justify-between items-center text-[10px] font-bold text-slate-500 border-b pb-3" style={{ borderColor: C.line }}>
