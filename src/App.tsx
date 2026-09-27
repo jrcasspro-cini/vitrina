@@ -802,6 +802,45 @@ export default function Vitrina() {
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
   // Ref pre popis textarea — potrebný pre emoji picker (vkladanie na kurzor)
   const descriptionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // ── Globálny emoji picker (funguje pre všetky textové polia v admin panely) ──
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const lastFocusedInputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  useEffect(() => {
+    const handleFocusIn = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const tag = target.tagName;
+      if (tag === "TEXTAREA") {
+        lastFocusedInputRef.current = target as HTMLTextAreaElement;
+      } else if (tag === "INPUT") {
+        const input = target as HTMLInputElement;
+        // Iba textové inputy (nie checkbox, radio, color, file, atď.)
+        const okTypes = ["text", "search", "url", "email", "tel", ""];
+        if (okTypes.includes((input.type || "text").toLowerCase())) {
+          lastFocusedInputRef.current = input;
+        }
+      }
+    };
+    document.addEventListener("focusin", handleFocusIn);
+    return () => document.removeEventListener("focusin", handleFocusIn);
+  }, []);
+  const insertEmojiToLastFocused = (emoji: string) => {
+    const input = lastFocusedInputRef.current;
+    if (!input) return;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    const newValue = input.value.slice(0, start) + emoji + input.value.slice(end);
+    // React neposlúcha priamu zmenu input.value — musíme použiť native setter + input event
+    const proto = input.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+    const setter = Object.getOwnPropertyDescriptor(proto, "value")?.set;
+    setter?.call(input, newValue);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + emoji.length;
+      try { input.setSelectionRange(newPos, newPos); } catch { /* niektoré typy inputov to nepodporujú */ }
+    }, 0);
+  };
 
   // Produkty s fotkami tohoto predajcu — zobrazíme ich rozmazane v pozadí
   // portálu (iba pre prihlásených), aby platforma pôsobila „živo" a osobne.
@@ -5640,6 +5679,61 @@ export default function Vitrina() {
             )}
 
           </div>
+        </div>
+      )}
+
+      {/* ── Plávajúci Emoji Picker (iba pre majiteľa v admin režime) ── */}
+      {isOwner && selectedStoreHandle && view === "admin" && (
+        <div className="fixed bottom-4 right-4 z-40">
+          {showEmojiPicker && (
+            <div className="absolute bottom-14 right-0 w-72 max-h-[380px] overflow-y-auto p-3 rounded-2xl shadow-2xl border animate-in fade-in slide-in-from-bottom-2 duration-150" style={{ background: "#fff", borderColor: C.line }}>
+              <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>
+                😀 Klikni do textu a potom na emoji
+              </div>
+              <div className="grid grid-cols-8 gap-1">
+                {[
+                  // Zvieratá
+                  "🐶","🐕","🐩","🦮","🐾","🐈","🐇","🐴",
+                  "🐰","🐼","🐨","🦊","🐻","🐷","🐮","🐔",
+                  // Srdcia a láska
+                  "❤️","🧡","💛","💚","💙","💜","🤍","🖤",
+                  "💖","💕","💞","💓","💗","💘","💝","🥰",
+                  // Príroda
+                  "🌱","🌿","🍀","🌸","🌺","🌷","🌹","🌻",
+                  "🌟","✨","💫","⭐","🔥","⚡","🌈","☀️",
+                  // Jedlo & produkty
+                  "🎂","🍰","🧁","🍯","🍞","☕","🍵","🥕",
+                  "🕯️","💄","💍","🎁","💐","👗","👠","🧴",
+                  // Symboly
+                  "✅","👉","👇","👆","👍","🙏","👏","💪",
+                  "🏆","🎯","💯","🆕","🔔","📢","💬","😊",
+                ].map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => insertEmojiToLastFocused(emoji)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-slate-100 transition-colors"
+                    title={`Vložiť ${emoji}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              {!lastFocusedInputRef.current && (
+                <div className="mt-2 p-2 rounded-lg text-[10px] text-center" style={{ background: "#FEF3C7", color: "#78350F" }}>
+                  💡 Najprv klikni do textového poľa (názov, popis, atď.), potom klikni na emoji.
+                </div>
+              )}
+            </div>
+          )}
+          <button
+            onClick={() => setShowEmojiPicker((v) => !v)}
+            className="w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl transition-transform hover:scale-110"
+            style={{ background: showEmojiPicker ? C.ink : "#fff", color: showEmojiPicker ? "#fff" : C.ink, border: `2px solid ${C.line}` }}
+            title="Emoji"
+          >
+            {showEmojiPicker ? "✕" : "😀"}
+          </button>
         </div>
       )}
 
