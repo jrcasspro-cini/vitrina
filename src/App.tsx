@@ -800,6 +800,8 @@ export default function Vitrina() {
   const [confirmDeleteStore, setConfirmDeleteStore] = useState(false);
   const [trialModalDismissed, setTrialModalDismissed] = useState(false);
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
+  // Ref pre popis textarea — potrebný pre emoji picker (vkladanie na kurzor)
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Produkty s fotkami tohoto predajcu — zobrazíme ich rozmazane v pozadí
   // portálu (iba pre prihlásených), aby platforma pôsobila „živo" a osobne.
@@ -3914,6 +3916,7 @@ export default function Vitrina() {
                 </span>
               </div>
               <textarea
+                ref={descriptionTextareaRef}
                 value={(store as any).description || ""}
                 onChange={(e) => {
                   const val = e.target.value.slice(0, 400);
@@ -3927,6 +3930,57 @@ export default function Vitrina() {
               <p className="text-[10px] mt-1" style={{ color: C.soft }}>
                 💡 <b>Prvý riadok</b> sa zobrazí ako výrazný <b>hook</b> (nadpis). Zvyšok textu ide pod ním normálne. Rozdeľ ich klávesou Enter.
               </p>
+
+              {/* ── Rýchle emoji vloženie do popisu ── */}
+              <div className="mt-2 p-2.5 rounded-xl border" style={{ borderColor: C.line, background: "#fff" }}>
+                <div className="text-[10px] uppercase font-bold tracking-wider mb-1.5" style={{ color: C.soft }}>😀 Vlož emoji do textu (klikni)</div>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    // Zvieratá — psy, mačky, labky
+                    "🐶","🐕","🐩","🦮","🐾","🐈","🐕‍🦺","🐇",
+                    // Srdcia a láska
+                    "❤️","💚","💛","🧡","💜","💖","💕","🥰",
+                    // Príroda a jedlo
+                    "🌱","🌿","🌸","🌺","🌟","✨","🔥","⚡",
+                    // Produkty a symboly
+                    "🎁","🎂","🍯","🥕","🕯️","💄","💍","🍰",
+                    // Užitočné značky
+                    "✅","⭐","👉","👇","🏆","🌈","💫","🍀",
+                  ].map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => {
+                        const ta = descriptionTextareaRef.current;
+                        const current = (store as any).description || "";
+                        if (!ta) {
+                          // Fallback: pridá na koniec
+                          const next = (current + emoji).slice(0, 400);
+                          updateStoreField("description", next);
+                          return;
+                        }
+                        // Vloží na miesto kurzora
+                        const start = ta.selectionStart ?? current.length;
+                        const end = ta.selectionEnd ?? current.length;
+                        const next = (current.slice(0, start) + emoji + current.slice(end)).slice(0, 400);
+                        updateStoreField("description", next);
+                        // Nastav kurzor za vložený emoji
+                        setTimeout(() => {
+                          if (ta) {
+                            const newPos = start + emoji.length;
+                            ta.focus();
+                            ta.setSelectionRange(newPos, newPos);
+                          }
+                        }, 0);
+                      }}
+                      className="w-8 h-8 flex items-center justify-center rounded-lg text-lg hover:bg-slate-100 transition-colors"
+                      title={`Vložiť ${emoji}`}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* ── Vzhľad popisu — font, farby, veľkosť (iba ak je popis vyplnený) ── */}
               {((store as any).description || "").trim() && (
