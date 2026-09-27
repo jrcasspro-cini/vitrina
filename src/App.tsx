@@ -605,6 +605,11 @@ export default function Vitrina() {
     return currentUser !== null && store.ownerId === currentUser.uid;
   }, [selectedStoreHandle, currentPath, currentUser, store.ownerId]);
 
+  // Demo obchod — používame na ukážkových anotáciách čo môže predajca meniť
+  const isDemo = selectedStoreHandle === DEMO_STORE_HANDLE;
+  const [demoHintsHidden, setDemoHintsHidden] = useState(false);
+  const showDemoHints = isDemo && !demoHintsHidden;
+
   // ── Analytics: pageview tracking ────────────────────────────────────
   // Zapíše 1 view do stores/{handle}/analytics/{YYYY-MM-DD} pri prvej návšteve.
   // Vyhne sa: nemapovaným storom, demo obchodu, návšteve vlastníka (isOwner),
@@ -2736,6 +2741,26 @@ export default function Vitrina() {
                   </button>
                 )}
 
+                {/* ── DEMO SPRIEVODCA — top banner ── */}
+                {showDemoHints && (
+                  <div className="mb-6 p-4 rounded-2xl border-2 border-dashed flex items-start gap-3 animate-in fade-in duration-300" style={{ background: "#FEF3C7", borderColor: "#F59E0B" }}>
+                    <span className="text-2xl shrink-0">🎓</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-extrabold" style={{ color: "#78350F" }}>Toto je ukážkový obchod</p>
+                      <p className="text-xs mt-0.5" style={{ color: "#92400E" }}>
+                        Žlté bubliny ukazujú, čo si v tvojom obchode môžeš zmeniť. Uprav si všetko podľa seba — farby, slogan, produkty, fotky.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setDemoHintsHidden(true)}
+                      className="text-xs font-bold px-2.5 py-1 rounded-lg hover:bg-amber-200 transition-colors shrink-0"
+                      style={{ color: "#78350F", border: "1px solid #F59E0B" }}
+                    >
+                      Skryť pomôcky
+                    </button>
+                  </div>
+                )}
+
                 {/* ── Vizitka obchodu ── */}
                 <section className="text-center mb-6">
                   <div className="mx-auto flex justify-center">
@@ -2767,6 +2792,15 @@ export default function Vitrina() {
                     </span>
                   </button>
                 </section>
+
+                {/* ── DEMO ANOTÁCIA: slogan ── */}
+                {showDemoHints && (
+                  <div className="relative flex justify-center mb-2 animate-in fade-in duration-300">
+                    <div className="px-4 py-2 rounded-2xl text-xs font-bold shadow-md" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                      👇 Tu si napíšeš krátky slogan (napr. „Ručne robené s láskou")
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Hook / slogan obchodu — s customizovateľným fontom, farbami a veľkosťou ── */}
                 {(store as any).tagline && (store as any).tagline.trim() && (() => {
@@ -2803,6 +2837,15 @@ export default function Vitrina() {
                   );
                 })()}
 
+                {/* ── DEMO ANOTÁCIA: popis obchodu ── */}
+                {showDemoHints && (
+                  <div className="relative flex justify-center mb-2 animate-in fade-in duration-300">
+                    <div className="px-4 py-2 rounded-2xl text-xs font-bold shadow-md" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                      👇 Tu opíšeš čo predávaš alebo ponúkaš (2–3 vety)
+                    </div>
+                  </div>
+                )}
+
                 {/* ── Popis obchodu (o nás) ── */}
                 {store.description && store.description.trim() && (
                   <div
@@ -2814,6 +2857,19 @@ export default function Vitrina() {
                     }}
                   >
                     <p className="whitespace-pre-wrap">{store.description.trim()}</p>
+                  </div>
+                )}
+
+                {/* ── DEMO ANOTÁCIA: produkty (nad kartami) ── */}
+                {showDemoHints && (
+                  <div className="mb-4 p-4 rounded-2xl border-2 border-dashed" style={{ background: "#FEF3C7", borderColor: "#F59E0B" }}>
+                    <p className="text-xs font-extrabold mb-2" style={{ color: "#78350F" }}>🎓 Ako vyzerá karta produktu:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" style={{ color: "#78350F" }}>
+                      <div className="flex items-start gap-2"><span className="font-black">1.</span><span><b>Fotka produktu</b> — vlastná fotka, môžeš si vybrať aj farbu pozadia karty</span></div>
+                      <div className="flex items-start gap-2"><span className="font-black">2.</span><span><b>Názov + krátky popis</b> — pár slov na predaj</span></div>
+                      <div className="flex items-start gap-2"><span className="font-black">3.</span><span><b>Cena</b> — s možnosťou nastavenia jednotky (ks, torta…)</span></div>
+                      <div className="flex items-start gap-2"><span className="font-black">4.</span><span><b>„Viac info"</b> — otvorí detailný popis produktu</span></div>
+                    </div>
                   </div>
                 )}
 
@@ -2976,6 +3032,24 @@ export default function Vitrina() {
                     ))
                   )}
                 </section>
+
+                {/* ── DEMO CTA: záverečné pozvanie ── */}
+                {showDemoHints && (
+                  <section className="mt-8 rounded-3xl p-6 md:p-8 text-center animate-in fade-in duration-300" style={{ background: "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)", border: "3px solid #78350F" }}>
+                    <div className="text-3xl mb-2">✨</div>
+                    <h3 className="text-xl md:text-2xl font-black mb-2" style={{ color: "#78350F" }}>Chceš aj ty takýto obchod?</h3>
+                    <p className="text-sm md:text-base mb-4" style={{ color: "#78350F" }}>
+                      Za 5 minút môžeš mať vlastnú Vitrínu. <b>Prvých 5 dní zdarma.</b> Bez kreditnej karty.
+                    </p>
+                    <button
+                      onClick={() => navigateTo("/app")}
+                      className="px-6 py-3 rounded-2xl font-black text-base shadow-lg transition-transform hover:scale-[1.02] active:scale-95"
+                      style={{ background: "#78350F", color: "#fff", border: "none" }}
+                    >
+                      Vyskúšať 5 dní zdarma →
+                    </button>
+                  </section>
+                )}
               </>
             )}
 
