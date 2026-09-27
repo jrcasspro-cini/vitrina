@@ -1084,6 +1084,46 @@ export default function Vitrina() {
     return String(abs);
   }, [store.ownerId]);
 
+  // PAY by square QR pre platbu predplatného (predajca → nám za Vitrínu).
+  // Rovnaká logika ako pri objednávkach zákazníkov — natívna podpora vo všetkých
+  // slovenských bankách.
+  const [subscriptionQr, setSubscriptionQr] = useState("");
+  useEffect(() => {
+    if (!company.iban || !store.plan || !paymentVs) { setSubscriptionQr(""); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const cistyIban = company.iban!.replace(/\s+/g, "").toUpperCase();
+        const suma = store.plan === "standard" ? 8 : 10;
+        const nazovPlanu = store.plan === "standard" ? "Standard" : "Rozsireny";
+        // @ts-ignore
+        const bySquare = await import("bysquare");
+        const encoded = await bySquare.encode({
+          invoiceId: paymentVs,
+          payments: [{
+            type: 1,
+            amount: suma,
+            bankAccounts: [{ iban: cistyIban }],
+            currencyCode: "EUR",
+            variableSymbol: paymentVs,
+            paymentNote: `Vitrina ${nazovPlanu}`,
+          }],
+        });
+        if (!cancelled) setSubscriptionQr(encoded);
+      } catch (e) {
+        console.error("BySquare subscription encoding failed:", e);
+        // Fallback na Payme URL
+        if (!cancelled) {
+          const cistyIban = company.iban!.replace(/\s+/g, "").toUpperCase();
+          const suma = store.plan === "standard" ? "8.00" : "10.00";
+          const nazovPlanu = store.plan === "standard" ? "Standard" : "Rozsireny";
+          setSubscriptionQr(`https://payme.sk?v=1&iban=${cistyIban}&amount=${suma}&currency=EUR&vs=${paymentVs}&desc=${encodeURIComponent(`Vitrina ${nazovPlanu}`)}`);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [company.iban, store.plan, paymentVs]);
+
   const shouldShowTrialModal =
     isOwner &&
     !!selectedStoreHandle &&
@@ -1663,13 +1703,46 @@ export default function Vitrina() {
     setCust({ name: "", city: "", phone: "", email: "", time: "", pay: "Prevod na účet" });
   };
 
-  // Slovak Payme QR Pay generator
-  const paymeUrl = useMemo(() => {
-    if (!store.iban) return "";
-    const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
-    const amount = total.toFixed(2);
-    const desc = encodeURIComponent(`Objednavka ${store.name}`);
-    return `https://payme.sk?v=1&iban=${cleanIban}&amount=${amount}&currency=EUR&vs=${orderVs}&desc=${desc}`;
+  // PAY by square QR generator — oficiálny slovenský štandard, ktorý natívne
+  // podporujú všetky slovenské banky (Tatra, SLSP, VÚB, ČSOB, mBank, 365.bank,
+  // UniCredit). Zákazník naskenuje QR v bankovej appke → automaticky sa vyplní
+  // IBAN, suma, VS. Bez inštalácie žiadnej doplnkovej appky.
+  //
+  // Payme.sk formát (bývalý) fungoval iba cez samostatnú Payme aplikáciu,
+  // ktorú takmer nikto nemá — preto sme prešli na oficiálny BySquare.
+  const [paymeUrl, setPaymeUrl] = useState("");
+  useEffect(() => {
+    if (!store.iban || !total || !orderVs) { setPaymeUrl(""); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
+        // @ts-ignore — bysquare sa nainštaluje na build-e (v package.json)
+        const bySquare = await import("bysquare");
+        const encoded = await bySquare.encode({
+          invoiceId: orderVs,
+          payments: [{
+            type: 1, // PaymentOptions.PaymentOrder
+            amount: Number(total.toFixed(2)),
+            bankAccounts: [{ iban: cleanIban }],
+            currencyCode: "EUR",
+            variableSymbol: orderVs,
+            paymentNote: `Objednavka ${store.name}`.slice(0, 140),
+          }],
+        });
+        if (!cancelled) setPaymeUrl(encoded);
+      } catch (e) {
+        console.error("BySquare encoding failed, fallback to Payme:", e);
+        // Fallback: ak by BySquare zlyhal, použijeme aspoň Payme URL
+        if (!cancelled) {
+          const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
+          const amount = total.toFixed(2);
+          const desc = encodeURIComponent(`Objednavka ${store.name}`);
+          setPaymeUrl(`https://payme.sk?v=1&iban=${cleanIban}&amount=${amount}&currency=EUR&vs=${orderVs}&desc=${desc}`);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
   }, [store.iban, total, orderVs, store.name]);
 
   // Onboarding handle validation helpers
@@ -3857,9 +3930,8 @@ export default function Vitrina() {
                 const suma = store.plan === "standard" ? "8.00" : "10.00";
                 const nazovPlanu = store.plan === "standard" ? "Štandard" : "Rozšírený";
                 const cistyIban = (company.iban || "").replace(/\s+/g, "").toUpperCase();
-                const paymentPaymeUrl = cistyIban
-                  ? `https://payme.sk?v=1&iban=${cistyIban}&amount=${suma}&currency=EUR&vs=${paymentVs}&desc=${encodeURIComponent(`Vitrina ${nazovPlanu}`)}`
-                  : "";
+                // Používame BySquare (viď useEffect vyššie) — natívna podpora všetkých SK bánk
+                const paymentPaymeUrl = subscriptionQr;
                 const paymentReported = !!(store as any).paymentReported;
                 const fakturaOk = !!((store as any).fakturaNazov || "").trim() && !!((store as any).fakturaAdresa || "").trim();
                 return (
