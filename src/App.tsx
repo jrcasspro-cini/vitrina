@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, FormEvent, MouseEvent as ReactMou
 import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
 import LandingV2 from "./components/LandingV2";
+import SellerLegalPage, { SellerLegalType } from "./components/SellerLegalPage";
 import AdminPlatformy from "./components/AdminPlatformy";
 import LegalPage, { LegalPageType, useCompany } from "./components/LegalPage";
 import defaultLogo from "./assets/images/default_store_logo.jpg";
@@ -527,8 +528,8 @@ export default function Vitrina() {
       if (path === "/" || path === "/app" || path === "/vytvorit" || path === "/admin-platformy") {
         return null;
       }
-      // Remove leading slash to get handle
-      const handle = path.substring(1);
+      // Remove leading slash a zoberieme iba prvý segment (napr. /handle/podmienky → "handle")
+      const handle = path.substring(1).split("/")[0];
       return handle || null;
     }
     return null;
@@ -1347,7 +1348,7 @@ export default function Vitrina() {
             setWizardOpen(false);
           }
         } else {
-          const handle = path.substring(1);
+          const handle = path.substring(1).split("/")[0];
           setSelectedStoreHandle(handle);
           setWizardOpen(false);
         }
@@ -1372,7 +1373,7 @@ export default function Vitrina() {
           setWizardOpen(false);
         }
       } else {
-        const handle = path.substring(1);
+        const handle = path.substring(1).split("/")[0];
         setSelectedStoreHandle(handle);
         setWizardOpen(false);
       }
@@ -1864,9 +1865,42 @@ export default function Vitrina() {
     return <AdminPlatformy onNavigate={navigateTo} />;
   }
 
-  // Právne stránky (ToS, Privacy, Cookies, Reklamácie, Odstúpenie).
+  // Právne stránky (ToS, Privacy, Cookies, Reklamácie, Odstúpenie) — Vitrína SaaS.
   if (LEGAL_PATHS[currentPath]) {
     return <LegalPage type={LEGAL_PATHS[currentPath]} onNavigate={navigateTo} />;
+  }
+
+  // Právne stránky konkrétneho predajcu: /handle/podmienky, /handle/ochrana-udajov, atď.
+  // Šablóny sa auto-vyplnia údajmi predajcu (fakturaNazov, fakturaAdresa, atď.).
+  {
+    const parts = currentPath.split("/").filter(Boolean);
+    if (parts.length === 2 && selectedStoreHandle && storeExists === true) {
+      const validTypes: Record<string, SellerLegalType> = {
+        "podmienky": "podmienky",
+        "ochrana-udajov": "ochrana-udajov",
+        "odstupenie": "odstupenie",
+        "reklamacie": "reklamacie",
+      };
+      const legalType = validTypes[parts[1]];
+      if (legalType) {
+        return (
+          <SellerLegalPage
+            type={legalType}
+            seller={{
+              name: store.name || selectedStoreHandle,
+              fakturaNazov: (store as any).fakturaNazov,
+              fakturaAdresa: (store as any).fakturaAdresa,
+              fakturaIco: (store as any).fakturaIco,
+              fakturaDic: (store as any).fakturaDic,
+              contactEmail: (store as any).contactEmail,
+              phone: store.phone,
+              handle: selectedStoreHandle,
+            }}
+            onNavigate={navigateTo}
+          />
+        );
+      }
+    }
   }
 
   if (currentPath === "/") {
@@ -3101,6 +3135,21 @@ export default function Vitrina() {
                       Vyskúšať 5 dní zdarma →
                     </button>
                   </section>
+                )}
+
+                {/* ── PÄTIČKA obchodu s právnymi odkazmi predajcu ── */}
+                {!isDemo && (
+                  <footer className="mt-12 pt-6 border-t text-center text-xs" style={{ borderColor: C.line, color: C.soft }}>
+                    <div className="flex flex-wrap justify-center gap-4 mb-3">
+                      <a href={`/${selectedStoreHandle}/podmienky`} onClick={(e) => { e.preventDefault(); navigateTo(`/${selectedStoreHandle}/podmienky`); }} className="hover:underline">Obchodné podmienky</a>
+                      <a href={`/${selectedStoreHandle}/ochrana-udajov`} onClick={(e) => { e.preventDefault(); navigateTo(`/${selectedStoreHandle}/ochrana-udajov`); }} className="hover:underline">Ochrana osobných údajov</a>
+                      <a href={`/${selectedStoreHandle}/odstupenie`} onClick={(e) => { e.preventDefault(); navigateTo(`/${selectedStoreHandle}/odstupenie`); }} className="hover:underline">Odstúpenie od zmluvy</a>
+                      <a href={`/${selectedStoreHandle}/reklamacie`} onClick={(e) => { e.preventDefault(); navigateTo(`/${selectedStoreHandle}/reklamacie`); }} className="hover:underline">Reklamácie</a>
+                    </div>
+                    <div className="text-[11px]">
+                      © {new Date().getFullYear()} {(store as any).fakturaNazov || store.name} — predaj cez <a href="/" onClick={(e) => { e.preventDefault(); navigateTo("/"); }} className="hover:underline font-semibold">Vitrína</a>
+                    </div>
+                  </footer>
                 )}
               </>
             )}
