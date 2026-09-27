@@ -790,24 +790,25 @@ export default function Vitrina() {
   const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
 
   // Produkty s fotkami tohoto predajcu — zobrazíme ich rozmazane v pozadí
-  // portálu, aby platforma pôsobila „živo" a osobne.
+  // portálu (iba pre prihlásených), aby platforma pôsobila „živo" a osobne.
   //
-  // Login stránka (nelogovaný) používa všetky produkty (aby ukázala aktivitu).
-  // Portál (logovaný predajca) používa iba jeho vlastné produkty.
+  // NA LOGIN stránke pozadie NEZOBRAZUJEME — nový návštevník má vidieť
+  // čistú registráciu, nie sa nechať zmiasť neznámymi produktmi.
   const [loginBgImages, setLoginBgImages] = useState<string[]>([]);
   useEffect(() => {
-    const onLogin = currentUser === null && (currentPath === "/app" || currentPath === "/vytvorit");
+    // Iba na portáli (logovaný + žiadny konkrétny obchod)
     const onPortal = currentUser !== null && !selectedStoreHandle && currentPath !== "/admin-platformy" && !LEGAL_PATHS[currentPath];
-    if (!onLogin && !onPortal) return;
+    if (!onPortal) return;
     (async () => {
       try {
         const snap = await getDocs(collection(db, "items"));
-        const myHandles = onPortal ? new Set(userStores.map((s: any) => s.handle || s.id)) : null;
+        // Na portáli filtrujeme iba vlastné produkty predajcu
+        const myHandles = new Set(userStores.map((s: any) => s.handle || s.id));
         const urls: string[] = [];
         snap.forEach((docSnap) => {
           const d = docSnap.data() as any;
           // Ak sme na portáli, filtrujeme iba vlastné produkty predajcu
-          if (myHandles && !myHandles.has(d.storeId)) return;
+          if (!myHandles.has(d.storeId)) return;
           const imgs: string[] = Array.isArray(d.imgUrls) ? d.imgUrls.filter((u: any) => typeof u === "string" && u) : [];
           const legacy = typeof d.imgUrl === "string" && d.imgUrl ? [d.imgUrl] : [];
           const combined = [...imgs, ...legacy];
@@ -1732,22 +1733,13 @@ export default function Vitrina() {
         });
         if (!cancelled) setPaymeUrl(encoded);
       } catch (e) {
-        console.error("BySquare encoding failed, fallback to Payme:", e);
-        // Fallback: ak by BySquare zlyhal, použijeme aspoň Payme URL
+        console.error("BySquare encoding failed, fallback to Payme URL:", e);
+        // Fallback: ak by BySquare zlyhal, použijeme aspoň starý Payme URL
         if (!cancelled) {
           const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
           const amount = total.toFixed(2);
           const desc = encodeURIComponent(`Objednavka ${store.name}`);
-          const pi = orderVs ? `/VS${String(orderVs).replace(/\D/g, '').slice(0, 10)}` : '';
-        const params = new URLSearchParams({
-          IBAN: cleanIban,
-          AM: amount.toFixed(2),
-          CC: 'EUR',
-          CN: store.name || 'VITRINA',
-          ...(pi ? { PI: pi } : {}),
-          ...(desc ? { MSG: desc } : {}),
-        });
-        setPaymeUrl(`https://payme.sk/2/e/PME?${params.toString()}`);
+          setPaymeUrl(`https://payme.sk?v=1&iban=${cleanIban}&amount=${amount}&currency=EUR&vs=${orderVs}&desc=${desc}`);
         }
       }
     })();

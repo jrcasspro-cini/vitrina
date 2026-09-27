@@ -80,11 +80,11 @@ export default function LandingV2({ onNavigate }: Props) {
           <p style={{ fontSize: "1.05rem", lineHeight: 1.6, color: C.text, maxWidth: 640, margin: "0 auto 36px" }}>
             Vitrína ti umožní začať za <b>8 € mesačne</b>. Zaregistruj sa, nahraj produkty, zdieľaj odkaz. Za pár dní vieš, či to funguje.
           </p>
-          <button onClick={() => onNavigate("/app")} className="lv2-btn" style={{ background: C.accent, color: "#fff", padding: "18px 36px", borderRadius: 16, fontSize: "1.1rem", fontWeight: 800, border: "none", cursor: "pointer", boxShadow: "0 6px 18px rgba(217,119,6,0.28)" }}>
-            Skúsim to za 8 € →
+          <button onClick={() => onNavigate("/app")} className="lv2-btn" style={{ background: C.accent, color: "#fff", padding: "22px 48px", borderRadius: 16, fontSize: "1.35rem", fontWeight: 900, border: "none", cursor: "pointer", boxShadow: "0 8px 24px rgba(217,119,6,0.35)" }}>
+            Vyskúšať 5 dní zdarma →
           </button>
-          <p style={{ fontSize: 13, color: C.muted, marginTop: 16 }}>
-            5 dní zdarma · Bez kreditnej karty · Zrušíš kedykoľvek
+          <p style={{ fontSize: 14, color: C.muted, marginTop: 18, fontWeight: 600 }}>
+            Bez kreditnej karty · Potom 8 €/mes. · Zrušíš kedykoľvek
           </p>
         </div>
       </section>
@@ -262,8 +262,8 @@ export default function LandingV2({ onNavigate }: Props) {
           <p style={{ fontSize: "1.15rem", opacity: 0.85, marginBottom: 36, lineHeight: 1.6 }}>
             Vitrína je pripravená za 5 minút. Prvých 5 dní zdarma. Zrušíš kedykoľvek.
           </p>
-          <button onClick={() => onNavigate("/app")} className="lv2-btn" style={{ background: C.accent, color: "#fff", padding: "20px 44px", borderRadius: 16, fontSize: "1.15rem", fontWeight: 800, border: "none", cursor: "pointer", marginBottom: 16 }}>
-            Skúsim to za 8 € →
+          <button onClick={() => onNavigate("/app")} className="lv2-btn" style={{ background: C.accent, color: "#fff", padding: "24px 52px", borderRadius: 16, fontSize: "1.35rem", fontWeight: 900, border: "none", cursor: "pointer", marginBottom: 16, boxShadow: "0 10px 28px rgba(217,119,6,0.4)" }}>
+            Vyskúšať 5 dní zdarma →
           </button>
           <div>
             <button onClick={() => onNavigate("/demo")} style={{ background: "transparent", color: "#fff", border: "none", cursor: "pointer", fontSize: "0.95rem", textDecoration: "underline", opacity: 0.85 }}>
