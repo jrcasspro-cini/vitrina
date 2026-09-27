@@ -40,7 +40,7 @@ export default function LandingV2({ onNavigate }: Props) {
         .lv2-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(217,119,6,0.35); }
         .lv2-btn:active { transform: translateY(0); }
         @media (max-width: 768px) {
-          .lv2-hero-title { font-size: 2.5rem !important; line-height: 1.1 !important; }
+          .lv2-hero-title { font-size: 3rem !important; line-height: 1.05 !important; }
           .lv2-section-title { font-size: 1.75rem !important; }
           .lv2-two-col { grid-template-columns: 1fr !important; }
         }
@@ -64,11 +64,11 @@ export default function LandingV2({ onNavigate }: Props) {
 
       {/* ═══════════════════════════════════════════════════ HERO ═══ */}
       <section style={{ padding: "80px 24px 100px", background: `linear-gradient(180deg, ${C.bg} 0%, ${C.bgSoft} 100%)` }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", textAlign: "center" }}>
           <div style={{ display: "inline-block", padding: "6px 14px", background: C.accentSoft, color: C.accentDark, borderRadius: 999, fontSize: 12, fontWeight: 700, marginBottom: 24, letterSpacing: "0.02em" }}>
             🚀 Prvý krok do online predaja
           </div>
-          <h1 className="lv2-disp lv2-hero-title" style={{ fontSize: "4.5rem", fontWeight: 900, lineHeight: 1.05, color: C.ink, marginBottom: 28 }}>
+          <h1 className="lv2-disp lv2-hero-title" style={{ fontSize: "6rem", fontWeight: 900, lineHeight: 1.02, color: C.ink, marginBottom: 32, letterSpacing: "-0.03em" }}>
             Nemíňaj peniaze,<br/>kým si to <span style={{ color: C.accent }}>nevyskúšaš</span>.
           </h1>
           <p style={{ fontSize: "1.15rem", lineHeight: 1.6, color: C.text, maxWidth: 640, margin: "0 auto 20px", fontWeight: 500 }}>
