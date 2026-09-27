@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, FormEvent, MouseEvent as ReactMouseEvent } from "react";
 import { db, auth } from "./firebase";
 import LandingPage from "./components/LandingPage";
+import LandingV2 from "./components/LandingV2";
 import AdminPlatformy from "./components/AdminPlatformy";
 import LegalPage, { LegalPageType, useCompany } from "./components/LegalPage";
 import defaultLogo from "./assets/images/default_store_logo.jpg";
@@ -1790,6 +1791,11 @@ export default function Vitrina() {
   }
 
   if (currentPath === "/") {
+    return <LandingV2 onNavigate={navigateTo} />;
+  }
+
+  if (currentPath === "/vitrina") {
+    // Stará detailná landing — dostupná cez "Viac o Vitríne" v nová landing footeri
     return <LandingPage onNavigate={navigateTo} />;
   }
 

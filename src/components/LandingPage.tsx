@@ -920,6 +920,35 @@ export default function LandingPage({ onNavigate }: LandingPageProps) {
         </div>
       </section>
 
+      {/* PRE KOHO / ČO PRINESIE — jednoduchá dvojkarta */}
+      <section style={{ padding: "80px 0", background: "#F8FAFC" }}>
+        <div className="wrap">
+          <div className="sec-head center" style={{ marginBottom: "40px" }}>
+            <div className="eyebrow">V skratke</div>
+            <h2>Pre koho to je a čo dostaneš.</h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px", maxWidth: "1000px", margin: "0 auto" }}>
+            <div style={{ background: "#fff", borderRadius: "24px", padding: "32px", border: "2px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>👤</div>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: 800, marginBottom: "14px", color: "#0F172A" }}>Pre koho to je?</h3>
+              <p style={{ fontSize: "1rem", lineHeight: 1.65, color: "#334155", margin: 0 }}>
+                Pre ľudí, ktorí chcú rýchlo a bez zložitostí ukázať svoje produkty online — napríklad predávajú cez sociálne siete, ale nechcú hneď platiť drahý e-shop.
+              </p>
+            </div>
+            <div style={{ background: "#fff", borderRadius: "24px", padding: "32px", border: "2px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "12px" }}>🎁</div>
+              <h3 style={{ fontSize: "1.35rem", fontWeight: 800, marginBottom: "14px", color: "#0F172A" }}>Čo to prinesie?</h3>
+              <p style={{ fontSize: "1rem", lineHeight: 1.65, color: "#334155", margin: 0 }}>
+                Za <b>8 €</b> dostaneš vlastnú stránku na prezentáciu produktov, ktorú môžeš zdieľať vo Facebooku alebo Instagrame. Jednoduchý návod ti ukáže ako pridať fotky, popisy a kontakt — zvládne to aj úplný začiatočník.
+              </p>
+            </div>
+          </div>
+          <p style={{ maxWidth: "760px", margin: "36px auto 0", textAlign: "center", fontSize: "1rem", lineHeight: 1.65, color: "#475569" }}>
+            Ak si nie si istý e-shopom alebo veľkou investíciou, toto je jednoduchý spôsob, ako si to najprv <b>vyskúšať</b>. A keď to bude fungovať, môžeš svoju Vitrínu neskôr rozšíriť alebo prepojiť s ďalšími nástrojmi.
+          </p>
+        </div>
+      </section>
+
       {/* PRE KOHO JE VITRÍNA */}
       <section className="testimonials" id="pre-koho">
         <div className="wrap">
