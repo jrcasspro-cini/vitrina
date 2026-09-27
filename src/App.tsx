@@ -2860,16 +2860,11 @@ export default function Vitrina() {
                   </div>
                 )}
 
-                {/* ── DEMO ANOTÁCIA: produkty (nad kartami) ── */}
+                {/* ── DEMO nadpis pred produktmi ── */}
                 {showDemoHints && (
-                  <div className="mb-4 p-4 rounded-2xl border-2 border-dashed" style={{ background: "#FEF3C7", borderColor: "#F59E0B" }}>
-                    <p className="text-xs font-extrabold mb-2" style={{ color: "#78350F" }}>🎓 Ako vyzerá karta produktu:</p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs" style={{ color: "#78350F" }}>
-                      <div className="flex items-start gap-2"><span className="font-black">1.</span><span><b>Fotka produktu</b> — vlastná fotka, môžeš si vybrať aj farbu pozadia karty</span></div>
-                      <div className="flex items-start gap-2"><span className="font-black">2.</span><span><b>Názov + krátky popis</b> — pár slov na predaj</span></div>
-                      <div className="flex items-start gap-2"><span className="font-black">3.</span><span><b>Cena</b> — s možnosťou nastavenia jednotky (ks, torta…)</span></div>
-                      <div className="flex items-start gap-2"><span className="font-black">4.</span><span><b>„Viac info"</b> — otvorí detailný popis produktu</span></div>
-                    </div>
+                  <div className="mb-4 flex items-center gap-2 text-sm font-bold" style={{ color: "#78350F" }}>
+                    <span className="text-lg">👇</span>
+                    <span>Bubliny ti ukazujú, čo môžeš zmeniť na produkte:</span>
                   </div>
                 )}
 
@@ -2887,10 +2882,13 @@ export default function Vitrina() {
                       </button>
                     </div>
                   ) : (
-                    visibleItems.map((it) => (
+                    visibleItems.map((it, idx) => {
+                      // Prvý produkt v demo mode dostane bočné bubliny so šípkami
+                      const withDemoBubbles = showDemoHints && idx === 0;
+                      const cardArticle = (
                       <article
                         key={it.id}
-                        className="rounded-3xl flex flex-col h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                        className="rounded-3xl flex flex-col h-full overflow-hidden shadow-md hover:shadow-lg transition-shadow relative"
                         style={{
                           background: C.card,
                           // Hrubší rám okolo celej karty — vyzerá ako fotorámik
@@ -3029,7 +3027,61 @@ export default function Vitrina() {
                           </div>
                         </div>
                       </article>
-                    ))
+                      );
+                      // Prvý produkt v demo režime obalíme wrapper-om s bublinami na bokoch
+                      if (withDemoBubbles) {
+                        return (
+                          <div key={it.id} className="relative sm:col-span-2 lg:col-span-3 flex justify-center items-start">
+                            <div className="w-full lg:max-w-[380px] relative">
+                              {cardArticle}
+                              {/* ── Bubliny okolo prvého produktu (iba desktop kde je miesto) ── */}
+                              <div className="hidden lg:block">
+                                {/* Bublina: fotka (vľavo hore) */}
+                                <div className="absolute" style={{ top: "40px", left: "-260px", width: "240px" }}>
+                                  <div className="px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg relative" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                                    📷 Tu vložíš vlastnú fotku produktu (+ môžeš zmeniť aj farbu pozadia karty)
+                                    {/* Šípka doprava */}
+                                    <div className="absolute" style={{ right: "-14px", top: "22px", width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderLeft: "14px solid #F59E0B" }} />
+                                  </div>
+                                </div>
+                                {/* Bublina: názov (vpravo v strede) */}
+                                <div className="absolute" style={{ top: "300px", right: "-260px", width: "240px" }}>
+                                  <div className="px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg relative" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                                    ✏️ Tu napíšeš názov produktu + krátky popis (pár slov na predaj)
+                                    {/* Šípka doľava */}
+                                    <div className="absolute" style={{ left: "-14px", top: "22px", width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderRight: "14px solid #F59E0B" }} />
+                                  </div>
+                                </div>
+                                {/* Bublina: cena (vľavo dole) */}
+                                <div className="absolute" style={{ bottom: "60px", left: "-260px", width: "240px" }}>
+                                  <div className="px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg relative" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                                    💶 Tu nastavíš cenu a jednotku (ks, torta, vstup…)
+                                    {/* Šípka doprava */}
+                                    <div className="absolute" style={{ right: "-14px", top: "22px", width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderLeft: "14px solid #F59E0B" }} />
+                                  </div>
+                                </div>
+                                {/* Bublina: Viac info / Pridať (vpravo dole) */}
+                                <div className="absolute" style={{ bottom: "40px", right: "-260px", width: "240px" }}>
+                                  <div className="px-4 py-2.5 rounded-2xl text-xs font-bold shadow-lg relative" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>
+                                    👁️ „Viac info" ukáže detail. „Pridať" pridá do košíka.
+                                    {/* Šípka doľava */}
+                                    <div className="absolute" style={{ left: "-14px", top: "22px", width: 0, height: 0, borderTop: "10px solid transparent", borderBottom: "10px solid transparent", borderRight: "14px solid #F59E0B" }} />
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Na mobile / tablete: bubliny pod produktom (kde nie je bok) */}
+                              <div className="lg:hidden mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div className="px-3 py-2 rounded-xl font-bold" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>📷 Fotka + farba pozadia</div>
+                                <div className="px-3 py-2 rounded-xl font-bold" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>✏️ Názov + krátky popis</div>
+                                <div className="px-3 py-2 rounded-xl font-bold" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>💶 Cena a jednotka</div>
+                                <div className="px-3 py-2 rounded-xl font-bold" style={{ background: "#FEF3C7", color: "#78350F", border: "2px solid #F59E0B" }}>👁️ „Viac info" / „Pridať"</div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return cardArticle;
+                    })
                   )}
                 </section>
 
