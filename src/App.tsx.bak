@@ -1814,12 +1814,6 @@ export default function Vitrina() {
         city: newStore.city.trim() || "Prešov",
         iban: newStore.iban.trim().toUpperCase(),
         category: newStore.category.trim() || "Sviečky a darčeky",
-        // Fakturačné údaje predajcu (povinné pre právne texty jeho obchodu)
-        fakturaNazov: newStore.fakturaNazov.trim(),
-        fakturaAdresa: newStore.fakturaAdresa.trim(),
-        fakturaIco: newStore.fakturaIco.trim(),
-        fakturaDic: newStore.fakturaDic.trim(),
-        contactEmail: newStore.contactEmail.trim(),
         createdAt: new Date(),
         trialEndsAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
         plan: "",
@@ -1830,7 +1824,7 @@ export default function Vitrina() {
       // 1. Create store doc
       await setDoc(doc(db, "stores", handle), storeData);
 
-      setWizardStep(6);
+      setWizardStep(5);
     } catch (err: any) {
       console.error("Error creating store:", err);
       setDbError("Vytvorenie obchodu zlyhalo: " + err.message);
@@ -2405,7 +2399,7 @@ export default function Vitrina() {
               </p>
               <button
                 onClick={() => {
-                  setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky", fakturaNazov: "", fakturaAdresa: "", fakturaIco: "", fakturaDic: "", contactEmail: "" });
+                  setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
                   setHandleManuallyEdited(false);
                   navigateTo("/vytvorit");
                 }}
@@ -2429,7 +2423,7 @@ export default function Vitrina() {
             </p>
             <button
               onClick={() => {
-                setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky", fakturaNazov: "", fakturaAdresa: "", fakturaIco: "", fakturaDic: "", contactEmail: "" });
+                setNewStore({ name: "", handle: "", phone: "", city: "", iban: "", category: "Sviečky a darčeky" });
                 setHandleManuallyEdited(false);
                 navigateTo("/vytvorit");
               }}
@@ -4935,7 +4929,7 @@ export default function Vitrina() {
           <div className="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl flex flex-col transition-all">
             
             {/* Header (skryté v kroku 5 — úspešná obrazovka má vlastný nadpis nižšie, aby sa text neduplikoval) */}
-            {wizardStep <= 5 && (
+            {wizardStep <= 4 && (
               <div className="p-6 border-b flex flex-col relative" style={{ borderColor: C.line }}>
                 <button
                   onClick={() => setWizardOpen(false)}
@@ -4946,28 +4940,26 @@ export default function Vitrina() {
 
                 <div>
                   <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: C.soft }}>
-                    {`Krok ${wizardStep} z 5 · Zostáva ~3 minúty`}
+                    {`Krok ${wizardStep} z 4 · Zostáva ~2 minúty`}
                   </span>
                   <h2 className="disp text-xl font-extrabold mt-1 text-slate-900 leading-tight">
                     {wizardStep === 1 && "Pomenujte svoj obchod"}
                     {wizardStep === 2 && "Zadajte kontaktné údaje"}
                     {wizardStep === 3 && "Kam vám pošleme peniaze?"}
-                    {wizardStep === 4 && "Fakturačné údaje"}
-                    {wizardStep === 5 && "Skontrolujte a spustite"}
+                    {wizardStep === 4 && "Skontrolujte a spustite"}
                   </h2>
                   <p className="text-xs mt-1.5 leading-relaxed text-slate-500">
                     {wizardStep === 1 && "Názov a unikátny odkaz, pod ktorým vás zákazníci nájdu na internete."}
                     {wizardStep === 2 && "Telefónne číslo na WhatsApp, kam vám budú chodiť objednávky, a vaše mesto doručenia."}
                     {wizardStep === 3 && "Bankový účet (IBAN), na ktorý vám od zákazníkov prídu platby cez rýchly QR kód."}
-                    {wizardStep === 4 && "Údaje potrebné pre právne texty tvojho obchodu (obchodné podmienky, GDPR, reklamácie). Bez týchto údajov nemôžeš legálne predávať v EÚ."}
-                    {wizardStep === 5 && "Už len skontrolujte, či je všetko správne a môžeme vytvoriť váš obchod."}
+                    {wizardStep === 4 && "Už len skontrolujte, či je všetko správne a môžeme vytvoriť váš obchod."}
                   </p>
                 </div>
               </div>
             )}
 
             {/* Progress bar */}
-            {wizardStep <= 5 && (
+            {wizardStep <= 4 && (
               <div className="px-6 pt-5 pb-1 bg-white">
                 <div className="relative flex items-center justify-between mb-2">
                   <div className="absolute left-4 right-4 top-[14px] h-0.5 bg-slate-100 -translate-y-1/2 -z-10">
@@ -4975,7 +4967,7 @@ export default function Vitrina() {
                       className="h-full transition-all duration-300"
                       style={{
                         background: C.accent,
-                        width: `${((wizardStep - 1) / 4) * 100}%`
+                        width: `${((wizardStep - 1) / 3) * 100}%`
                       }}
                     />
                   </div>
@@ -4983,8 +4975,7 @@ export default function Vitrina() {
                     { num: 1, name: "Identita" },
                     { num: 2, name: "Kontakt" },
                     { num: 3, name: "Platba" },
-                    { num: 4, name: "Faktúra" },
-                    { num: 5, name: "Spustenie" }
+                    { num: 4, name: "Spustenie" }
                   ].map((s) => {
                     const isCompleted = s.num < wizardStep;
                     const isActive = s.num === wizardStep;
@@ -5202,82 +5193,8 @@ export default function Vitrina() {
                 </div>
               )}
 
-              {/* KROK 4: FAKTURAČNÉ ÚDAJE (povinné pre právne texty obchodu) */}
+              {/* KROK 4: SPUSTENIE */}
               {wizardStep === 4 && (
-                <div className="flex flex-col gap-4">
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-                    <p className="text-[11px] font-semibold text-amber-800 leading-relaxed">
-                      ⚖️ Tieto údaje sa automaticky doplnia do Obchodných podmienok, GDPR a reklamačného poriadku tvojho obchodu — sú zákonom povinné pri online predaji.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold block mb-1 text-slate-800">Obchodné meno / názov firmy *</label>
-                    <input
-                      type="text"
-                      placeholder="napr. Jozef Rolík — SZČO alebo Vitrína s.r.o."
-                      value={newStore.fakturaNazov}
-                      onChange={(e) => setNewStore({ ...newStore, fakturaNazov: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
-                      style={{ borderColor: C.line }}
-                    />
-                    <p className="text-[10px] text-slate-500 mt-1">Presne ako máš na živnosti alebo v OR.</p>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold block mb-1 text-slate-800">Fakturačná adresa (sídlo) *</label>
-                    <input
-                      type="text"
-                      placeholder="napr. Prešovská 15, 080 01 Prešov"
-                      value={newStore.fakturaAdresa}
-                      onChange={(e) => setNewStore({ ...newStore, fakturaAdresa: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
-                      style={{ borderColor: C.line }}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-bold block mb-1 text-slate-800">IČO *</label>
-                      <input
-                        type="text"
-                        placeholder="12345678"
-                        value={newStore.fakturaIco}
-                        onChange={(e) => setNewStore({ ...newStore, fakturaIco: e.target.value.replace(/\D/g, "") })}
-                        className="w-full px-4 py-3 rounded-xl border text-sm font-mono focus:border-[#7A8471] bg-slate-50 transition-colors"
-                        style={{ borderColor: C.line }}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold block mb-1 text-slate-800">DIČ (voliteľné)</label>
-                      <input
-                        type="text"
-                        placeholder="1080234567"
-                        value={newStore.fakturaDic}
-                        onChange={(e) => setNewStore({ ...newStore, fakturaDic: e.target.value })}
-                        className="w-full px-4 py-3 rounded-xl border text-sm font-mono focus:border-[#7A8471] bg-slate-50 transition-colors"
-                        style={{ borderColor: C.line }}
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold block mb-1 text-slate-800">Kontaktný e-mail *</label>
-                    <input
-                      type="email"
-                      placeholder="info@tvojeobchod.sk"
-                      value={newStore.contactEmail}
-                      onChange={(e) => setNewStore({ ...newStore, contactEmail: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border text-sm focus:border-[#7A8471] bg-slate-50 transition-colors"
-                      style={{ borderColor: C.line }}
-                    />
-                    <p className="text-[10px] text-slate-500 mt-1">Zákazníci ho uvidia v podmienkach pri reklamáciách a odstúpení.</p>
-                  </div>
-                </div>
-              )}
-
-              {/* KROK 5: SPUSTENIE */}
-              {wizardStep === 5 && (
                 <div className="flex flex-col gap-4">
                   <div className="bg-slate-50 p-4 rounded-2xl border" style={{ borderColor: C.line }}>
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">Prehľad obchodu</span>
@@ -5327,8 +5244,8 @@ export default function Vitrina() {
                 </div>
               )}
 
-              {/* KROK 6: ÚSPEŠNE VYTVORENÉ */}
-              {wizardStep === 6 && (
+              {/* KROK 5: ÚSPEŠNE VYTVORENÉ */}
+              {wizardStep === 5 && (
                 <div className="text-center py-4 flex flex-col items-center">
                   <div className="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl mb-4">
                     🎉
@@ -5380,13 +5297,12 @@ export default function Vitrina() {
                     Stlačte Pokračovať pre uloženie a pokračovanie
                   </span>
 
-                  {wizardStep < 5 ? (
+                  {wizardStep < 4 ? (
                     <button
                       disabled={
                         (wizardStep === 1 && (!handleIsValid || handleIsTaken || !newStore.name.trim())) ||
                         (wizardStep === 2 && (!newStore.phone.trim() || !newStore.city.trim() || !newStore.category.trim())) ||
-                        (wizardStep === 3 && !newStore.iban.trim()) ||
-                        (wizardStep === 4 && (!newStore.fakturaNazov.trim() || !newStore.fakturaAdresa.trim() || !newStore.fakturaIco.trim() || !newStore.contactEmail.trim()))
+                        (wizardStep === 3 && !newStore.iban.trim())
                       }
                       onClick={() => setWizardStep(wizardStep + 1)}
                       className="px-5 py-3 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-transform hover:scale-[1.01] flex items-center gap-1 shrink-0"
@@ -5396,7 +5312,7 @@ export default function Vitrina() {
                     </button>
                   ) : (
                     <button
-                      disabled={!newStore.name.trim() || !newStore.phone.trim() || !newStore.city.trim() || !newStore.category.trim() || !newStore.iban.trim() || !newStore.fakturaNazov.trim() || !newStore.fakturaAdresa.trim() || !newStore.fakturaIco.trim() || !newStore.contactEmail.trim() || handleIsTaken || !handleIsValid}
+                      disabled={!newStore.name.trim() || !newStore.phone.trim() || !newStore.city.trim() || !newStore.category.trim() || !newStore.iban.trim() || handleIsTaken || !handleIsValid}
                       onClick={createAndLaunchStore}
                       className="px-5 py-3 rounded-xl text-white text-xs font-bold disabled:opacity-40 transition-transform hover:scale-[1.01] flex items-center gap-1 shrink-0"
                       style={{ background: C.ink }}
