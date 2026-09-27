@@ -2,7 +2,7 @@
 // Nahradzuje pôvodnú "Vitrína nie je e-shop" stránku na koreňovej URL "/".
 // Pôvodná stránka je stále dostupná na /vitrina cez footer link.
 //
-// Kľúčová myšlienka: "Neminaj peniaze, kým si to nevyskúšaš."
+// Kľúčová myšlienka: "Nemíňaj peniaze, kým si to nevyskúšaš."
 // Cieľ: jeden hlavný cieľ — dostat návštevníka do /app (registrácia).
 
 import { useState } from "react";
@@ -69,7 +69,7 @@ export default function LandingV2({ onNavigate }: Props) {
             🚀 Prvý krok do online predaja
           </div>
           <h1 className="lv2-disp lv2-hero-title" style={{ fontSize: "4.5rem", fontWeight: 900, lineHeight: 1.05, color: C.ink, marginBottom: 28 }}>
-            Neminaj peniaze,<br/>kým si to <span style={{ color: C.accent }}>nevyskúšaš</span>.
+            Nemíňaj peniaze,<br/>kým si to <span style={{ color: C.accent }}>nevyskúšaš</span>.
           </h1>
           <p style={{ fontSize: "1.15rem", lineHeight: 1.6, color: C.text, maxWidth: 640, margin: "0 auto 20px", fontWeight: 500 }}>
             Nemá zmysel investovať stovky eur do webu, <b>kým nezistíš, či je o tvoje výrobky záujem</b>.
@@ -257,7 +257,7 @@ export default function LandingV2({ onNavigate }: Props) {
       <section style={{ padding: "100px 24px", background: `linear-gradient(135deg, ${C.ink} 0%, #1E293B 100%)`, color: "#fff", textAlign: "center" }}>
         <div style={{ maxWidth: 700, margin: "0 auto" }}>
           <h2 className="lv2-disp" style={{ fontSize: "3rem", fontWeight: 900, marginBottom: 20, lineHeight: 1.1 }}>
-            Neminaj peniaze.<br/>Vyskúšaj to.
+            Nemíňaj peniaze.<br/>Vyskúšaj to.
           </h2>
           <p style={{ fontSize: "1.15rem", opacity: 0.85, marginBottom: 36, lineHeight: 1.6 }}>
             Vitrína je pripravená za 5 minút. Prvých 5 dní zdarma. Zrušíš kedykoľvek.
