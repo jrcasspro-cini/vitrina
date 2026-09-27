@@ -2671,16 +2671,27 @@ export default function Vitrina() {
                   <p className="text-sm mt-1" style={{ color: C.soft }}>
                     {store.category || "Lokálny predajca"} · {store.city}
                   </p>
-                  <a
-                    href={`${currentOrigin}/${selectedStoreHandle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-bold mt-2.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm"
-                    style={{ background: "#1E3A5F", color: "#fff" }}
+                  <button
+                    onClick={() => {
+                      const url = `${currentOrigin}/${selectedStoreHandle}`;
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(url);
+                        setCopiedLink(true);
+                        setTimeout(() => setCopiedLink(false), 2000);
+                      }
+                    }}
+                    className="text-sm font-bold mt-2.5 inline-flex items-center gap-1.5 px-4 py-2 rounded-full hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
+                    style={{ background: copiedLink ? "#059669" : "#1E3A5F", color: "#fff", border: "none" }}
+                    title="Klikni pre skopírovanie adresy obchodu"
                   >
+                    <span style={{ userSelect: "none" }} aria-hidden="true">
+                      {copiedLink ? "✓" : "⧉"}
+                    </span>
                     <span>{currentHost}/{selectedStoreHandle}</span>
-                    <span style={{ userSelect: "none" }} aria-hidden="true">↗</span>
-                  </a>
+                    <span style={{ userSelect: "none" }} aria-hidden="true" className="text-xs font-normal opacity-80">
+                      {copiedLink ? "Skopírované" : "Kopírovať"}
+                    </span>
+                  </button>
                 </section>
 
                 {/* ── Hook / slogan obchodu — s customizovateľným fontom, farbami a veľkosťou ── */}
