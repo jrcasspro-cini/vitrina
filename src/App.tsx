@@ -5318,12 +5318,32 @@ export default function Vitrina() {
                           Zákazníci budú platiť priamo na váš účet pomocou automaticky generovaného QR kódu.
                         </p>
                       </div>
+
+                      <div className="border-t pt-3" style={{ borderColor: C.line }}>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">⚖️ Fakturačné údaje</span>
+                        <div className="text-slate-700">
+                          <div className="font-semibold">{newStore.fakturaNazov || "—"}</div>
+                          <div className="text-[11px]">{newStore.fakturaAdresa || "—"}</div>
+                          <div className="text-[11px] font-mono">IČO: {newStore.fakturaIco || "—"}{newStore.fakturaDic ? ` · DIČ: ${newStore.fakturaDic}` : ""}</div>
+                          <div className="text-[11px]">📧 {newStore.contactEmail || "—"}</div>
+                        </div>
+                        <p className="text-[9px] text-slate-500 mt-1">
+                          Auto-doplnené do právnych textov (Podmienky, GDPR, Odstúpenie, Reklamácie).
+                        </p>
+                      </div>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-slate-500 leading-normal text-center px-2">
                     Po kliknutí na Spustiť vám automaticky pridáme 4 predvolené ukážkové výrobky (sviečky, workshopy), ktoré môžete ihneď upraviť alebo zmazať.
                   </p>
+
+                  {/* Ak chýbajú niektoré povinné polia, jasne to povieme */}
+                  {(!newStore.fakturaNazov.trim() || !newStore.fakturaAdresa.trim() || !newStore.fakturaIco.trim() || !newStore.contactEmail.trim()) && (
+                    <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-[11px] text-red-800">
+                      ⚠️ <b>Chýbajú fakturačné údaje.</b> Vráť sa na krok 4 a doplň obchodné meno, adresu, IČO a e-mail — bez nich sa obchod nedá vytvoriť.
+                    </div>
+                  )}
                 </div>
               )}
 
