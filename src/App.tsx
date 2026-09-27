@@ -947,6 +947,12 @@ export default function Vitrina() {
           taglineColor: d.taglineColor || "",
           taglineBg: d.taglineBg || "",
           description: d.description || "",
+          // Customizácia popisu obchodu (rovnako ako tagline)
+          descriptionFont: d.descriptionFont || "default",
+          descriptionSize: d.descriptionSize || "md",
+          descriptionColor: d.descriptionColor || "",
+          descriptionBg: d.descriptionBg || "",
+          descriptionHook: d.descriptionHook !== false,
           ownerId: d.ownerId || "",
           fakturaNazov: d.fakturaNazov || "",
           fakturaAdresa: d.fakturaAdresa || "",
@@ -2892,19 +2898,60 @@ export default function Vitrina() {
                   </div>
                 )}
 
-                {/* ── Popis obchodu (o nás) ── */}
-                {store.description && store.description.trim() && (
-                  <div
-                    className="rounded-2xl p-4 md:p-5 mb-6 text-sm text-left leading-relaxed shadow-xs font-medium border animate-in fade-in duration-300"
-                    style={{
-                      background: C.card,
-                      borderColor: C.line,
-                      color: C.ink
-                    }}
-                  >
-                    <p className="whitespace-pre-wrap">{store.description.trim()}</p>
-                  </div>
-                )}
+                {/* ── Popis obchodu (o nás) — s customizáciou fontu, farieb a hook ── */}
+                {store.description && store.description.trim() && (() => {
+                  const descFont = (store as any).descriptionFont || "default";
+                  const descSize = (store as any).descriptionSize || "md";
+                  const descColor = (store as any).descriptionColor;
+                  const descBg = (store as any).descriptionBg;
+                  const useHook = (store as any).descriptionHook !== false;
+                  const sz = TAGLINE_SIZES.find(x => x.key === descSize) || TAGLINE_SIZES[1];
+                  const isScriptFont = descFont === "script" || descFont === "handwrite";
+                  // Ak je zapnutý hook, prvý riadok bude výrazný headline
+                  const lines = store.description.trim().split("\n");
+                  const hookText = useHook && lines.length > 0 ? lines[0].trim() : "";
+                  const restText = useHook && lines.length > 1 ? lines.slice(1).join("\n").trim() : (useHook ? "" : store.description.trim());
+                  // Veľkosti pre body — mierne menšie než tagline
+                  const bodyFontSize = isScriptFont ? sz.scriptSize * 0.75 : sz.textSize * 0.75;
+                  const hookFontSize = isScriptFont ? sz.scriptSize * 1.15 : sz.textSize * 1.15;
+                  return (
+                    <div
+                      className="rounded-2xl p-5 md:p-6 mb-6 text-left leading-relaxed shadow-xs border animate-in fade-in duration-300"
+                      style={{
+                        background: descBg || C.card,
+                        borderColor: descBg || C.line,
+                        color: descColor || C.ink,
+                      }}
+                    >
+                      {hookText && (
+                        <p
+                          className="font-extrabold mb-3"
+                          style={{
+                            fontFamily: taglineFontFamily(descFont),
+                            fontSize: `${hookFontSize}rem`,
+                            lineHeight: sz.lineHeight,
+                            color: descColor || C.ink,
+                          }}
+                        >
+                          {hookText}
+                        </p>
+                      )}
+                      {restText && (
+                        <p
+                          className="whitespace-pre-wrap font-medium"
+                          style={{
+                            fontFamily: taglineFontFamily(descFont),
+                            fontSize: `${bodyFontSize}rem`,
+                            lineHeight: 1.6,
+                            color: descColor || C.ink,
+                          }}
+                        >
+                          {restText}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* ── DEMO nadpis pred produktmi ── */}
                 {showDemoHints && (
@@ -3872,11 +3919,121 @@ export default function Vitrina() {
                   const val = e.target.value.slice(0, 400);
                   updateStoreField("description", val);
                 }}
-                rows={3}
-                placeholder="Napr. Sme malá rodinná dielňa. Vyrábame ručne liate sviečky zo sójového vosku..."
+                rows={4}
+                placeholder={"Prvý riadok = hook (výrazný nadpis)\nEnter, potom bežný text popisu..."}
                 className="w-full rounded-xl px-3 py-2 text-sm border resize-none focus:outline-none focus:ring-1 focus:ring-[#7A8471]"
                 style={{ borderColor: C.line, background: C.bg }}
               />
+              <p className="text-[10px] mt-1" style={{ color: C.soft }}>
+                💡 <b>Prvý riadok</b> sa zobrazí ako výrazný <b>hook</b> (nadpis). Zvyšok textu ide pod ním normálne. Rozdeľ ich klávesou Enter.
+              </p>
+
+              {/* ── Vzhľad popisu — font, farby, veľkosť (iba ak je popis vyplnený) ── */}
+              {((store as any).description || "").trim() && (
+                <div className="mt-3 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
+                  <div className="text-[10px] uppercase font-bold tracking-wider mb-2" style={{ color: C.soft }}>Vzhľad popisu</div>
+
+                  <label className="flex items-center gap-2 mb-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={(store as any).descriptionHook !== false}
+                      onChange={(e) => updateStoreField("descriptionHook", e.target.checked)}
+                    />
+                    <span className="text-xs font-semibold text-slate-800">Zobraziť prvý riadok ako výrazný hook</span>
+                  </label>
+
+                  {/* Font výber */}
+                  <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Písmo</label>
+                  <div className="grid grid-cols-6 gap-1.5 mb-3">
+                    {TAGLINE_FONTS.map((f) => {
+                      const active = ((store as any).descriptionFont || "default") === f.key;
+                      return (
+                        <button
+                          key={f.key}
+                          type="button"
+                          onClick={() => updateStoreField("descriptionFont", f.key)}
+                          className="rounded-lg p-2 text-center transition-all"
+                          style={{
+                            border: `2px solid ${active ? C.accent : C.line}`,
+                            background: active ? C.accentSoft : "white",
+                          }}
+                          title={f.label}
+                        >
+                          <div className="text-lg font-bold" style={{ fontFamily: f.family, color: C.ink }}>{f.sample}</div>
+                          <div className="text-[8px] mt-0.5 leading-tight" style={{ color: C.soft }}>{f.label.split(" ")[0]}</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Veľkosť */}
+                  <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Veľkosť</label>
+                  <div className="grid grid-cols-4 gap-1.5 mb-3">
+                    {TAGLINE_SIZES.map((s) => {
+                      const active = ((store as any).descriptionSize || "md") === s.key;
+                      return (
+                        <button
+                          key={s.key}
+                          type="button"
+                          onClick={() => updateStoreField("descriptionSize", s.key)}
+                          className="rounded-lg py-2 text-center transition-all font-extrabold"
+                          style={{
+                            border: `2px solid ${active ? C.accent : C.line}`,
+                            background: active ? C.accentSoft : "white",
+                            fontSize: `${0.6 + s.textSize * 0.15}rem`,
+                            color: C.ink,
+                          }}
+                          title={s.label}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Farby */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Farba písma</label>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          type="color"
+                          value={(store as any).descriptionColor || "#0F172A"}
+                          onChange={(e) => updateStoreField("descriptionColor", e.target.value)}
+                          className="w-8 h-8 rounded-lg border cursor-pointer"
+                          style={{ borderColor: C.line }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateStoreField("descriptionColor", "")}
+                          className="text-[10px] text-slate-500 hover:underline"
+                        >
+                          Predvolené
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-semibold block mb-1" style={{ color: C.soft }}>Farba pozadia</label>
+                      <div className="flex gap-1 items-center">
+                        <input
+                          type="color"
+                          value={(store as any).descriptionBg || "#FFFFFF"}
+                          onChange={(e) => updateStoreField("descriptionBg", e.target.value)}
+                          className="w-8 h-8 rounded-lg border cursor-pointer"
+                          style={{ borderColor: C.line }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => updateStoreField("descriptionBg", "")}
+                          className="text-[10px] text-slate-500 hover:underline"
+                        >
+                          Predvolené
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* ── DOPRAVA ─────────────────────────────────────────── */}
               <div className="mt-5 p-3 rounded-xl border" style={{ borderColor: C.line, background: C.bg }}>
