@@ -1738,7 +1738,16 @@ export default function Vitrina() {
           const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
           const amount = total.toFixed(2);
           const desc = encodeURIComponent(`Objednavka ${store.name}`);
-          setPaymeUrl(`https://payme.sk?v=1&iban=${cleanIban}&amount=${amount}&currency=EUR&vs=${orderVs}&desc=${desc}`);
+          const pi = orderVs ? `/VS${String(orderVs).replace(/\D/g, '').slice(0, 10)}` : '';
+        const params = new URLSearchParams({
+          IBAN: cleanIban,
+          AM: amount.toFixed(2),
+          CC: 'EUR',
+          CN: store.name || 'VITRINA',
+          ...(pi ? { PI: pi } : {}),
+          ...(desc ? { MSG: desc } : {}),
+        });
+        setPaymeUrl(`https://payme.sk/2/e/PME?${params.toString()}`);
         }
       }
     })();
