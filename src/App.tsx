@@ -1971,7 +1971,11 @@ export default function Vitrina() {
     return <LandingPage onNavigate={navigateTo} />;
   }
 
-  if (authLoading) {
+  // Loading screen ukazujeme IBA ak sme na admin/app/vytvorit — verejné stránky
+  // obchodu netreba blokovať kým Firebase auth overí, či sme prihlásení.
+  // Predtým to spôsobovalo dlhé „Načítavam Vitrínu..." v Safari/FB in-app browseri
+  // kde ITP blokuje auth cookies.
+  if (authLoading && (currentPath === "/app" || currentPath === "/vytvorit" || currentPath === "/admin-platformy")) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center animate-in fade-in duration-300" style={{ background: C.bg }}>
         <div className="flex flex-col items-center gap-4">
