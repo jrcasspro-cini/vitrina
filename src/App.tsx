@@ -793,6 +793,7 @@ export default function Vitrina() {
   const [copiedIban, setCopiedIban] = useState(false);
   const [copiedVs, setCopiedVs] = useState(false);
   const [copiedAmount, setCopiedAmount] = useState(false);
+  const [copiedBeneficiary, setCopiedBeneficiary] = useState(false);
   const [handleManuallyEdited, setHandleManuallyEdited] = useState(false);
 
   // VS State for payment tracking
@@ -1167,6 +1168,9 @@ export default function Vitrina() {
             currencyCode: "EUR",
             variableSymbol: paymentVs,
             paymentNote: `Vitrina ${nazovPlanu}`,
+            beneficiary: {
+              name: (company.nazov && !company.nazov.startsWith("(nedoplnené")) ? company.nazov : "Vitrina",
+            },
           }],
         });
         if (!cancelled) setSubscriptionQr(encoded);
@@ -1182,7 +1186,7 @@ export default function Vitrina() {
       }
     })();
     return () => { cancelled = true; };
-  }, [company.iban, store.plan, paymentVs]);
+  }, [company.iban, company.nazov, store.plan, paymentVs]);
 
   const shouldShowTrialModal =
     isOwner &&
@@ -1733,6 +1737,7 @@ export default function Vitrina() {
             storeHandle: selectedStoreHandle,
             storeContactEmail: (store as any).contactEmail || "",
             storeIban: store.iban ? formatIban(store.iban) : "",
+            storeBeneficiary: ((store as any).fakturaNazov || store.name || "").trim(),
             variabilnySymbol: orderVs,
             items: orderItemsData,
             subtotal,
@@ -1779,6 +1784,10 @@ export default function Vitrina() {
         const cleanIban = store.iban.replace(/\s+/g, "").toUpperCase();
         // @ts-ignore — bysquare sa nainštaluje na build-e (v package.json)
         const bySquare = await import("bysquare");
+        // Meno príjemcu pre banku: ak má predajca vyplnené fakturačné údaje
+        // (fakturaNazov), použijeme ich — inak padneme na názov obchodu.
+        // Banka to zobrazí zákazníkovi pri potvrdzovaní platby.
+        const beneficiaryName = ((store as any).fakturaNazov || store.name || "").trim().slice(0, 70);
         const encoded = await bySquare.encode({
           invoiceId: orderVs,
           payments: [{
@@ -1788,6 +1797,7 @@ export default function Vitrina() {
             currencyCode: "EUR",
             variableSymbol: orderVs,
             paymentNote: `Objednavka ${store.name}`.slice(0, 140),
+            beneficiary: beneficiaryName ? { name: beneficiaryName } : undefined,
           }],
         });
         if (!cancelled) setPaymeUrl(encoded);
@@ -1803,7 +1813,7 @@ export default function Vitrina() {
       }
     })();
     return () => { cancelled = true; };
-  }, [store.iban, total, orderVs, store.name]);
+  }, [store.iban, total, orderVs, store.name, (store as any).fakturaNazov]);
 
   // Onboarding handle validation helpers
   const sanitizedHandle = useMemo(() => {
@@ -3458,6 +3468,34 @@ export default function Vitrina() {
                     </div>
 
                     <div className="w-full p-4 flex flex-col gap-1.5 text-left text-xs">
+                      {/* Meno príjemcu — banky to vyžadujú pri ručnom zadávaní.
+                          Berieme z fakturačných údajov predajcu (povinné v kroku 4
+                          wizardu), fallback na názov obchodu. */}
+                      {(() => {
+                        const beneficiaryName = ((store as any).fakturaNazov || store.name || "").trim();
+                        if (!beneficiaryName) return null;
+                        return (
+                          <div>
+                            <span className="font-semibold block mb-1" style={{ color: C.soft }}>Meno príjemcu:</span>
+                            <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border text-xs" style={{ borderColor: C.line }}>
+                              <span className="truncate font-semibold">{beneficiaryName}</span>
+                              <button
+                                onClick={() => {
+                                  if (navigator.clipboard) {
+                                    navigator.clipboard.writeText(beneficiaryName);
+                                    setCopiedBeneficiary(true);
+                                    setTimeout(() => setCopiedBeneficiary(false), 2000);
+                                  }
+                                }}
+                                className="shrink-0 ml-1.5 flex items-center gap-1 font-sans text-[10px] font-bold uppercase px-2 py-1 rounded-lg transition-colors hover:bg-[#EDF0E8]"
+                                style={{ color: C.accentText }}
+                              >
+                                {copiedBeneficiary ? "✓ Hotovo" : <>⧉ Kopírovať</>}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       <div>
                         <span className="font-semibold block mb-1" style={{ color: C.soft }}>IBAN príjemcu:</span>
                         <div className="flex items-center justify-between bg-white px-2.5 py-1.5 rounded-xl border text-xs font-mono" style={{ borderColor: C.line }}>

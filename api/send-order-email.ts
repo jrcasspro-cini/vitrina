@@ -32,6 +32,7 @@ interface OrderPayload {
   storeHandle: string;
   storeContactEmail?: string;
   storeIban?: string;
+  storeBeneficiary?: string;
   variabilnySymbol: string;
   items: OrderItem[];
   subtotal: number;
@@ -91,6 +92,7 @@ function customerEmailHtml(o: OrderPayload): string {
       ${o.storeIban ? `
       <div style="margin-top:24px;padding:16px 20px;background:#fefce8;border:1px solid #fde68a;border-radius:12px;">
         <p style="margin:0 0 8px 0;font-size:13px;color:#78350f;font-weight:700;">💳 Platobné údaje</p>
+        ${o.storeBeneficiary ? `<p style="margin:2px 0;font-size:13px;color:#78350f;"><strong>Príjemca:</strong> ${escapeHtml(o.storeBeneficiary)}</p>` : ""}
         <p style="margin:2px 0;font-size:13px;color:#78350f;"><strong>IBAN:</strong> <span style="font-family:monospace;">${escapeHtml(o.storeIban)}</span></p>
         <p style="margin:2px 0;font-size:13px;color:#78350f;"><strong>Variabilný symbol:</strong> <span style="font-family:monospace;">${escapeHtml(o.variabilnySymbol)}</span></p>
         <p style="margin:2px 0;font-size:13px;color:#78350f;"><strong>Suma:</strong> ${fmtEur(o.total)}</p>
